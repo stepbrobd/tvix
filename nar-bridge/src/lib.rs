@@ -43,7 +43,16 @@ impl AppState {
 }
 
 pub fn gen_router(priority: u64) -> Router<AppState> {
-    Router::new()
+    #[cfg(feature = "otlp")]
+    let metrics_meter = opentelemetry::global::meter("nar-bridge");
+
+    #[cfg(feature = "otlp")]
+    let metrics_layer = tower_otel_http_metrics::HTTPMetricsLayerBuilder::new()
+        .with_meter(metrics_meter)
+        .build()
+        .unwrap();
+
+    let router = Router::new()
         .route("/", get(root))
         .route("/nar/:nar_str", get(four_o_four))
         .route("/nar/:nar_str", head(nar::head_root_nodes))
@@ -53,7 +62,12 @@ pub fn gen_router(priority: u64) -> Router<AppState> {
         .route("/:narinfo_str", get(narinfo::get))
         .route("/:narinfo_str", head(narinfo::head))
         .route("/:narinfo_str", put(narinfo::put))
-        .route("/nix-cache-info", get(move || nix_cache_info(priority)))
+        .route("/nix-cache-info", get(move || nix_cache_info(priority)));
+
+    #[cfg(feature = "otlp")]
+    return router.layer(metrics_layer);
+    #[cfg(not(feature = "otlp"))]
+    return router;
 }
 
 async fn root() -> &'static str {

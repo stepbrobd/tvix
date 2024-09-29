@@ -6870,6 +6870,10 @@ rec {
             features = [ "async" ];
           }
           {
+            name = "opentelemetry";
+            packageId = "opentelemetry";
+          }
+          {
             name = "parking_lot";
             packageId = "parking_lot";
           }
@@ -6913,6 +6917,11 @@ rec {
             name = "tower-http";
             packageId = "tower-http";
             features = [ "trace" ];
+          }
+          {
+            name = "tower-otel-http-metrics";
+            packageId = "tower-otel-http-metrics";
+            optional = true;
           }
           {
             name = "tracing";
@@ -6962,10 +6971,11 @@ rec {
         ];
         features = {
           "default" = [ "otlp" ];
-          "otlp" = [ "tvix-tracing/otlp" ];
+          "otlp" = [ "tvix-tracing/otlp" "tower-otel-http-metrics" ];
+          "tower-otel-http-metrics" = [ "dep:tower-otel-http-metrics" ];
           "xp-store-composition-cli" = [ "tvix-store/xp-composition-cli" ];
         };
-        resolvedDefaultFeatures = [ "default" "otlp" "xp-store-composition-cli" ];
+        resolvedDefaultFeatures = [ "default" "otlp" "tower-otel-http-metrics" "xp-store-composition-cli" ];
       };
       "nibble_vec" = rec {
         crateName = "nibble_vec";
@@ -14336,6 +14346,66 @@ rec {
           "Tower Maintainers <team@tower-rs.com>"
         ];
 
+      };
+      "tower-otel-http-metrics" = rec {
+        crateName = "tower-otel-http-metrics";
+        version = "0.8.0";
+        edition = "2021";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/francoposa/tower-otel-http-metrics";
+          rev = "2023a58e7287a691872f8e75f433179d29d1b439";
+          sha256 = "1jiclkybx0fbgd6x2xfhzbq1xm3wba3vbixshqjy765c86jjffcg";
+        };
+        libName = "tower_otel_http_metrics";
+        dependencies = [
+          {
+            name = "futures-core";
+            packageId = "futures-core";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "http";
+            packageId = "http";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
+          }
+          {
+            name = "opentelemetry";
+            packageId = "opentelemetry";
+            usesDefaultFeatures = false;
+            features = [ "metrics" ];
+          }
+          {
+            name = "pin-project-lite";
+            packageId = "pin-project-lite";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "tower";
+            packageId = "tower 0.5.1";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "tower-layer";
+            packageId = "tower-layer";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "tower-service";
+            packageId = "tower-service";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "axum" = [ "dep:axum" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
       };
       "tower-service" = rec {
         crateName = "tower-service";
