@@ -2,8 +2,7 @@ use crate::nixbase32;
 use data_encoding::{DecodeError, BASE64};
 use serde::{Deserialize, Serialize};
 use std::{
-    fmt::{self, Display},
-    ops::Deref,
+    fmt,
     path::Path,
     str::{self, FromStr},
 };
@@ -51,21 +50,40 @@ pub enum Error {
 ///
 /// A [StorePath] does not encode any additional subpath "inside" the store
 /// path.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct StorePath<S>
-where
-    S: std::cmp::Eq + std::cmp::PartialEq,
-{
+#[derive(Clone, Debug)]
+pub struct StorePath<S> {
     digest: [u8; DIGEST_SIZE],
     name: S,
 }
+
+impl<S> PartialEq for StorePath<S>
+where
+    S: AsRef<str>,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.digest() == other.digest() && self.name().as_ref() == other.name().as_ref()
+    }
+}
+
+impl<S> Eq for StorePath<S> where S: AsRef<str> {}
+
+impl<S> std::hash::Hash for StorePath<S>
+where
+    S: AsRef<str>,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write(&self.digest);
+        state.write(self.name.as_ref().as_bytes());
+    }
+}
+
 /// Like [StorePath], but without a heap allocation for the name.
 /// Used by [StorePath] for parsing.
 pub type StorePathRef<'a> = StorePath<&'a str>;
 
 impl<S> StorePath<S>
 where
-    S: std::cmp::Eq + Deref<Target = str>,
+    S: AsRef<str>,
 {
     pub fn digest(&self) -> &[u8; DIGEST_SIZE] {
         &self.digest
@@ -78,14 +96,14 @@ where
     pub fn as_ref(&self) -> StorePathRef<'_> {
         StorePathRef {
             digest: self.digest,
-            name: &self.name,
+            name: self.name.as_ref(),
         }
     }
 
     pub fn to_owned(&self) -> StorePath<String> {
         StorePath {
             digest: self.digest,
-            name: self.name.to_string(),
+            name: self.name.as_ref().to_string(),
         }
     }
 
@@ -183,17 +201,14 @@ where
     /// Returns an absolute store path string.
     /// That is just the string representation, prefixed with the store prefix
     /// ([STORE_DIR_WITH_SLASH]),
-    pub fn to_absolute_path(&self) -> String
-    where
-        S: Display,
-    {
+    pub fn to_absolute_path(&self) -> String {
         format!("{}{}", STORE_DIR_WITH_SLASH, self)
     }
 }
 
 impl<S> PartialOrd for StorePath<S>
 where
-    S: std::cmp::PartialEq + std::cmp::Eq,
+    S: AsRef<str>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
@@ -204,7 +219,7 @@ where
 /// of the nixbase32-encoded string.
 impl<S> Ord for StorePath<S>
 where
-    S: std::cmp::PartialEq + std::cmp::Eq,
+    S: AsRef<str>,
 {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.digest.iter().rev().cmp(other.digest.iter().rev())
@@ -223,7 +238,7 @@ impl<'a, 'b: 'a> FromStr for StorePath<String> {
 
 impl<'a, 'de: 'a, S> Deserialize<'de> for StorePath<S>
 where
-    S: std::cmp::Eq + Deref<Target = str> + From<&'a str>,
+    S: AsRef<str> + From<&'a str>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -245,7 +260,7 @@ where
 
 impl<S> Serialize for StorePath<S>
 where
-    S: std::cmp::Eq + Deref<Target = str> + Display,
+    S: AsRef<str>,
 {
     fn serialize<SR>(&self, serializer: SR) -> Result<SR::Ok, SR::Error>
     where
@@ -305,13 +320,18 @@ pub(crate) fn validate_name(s: &(impl AsRef<[u8]> + ?Sized)) -> Result<&str, Err
 
 impl<S> fmt::Display for StorePath<S>
 where
-    S: fmt::Display + std::cmp::Eq,
+    S: AsRef<str>,
 {
     /// The string representation of a store path starts with a digest (20
     /// bytes), [crate::nixbase32]-encoded, followed by a `-`,
     /// and ends with the name.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}-{}", nixbase32::encode(&self.digest), self.name)
+        write!(
+            f,
+            "{}-{}",
+            nixbase32::encode(&self.digest),
+            self.name.as_ref()
+        )
     }
 }
 

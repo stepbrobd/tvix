@@ -36,14 +36,14 @@ pub(crate) trait AtermWriteable {
 
 impl<S> AtermWriteable for StorePath<S>
 where
-    S: std::cmp::Eq + std::ops::Deref<Target = str>,
+    S: AsRef<str>,
 {
     fn aterm_write(&self, writer: &mut impl Write) -> std::io::Result<()> {
         write_char(writer, QUOTE)?;
         writer.write_all(STORE_DIR_WITH_SLASH.as_bytes())?;
         writer.write_all(nixbase32::encode(self.digest()).as_bytes())?;
         write_char(writer, '-')?;
-        writer.write_all(self.name().as_bytes())?;
+        writer.write_all(self.name().as_ref().as_bytes())?;
         write_char(writer, QUOTE)?;
         Ok(())
     }

@@ -50,7 +50,7 @@ pub fn build_text_path<'a, S, SP, I, C>(
 ) -> Result<StorePath<SP>, BuildStorePathError>
 where
     S: AsRef<str>,
-    SP: std::cmp::Eq + std::ops::Deref<Target = str> + std::convert::From<&'a str>,
+    SP: AsRef<str> + std::convert::From<&'a str>,
     I: IntoIterator<Item = S>,
     C: AsRef<[u8]>,
 {
@@ -69,7 +69,7 @@ pub fn build_ca_path<'a, S, SP, I>(
 ) -> Result<StorePath<SP>, BuildStorePathError>
 where
     S: AsRef<str>,
-    SP: std::cmp::Eq + std::ops::Deref<Target = str> + std::convert::From<&'a str>,
+    SP: AsRef<str> + std::convert::From<&'a str>,
     I: IntoIterator<Item = S>,
 {
     // self references are only allowed for CAHash::Nar(NixHash::Sha256(_)).
@@ -129,7 +129,7 @@ pub fn build_output_path<'a, SP>(
     output_path_name: &'a str,
 ) -> Result<StorePath<SP>, Error>
 where
-    SP: std::cmp::Eq + std::ops::Deref<Target = str> + std::convert::From<&'a str>,
+    SP: AsRef<str> + std::convert::From<&'a str>,
 {
     build_store_path_from_fingerprint_parts(
         &(String::from("output:") + output_name),
@@ -154,7 +154,7 @@ fn build_store_path_from_fingerprint_parts<'a, SP>(
     name: &'a str,
 ) -> Result<StorePath<SP>, Error>
 where
-    SP: std::cmp::Eq + std::ops::Deref<Target = str> + std::convert::From<&'a str>,
+    SP: AsRef<str> + std::convert::From<&'a str>,
 {
     let fingerprint = format!(
         "{ty}:sha256:{}:{STORE_DIR}:{name}",

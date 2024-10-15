@@ -1,5 +1,3 @@
-use std::{fmt::Display, ops::Deref};
-
 use nix_compat_derive::{NixDeserialize, NixSerialize};
 
 use crate::{
@@ -130,7 +128,7 @@ impl NixDeserialize for StorePath<String> {
 // Custom implementation since Display does not use absolute paths.
 impl<S> NixSerialize for StorePath<S>
 where
-    S: std::cmp::Eq + Deref<Target = str> + Display + Sync,
+    S: AsRef<str> + Sync,
 {
     async fn serialize<W>(&self, writer: &mut W) -> Result<(), W::Error>
     where

@@ -203,11 +203,7 @@ fn string_to_store_path<'a, 'i, S>(
     path_str: &'a str,
 ) -> Result<StorePath<S>, nom::Err<NomError<&'i [u8]>>>
 where
-    S: std::cmp::Eq
-        + std::fmt::Display
-        + std::clone::Clone
-        + std::ops::Deref<Target = str>
-        + std::convert::From<&'a str>,
+    S: std::clone::Clone + AsRef<str> + std::convert::From<&'a str>,
 {
     let path =
         StorePath::from_absolute_path(path_str.as_bytes()).map_err(|e: store_path::Error| {
