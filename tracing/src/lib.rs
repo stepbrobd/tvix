@@ -2,7 +2,9 @@ use indicatif::ProgressStyle;
 use std::sync::LazyLock;
 use tokio::sync::{mpsc, oneshot};
 use tracing::Level;
-use tracing_indicatif::{filter::IndicatifFilter, writer, IndicatifLayer, IndicatifWriter};
+use tracing_indicatif::{
+    filter::IndicatifFilter, util::FilteredFormatFields, writer, IndicatifLayer, IndicatifWriter,
+};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
 
 #[cfg(feature = "otlp")]
@@ -205,6 +207,10 @@ impl TracingBuilder {
             )
             .with(
                 tracing_subscriber::fmt::Layer::new()
+                    .fmt_fields(FilteredFormatFields::new(
+                        tracing_subscriber::fmt::format::DefaultFields::new(),
+                        |field| field.name() != "indicatif.pb_show",
+                    ))
                     .with_writer(indicatif_layer.get_stderr_writer())
                     .compact(),
             )
