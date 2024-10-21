@@ -455,15 +455,6 @@ impl From<String> for NixString {
     }
 }
 
-impl<T> From<(T, Option<Box<NixContext>>)> for NixString
-where
-    NixString: From<T>,
-{
-    fn from((s, ctx): (T, Option<Box<NixContext>>)) -> Self {
-        Self::new(NixString::from(s).as_ref(), ctx)
-    }
-}
-
 impl From<Box<str>> for NixString {
     fn from(s: Box<str>) -> Self {
         s.into_boxed_bytes().into()

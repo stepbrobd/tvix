@@ -1498,17 +1498,7 @@ mod pure_builtins {
         let mut buf: Vec<u8> = vec![];
         let context = to_xml::value_to_xml(&mut buf, &value)?;
 
-        Ok((
-            buf,
-            // FUTUREWORK: We have a distinction between an empty context, and
-            // no context at all. Fix this.
-            if !context.is_empty() {
-                Some(Box::new(context))
-            } else {
-                None
-            },
-        )
-            .into())
+        Ok(NixString::new_context_from(context, buf).into())
     }
 
     #[builtin("trace")]
