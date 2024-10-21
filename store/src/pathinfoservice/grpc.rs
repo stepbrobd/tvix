@@ -119,7 +119,7 @@ where
     <T::ResponseBody as tonic::codegen::Body>::Error: Into<tonic::codegen::StdError> + Send,
     T::Future: Send,
 {
-    #[instrument(level = "trace", skip_all, fields(root_node = ?root_node, indicatif.pb_show=1))]
+    #[instrument(level = "trace", skip_all, fields(root_node = ?root_node, indicatif.pb_show=tracing::field::Empty))]
     async fn calculate_nar(&self, root_node: &Node) -> Result<(u64, [u8; 32]), Error> {
         let span = Span::current();
         span.pb_set_message("Waiting for NAR calculation");

@@ -196,7 +196,7 @@ impl<BS, DS, PS, NS> Fetcher<BS, DS, PS, NS> {
 
     /// Constructs a HTTP request to the passed URL, and returns a AsyncReadBuf to it.
     /// In case the URI uses the file:// scheme, use tokio::fs to open it.
-    #[instrument(skip_all, fields(url, indicatif.pb_show=1), err)]
+    #[instrument(skip_all, fields(url, indicatif.pb_show=tracing::field::Empty), err)]
     async fn download(
         &self,
         url: Url,

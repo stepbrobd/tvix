@@ -229,7 +229,7 @@ impl InterpretResult {
 /// Interprets the given code snippet, printing out warnings, errors
 /// and the result itself. The return value indicates whether
 /// evaluation succeeded.
-#[instrument(skip_all, fields(indicatif.pb_show=1))]
+#[instrument(skip_all, fields(indicatif.pb_show=tracing::field::Empty))]
 #[allow(clippy::too_many_arguments)]
 pub fn interpret(
     tvix_store_io: Rc<TvixStoreIO>,
