@@ -120,9 +120,10 @@ passes etc.
 In the past, Tvix did not track string contexts in its evaluator at all, see
 the historical section for more information about that.
 
-Tvix tracks string contexts in every `NixString` structure via a
-`HashSet<BuildReference>` and offers an API to combine the references while
-keeping the exact internal structure of that data private.
+Tvix tracks string contexts in every `NixString` structure and offers an API to
+do operations on the context (inherit/clear/…), as well as iterators over
+(different types of) context elements, while keeping the exact internal
+structure of that data private.
 
 ## Historical attempt: Persistent reference tracking
 
