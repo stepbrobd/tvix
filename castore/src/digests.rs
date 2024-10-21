@@ -2,8 +2,10 @@ use bytes::Bytes;
 use data_encoding::BASE64;
 use thiserror::Error;
 
+pub const B3_LEN: usize = blake3::OUT_LEN;
+
 #[derive(PartialEq, Eq, Hash)]
-pub struct B3Digest(Bytes);
+pub struct B3Digest([u8; B3_LEN]);
 
 // TODO: allow converting these errors to crate::Error
 #[derive(Error, Debug, PartialEq)]
@@ -11,8 +13,6 @@ pub enum Error {
     #[error("invalid digest length: {0}")]
     InvalidDigestLen(usize),
 }
-
-pub const B3_LEN: usize = 32;
 
 impl B3Digest {
     pub fn as_slice(&self) -> &[u8] {
@@ -22,59 +22,60 @@ impl B3Digest {
 
 impl From<B3Digest> for bytes::Bytes {
     fn from(val: B3Digest) -> Self {
-        val.0
+        Bytes::copy_from_slice(&val.0)
     }
 }
 
 impl From<blake3::Hash> for B3Digest {
     fn from(value: blake3::Hash) -> Self {
-        Self(Bytes::copy_from_slice(value.as_bytes()))
+        Self(*value.as_bytes())
     }
 }
 impl From<digest::Output<blake3::Hasher>> for B3Digest {
     fn from(value: digest::Output<blake3::Hasher>) -> Self {
-        let v = Into::<[u8; B3_LEN]>::into(value);
-        Self(Bytes::copy_from_slice(&v))
+        Self(value.into())
     }
 }
 
-impl TryFrom<Vec<u8>> for B3Digest {
+impl TryFrom<&[u8]> for B3Digest {
     type Error = Error;
 
-    // constructs a [B3Digest] from a [Vec<u8>].
+    // constructs a [B3Digest] from a &[u8].
     // Returns an error if the digest has the wrong length.
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.len() != B3_LEN {
-            Err(Error::InvalidDigestLen(value.len()))
-        } else {
-            Ok(Self(value.into()))
-        }
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        Ok(Self(
+            value
+                .try_into()
+                .map_err(|_e| Error::InvalidDigestLen(value.len()))?,
+        ))
     }
 }
 
 impl TryFrom<bytes::Bytes> for B3Digest {
     type Error = Error;
 
-    // constructs a [B3Digest] from a [bytes::Bytes].
-    // Returns an error if the digest has the wrong length.
     fn try_from(value: bytes::Bytes) -> Result<Self, Self::Error> {
-        if value.len() != B3_LEN {
-            Err(Error::InvalidDigestLen(value.len()))
-        } else {
-            Ok(Self(value))
-        }
+        value[..].try_into()
+    }
+}
+
+impl TryFrom<Vec<u8>> for B3Digest {
+    type Error = Error;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        value[..].try_into()
     }
 }
 
 impl From<&[u8; B3_LEN]> for B3Digest {
     fn from(value: &[u8; B3_LEN]) -> Self {
-        Self(value.to_vec().into())
+        Self(*value)
     }
 }
 
 impl From<B3Digest> for [u8; B3_LEN] {
     fn from(value: B3Digest) -> Self {
-        value.0.to_vec().try_into().unwrap()
+        value.0
     }
 }
 
