@@ -346,7 +346,7 @@ async fn run_cli(
                     }.instrument(info_span!("import path", "indicatif.pb_show" = tracing::field::Empty))
                 })
                 .buffer_unordered(50)
-                .try_collect()
+                .try_collect::<()>()
                 .await?;
         }
         Commands::Copy {
