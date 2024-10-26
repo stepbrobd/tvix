@@ -155,6 +155,11 @@ This requires some more designing. Some goals:
  - (more granular) control while a build is happening
  - expose more telemetry and logs
 
+ - Add pre-flight checks in the OCI builder:
+   - ensure `fusermount` suid binary exists
+   - ensure `allow_other` is set
+   - ensure `runc` exists in `$PATH`
+
 
 ### Store composition
  - Combinators: list-by-priority, first-come-first-serve, cache
