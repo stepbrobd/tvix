@@ -152,8 +152,6 @@ there are ruled out, adding other types of builders might be interesting.
 Long-term, we want to extend traits and gRPC protocol.
 This requires some more designing. Some goals:
 
- - use stricter castore types (and maybe stricter build types) instead of
-   proto types, add conversion code where necessary
  - (more granular) control while a build is happening
  - expose more telemetry and logs
 
