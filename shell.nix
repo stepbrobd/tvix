@@ -48,12 +48,13 @@ pkgs.mkShell {
     pkgs.mdbook-plantuml
     pkgs.nix_2_3 # b/313
     pkgs.pkg-config
-    pkgs.runc
     pkgs.rust-analyzer
     pkgs.rustc
     pkgs.rustfmt
     pkgs.plantuml
     pkgs.protobuf
+  ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+    pkgs.runc
   ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
     # We need these two dependencies in the ambient environment to be able to
     # `cargo build` on MacOS.
@@ -67,7 +68,7 @@ pkgs.mkShell {
   # should also benchmark with a more static nixpkgs checkout, so nixpkgs
   # refactorings are not observed as eval perf changes.
   shellHook = ''
-    export TVIX_BUILD_SANDBOX_SHELL=${pkgs.busybox-sandbox-shell}/bin/busybox
+    export TVIX_BUILD_SANDBOX_SHELL=${if pkgs.stdenv.isLinux then pkgs.busybox-sandbox-shell + "/bin/busybox" else "/bin/sh"}
     export TVIX_BENCH_NIX_PATH=nixpkgs=${pkgs.path}
   '';
 }
