@@ -35,6 +35,7 @@ pkgs.mkShell {
     pkgs.cargo
     pkgs.cargo-machete
     pkgs.cargo-expand
+    pkgs.cargo-flamegraph
     pkgs.clippy
     pkgs.d2
     pkgs.evans
