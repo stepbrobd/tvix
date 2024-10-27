@@ -366,7 +366,7 @@ impl Scope {
                 // lifetime, and emit a warning otherwise (unless the
                 // user explicitly chose to ignore it by prefixing the
                 // identifier with `_`)
-                if local.is_used() {
+                if !local.is_used() {
                     unused_spans.extend(local.span);
                 }
 
