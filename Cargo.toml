@@ -29,6 +29,7 @@ members = [
   "nix-compat",
   "nix-compat-derive",
   "nix-compat-derive-tests",
+  "nix-daemon",
   "serde",
   "store",
   "tracing",
