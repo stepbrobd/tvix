@@ -4,7 +4,7 @@ use tokio_listener::Listener;
 use tokio_listener::SystemOptions;
 use tokio_listener::UserOptions;
 use tonic::{self, transport::Server};
-use tracing::{info, Level};
+use tracing::info;
 use tvix_build::{
     buildservice,
     proto::{build_service_server::BuildServiceServer, GRPCBuildServiceWrapper},
@@ -25,13 +25,6 @@ static GLOBAL: MiMalloc = MiMalloc;
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    /// A global log level to use when printing logs.
-    /// It's also possible to set `RUST_LOG` according to
-    /// `tracing_subscriber::filter::EnvFilter`, which will always have
-    /// priority.
-    #[arg(long, default_value_t=Level::INFO)]
-    log_level: Level,
-
     #[command(subcommand)]
     command: Commands,
 }
@@ -57,9 +50,7 @@ enum Commands {
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
 
-    let _ = tvix_tracing::TracingBuilder::default()
-        .level(cli.log_level)
-        .enable_progressbar();
+    let _ = tvix_tracing::TracingBuilder::default().enable_progressbar();
 
     match cli.command {
         Commands::Daemon {
