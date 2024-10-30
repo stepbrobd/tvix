@@ -73,8 +73,7 @@ async fn extract_fetch_args(
     let sha256 = match sha256_str {
         Some(sha256_str) => {
             let nixhash = nixhash::from_str(&sha256_str, Some("sha256"))
-                // TODO: DerivationError::InvalidOutputHash should be moved to ErrorKind::InvalidHash and used here instead
-                .map_err(|e| ErrorKind::TvixError(Rc::new(e)))?;
+                .map_err(|e| ErrorKind::InvalidHash(e.to_string()))?;
 
             Some(nixhash.digest_as_bytes().try_into().expect("is sha256"))
         }

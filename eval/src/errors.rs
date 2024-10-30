@@ -236,6 +236,9 @@ to a missing value in the attribute set(s) included via `with`."#
     #[error("Invalid UTF-8 in string")]
     Utf8,
 
+    #[error("Invalid hash: {0}")]
+    InvalidHash(String),
+
     /// Variant for errors that bubble up to eval from other Tvix
     /// components.
     #[error("{0}")]
@@ -676,6 +679,7 @@ impl Error {
             | ErrorKind::NotImplemented(_)
             | ErrorKind::WithContext { .. }
             | ErrorKind::UnknownHashType(_)
+            | ErrorKind::InvalidHash(_)
             | ErrorKind::CatchableError(_) => return None,
         };
 
@@ -722,6 +726,7 @@ impl Error {
             ErrorKind::Utf8 => "E038",
             ErrorKind::UnknownHashType(_) => "E039",
             ErrorKind::UnexpectedArgumentBuiltin { .. } => "E040",
+            ErrorKind::InvalidHash(_) => "E041",
 
             // Special error code for errors from other Tvix
             // components. We may want to introduce a code namespacing
