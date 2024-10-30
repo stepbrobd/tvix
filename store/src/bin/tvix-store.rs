@@ -56,13 +56,6 @@ struct Cli {
     #[arg(long, default_missing_value = "true", default_value = "true", num_args(0..=1), require_equals(true), action(clap::ArgAction::Set))]
     otlp: bool,
 
-    /// A global log level to use when printing logs.
-    /// It's also possible to set `RUST_LOG` according to
-    /// `tracing_subscriber::filter::EnvFilter`, which will always have
-    /// priority.
-    #[arg(long, default_value_t=Level::INFO)]
-    log_level: Level,
-
     #[command(subcommand)]
     command: Commands,
 }
@@ -522,7 +515,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let tracing_handle = {
         let mut builder = tvix_tracing::TracingBuilder::default();
-        builder = builder.level(cli.log_level).enable_progressbar();
+        builder = builder.enable_progressbar();
         #[cfg(feature = "otlp")]
         {
             if cli.otlp {
