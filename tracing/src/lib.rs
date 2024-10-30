@@ -1,7 +1,7 @@
 use indicatif::ProgressStyle;
 use std::sync::LazyLock;
 use tokio::sync::{mpsc, oneshot};
-use tracing::Level;
+use tracing::level_filters::LevelFilter;
 use tracing_indicatif::{
     filter::IndicatifFilter, util::FilteredFormatFields, writer, IndicatifLayer, IndicatifWriter,
 };
@@ -145,34 +145,15 @@ impl TracingHandle {
     }
 }
 
+#[derive(Default)]
 pub struct TracingBuilder {
-    level: Level,
     progess_bar: bool,
 
     #[cfg(feature = "otlp")]
     service_name: Option<&'static str>,
 }
 
-impl Default for TracingBuilder {
-    fn default() -> Self {
-        TracingBuilder {
-            level: Level::INFO,
-            progess_bar: false,
-
-            #[cfg(feature = "otlp")]
-            service_name: None,
-        }
-    }
-}
-
 impl TracingBuilder {
-    /// Set the log level for all layers: stderr und otlp if configured. RUST_LOG still has a
-    /// higher priority over this value.
-    pub fn level(mut self, level: Level) -> TracingBuilder {
-        self.level = level;
-        self
-    }
-
     #[cfg(feature = "otlp")]
     /// Enable otlp by setting a custom service_name
     pub fn enable_otlp(mut self, service_name: &'static str) -> TracingBuilder {
@@ -187,8 +168,7 @@ impl TracingBuilder {
     }
 
     /// This will setup tracing based on the configuration passed in.
-    /// It will setup a stderr writer output layer and a EnvFilter based on the provided log
-    /// level (RUST_LOG still has a higher priority over the configured value).
+    /// It will setup a stderr writer output layer and configure EnvFilter to honor RUST_LOG.
     /// The EnvFilter will be applied to all configured layers, also otlp.
     ///
     /// It will also configure otlp if the feature is enabled and a service_name was provided. It
@@ -201,7 +181,7 @@ impl TracingBuilder {
         let subscriber = tracing_subscriber::registry()
             .with(
                 EnvFilter::builder()
-                    .with_default_directive(self.level.into())
+                    .with_default_directive(LevelFilter::INFO.into())
                     .from_env()
                     .expect("invalid RUST_LOG"),
             )
