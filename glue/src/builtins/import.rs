@@ -353,16 +353,7 @@ mod import_builtins {
                     match nix_compat::nixhash::from_str(expected.to_str()?, Some("sha256")) {
                         Ok(NixHash::Sha256(digest)) => Ok(digest),
                         Ok(_) => unreachable!(),
-                        Err(_e) => {
-                            // TODO: a better error would be nice, we use
-                            // DerivationError::InvalidOutputHash usually for derivation construction.
-                            // This is not a derivation construction, should we move it outside and
-                            // generalize?
-                            Err(ErrorKind::TypeError {
-                                expected: "sha256",
-                                actual: "not a sha256",
-                            })
-                        }
+                        Err(e) => Err(ErrorKind::InvalidHash(e.to_string())),
                     }
                 })
             })
