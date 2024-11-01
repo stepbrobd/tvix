@@ -50,7 +50,9 @@ enum Commands {
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
 
-    let _ = tvix_tracing::TracingBuilder::default().enable_progressbar();
+    tvix_tracing::TracingBuilder::default()
+        .enable_progressbar()
+        .build()?;
 
     match cli.command {
         Commands::Daemon {

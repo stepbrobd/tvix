@@ -145,6 +145,7 @@ impl TracingHandle {
     }
 }
 
+#[must_use = "Don't forget to call build() to enable tracing."]
 #[derive(Default)]
 pub struct TracingBuilder {
     progess_bar: bool,

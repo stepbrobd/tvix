@@ -57,7 +57,7 @@ fn lint(code: &str, path: Option<PathBuf>, args: &Args) -> bool {
 fn main() {
     let args = Args::parse();
 
-    let _ = tvix_tracing::TracingBuilder::default()
+    tvix_tracing::TracingBuilder::default()
         .enable_progressbar()
         .build()
         .expect("unable to set up tracing subscriber");
