@@ -1,4 +1,5 @@
 use std::{
+    cmp::min,
     collections::HashMap,
     io::{Error, ErrorKind},
 };
@@ -209,7 +210,7 @@ pub async fn read_client_settings<R: AsyncReadExt + Unpin>(
 ///
 /// # Return
 ///
-/// The protocol version of the client.
+/// The protocol version to use for further comms, min(client_version, our_version).
 pub async fn server_handshake_client<'a, RW: 'a>(
     mut conn: &'a mut RW,
     nix_version: &str,
@@ -239,28 +240,29 @@ where
                 format!("The nix client version {} is too old", client_version),
             ));
         }
-        if client_version.minor() >= 14 {
+        let picked_version = min(PROTOCOL_VERSION, client_version);
+        if picked_version.minor() >= 14 {
             // Obsolete CPU affinity.
             let read_affinity = conn.read_u64_le().await?;
             if read_affinity != 0 {
                 let _cpu_affinity = conn.read_u64_le().await?;
             };
         }
-        if client_version.minor() >= 11 {
+        if picked_version.minor() >= 11 {
             // Obsolete reserveSpace
             let _reserve_space = conn.read_u64_le().await?;
         }
-        if client_version.minor() >= 33 {
+        if picked_version.minor() >= 33 {
             // Nix version. We're plain lying, we're not Nix, but eh…
             // Setting it to the 2.3 lineage. Not 100% sure this is a
             // good idea.
             wire::write_bytes(&mut conn, nix_version).await?;
             conn.flush().await?;
         }
-        if client_version.minor() >= 35 {
+        if picked_version.minor() >= 35 {
             write_worker_trust_level(&mut conn, trusted).await?;
         }
-        Ok(client_version)
+        Ok(picked_version)
     }
 }
 
@@ -330,11 +332,64 @@ mod tests {
             // Trusted (1 == client trusted
             .write(&[1, 0, 0, 0, 0, 0, 0, 0])
             .build();
-        let client_version = server_handshake_client(&mut test_conn, "2.18.2", Trust::Trusted)
+        let picked_version = server_handshake_client(&mut test_conn, "2.18.2", Trust::Trusted)
             .await
             .unwrap();
 
-        assert_eq!(client_version, PROTOCOL_VERSION)
+        assert_eq!(picked_version, PROTOCOL_VERSION)
+    }
+
+    #[tokio::test]
+    async fn test_init_hanshake_with_newer_client_should_use_older_version() {
+        let mut test_conn = tokio_test::io::Builder::new()
+            .read(&WORKER_MAGIC_1.to_le_bytes())
+            .write(&WORKER_MAGIC_2.to_le_bytes())
+            .write(&[37, 1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            // Client is newer than us.
+            .read(&[38, 1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            // cpu affinity
+            .read(&[0; 8])
+            // reservespace
+            .read(&[0; 8])
+            // version (size)
+            .write(&[0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            // version (data == 2.18.2 + padding)
+            .write(&[50, 46, 49, 56, 46, 50, 0, 0])
+            // Trusted (1 == client trusted
+            .write(&[1, 0, 0, 0, 0, 0, 0, 0])
+            .build();
+        let picked_version = server_handshake_client(&mut test_conn, "2.18.2", Trust::Trusted)
+            .await
+            .unwrap();
+
+        assert_eq!(picked_version, PROTOCOL_VERSION)
+    }
+
+    #[tokio::test]
+    async fn test_init_hanshake_with_older_client_should_use_older_version() {
+        let mut test_conn = tokio_test::io::Builder::new()
+            .read(&WORKER_MAGIC_1.to_le_bytes())
+            .write(&WORKER_MAGIC_2.to_le_bytes())
+            .write(&[37, 1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            // Client is newer than us.
+            .read(&[24, 1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            // cpu affinity
+            .read(&[0; 8])
+            // reservespace
+            .read(&[0; 8])
+            // NOTE: we are not writing version and trust since the client is too old.
+            // version (size)
+            //.write(&[0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            // version (data == 2.18.2 + padding)
+            //.write(&[50, 46, 49, 56, 46, 50, 0, 0])
+            // Trusted (1 == client trusted
+            //.write(&[1, 0, 0, 0, 0, 0, 0, 0])
+            .build();
+        let picked_version = server_handshake_client(&mut test_conn, "2.18.2", Trust::Trusted)
+            .await
+            .unwrap();
+
+        assert_eq!(picked_version, ProtocolVersion::from_parts(1, 24))
     }
 
     #[tokio::test]
