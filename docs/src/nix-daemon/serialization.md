@@ -144,11 +144,11 @@ An [Int](#int) enum with the following possible values:
 ### OptTrusted
 An [UInt8](#uint8) optional enum with the following possible values:
 
-| Name             | Int |
-| ---------------- | --- |
-| None             |  0  |
-| Some(Trusted)    |  1  |
-| Some(NotTrusted) |  2  |
+| Name       | Int |
+| ---------- | --- |
+| Unknown    |  0  |
+| Trusted    |  1  |
+| NotTrusted |  2  |
 
 
 ## Bytes serializers
@@ -340,15 +340,15 @@ Optional microseconds.
 - env :: [Map](#map-of-x-to-y) of [String](#string) to [String](#string)
 
 ### TraceLine
-- havePos :: [Size](#size) (hardcoded to 0)
+- havePos :: [Size](#size) (hardcoded to 0 with assert on read)
 - hint :: [String](#string) (If logger is JSON, invalid UTF-8 is replaced with U+FFFD)
 
 ### Error
-- type :: [String](#string) (hardcoded to `Error`)
+- type :: [String](#string) (hardcoded to `Error` with assert on read)
 - level :: [Verbosity](#verbosity)
 - name :: [String](#string) (removed and hardcoded to `Error`)
 - msg :: [String](#string) (If logger is JSON, invalid UTF-8 is replaced with U+FFFD)
-- havePos :: [Size](#size) (hardcoded to 0)
+- havePos :: [Size](#size) (hardcoded to 0 with assert on read)
 - traces :: [List](#list-of-x) of [TraceLine](#traceline)
 
 ## Field

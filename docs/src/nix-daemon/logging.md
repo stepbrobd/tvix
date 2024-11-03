@@ -96,6 +96,7 @@ Implemented in protocol 1.20. When backwards compatible with older versions of
 the protocol and this message would have been sent it is instead ignored.
 
 - 0x53544f50 :: [UInt64][se-UInt64] (hardcoded, 'STOP' in ASCII)
+- act :: [UInt64][se-UInt64]
 
 
 ### `STDERR_RESULT`

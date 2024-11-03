@@ -4,7 +4,6 @@
 | Operation                                                   | Id |
 | ----------------------------------------------------------- | -- |
 | [IsValidPath](#isvalidpath)                                 | 1  |
-| [HasSubstitutes](#hassubstitutes)                           | 3  |
 | [QueryReferrers](#queryreferrers)                           | 6  |
 | [AddToStore](#addtostore)                                   | 7  |
 | [BuildPaths](#buildpaths)                                   | 9  |
@@ -40,6 +39,7 @@
 
 | Operation                                                   | Id |
 | ----------------------------------------------------------- | -- |
+| [HasSubstitutes](#hassubstitutes)                           | 3  |
 | [QueryPathHash](#querypathhash)                             | 4  |
 | [QueryReferences](#queryreferences)                         | 5  |
 | [AddTextToStore](#addtexttostore)                           | 8  |

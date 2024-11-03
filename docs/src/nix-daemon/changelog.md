@@ -52,7 +52,7 @@ So this means that any version of Nix 2.x can't talk to Nix 0.x.
 | QueryDeriver    | 18 | [6d1a1191b0][6d1a1191b0] || 0.11 | Obsolete [e0204f8d46][e0204f8d46]<br>Nix 2.0 Protocol 1.16 |
 | SetOptions      | 19 | [f3441e6122][f3441e6122] || 0.11 ||
 | CollectGarbage              | 20 | [a72709afd8][a72709afd8] | 1.02  | 0.12   ||
-| QuerySubstitutablePathInfo  | 21 | [03427e76f1][03427e76f1] | 1.02  | 0.12   ||
+| QuerySubstitutablePathInfo  | 21 | [03427e76f1][03427e76f1] | 1.02  | 0.12   | Obsolete Nix 1.2 Protocol 1.12 |
 | QueryDerivationOutputs      | 22 | [e42401ee7b][e42401ee7b] | 1.05  | 1.0    | Obsolete [d38f860c3e][d38f860c3e]<br>Nix 2.4 Protocol 1.22* |
 | QueryAllValidPaths          | 23 | [24035b98b1][24035b98b1] | 1.05  | 1.0    ||
 | *QueryFailedPaths            | 24 | [f92c9a0ac5][f92c9a0ac5] | 1.05  | 1.0    | Removed [8cffec848][8cffec848]<br>Nix 2.0 Protocol 1.16 |
@@ -61,7 +61,7 @@ So this means that any version of Nix 2.x can't talk to Nix 0.x.
 | ImportPaths                 | 27 | [273b288a7e][273b288a7e] | 1.09  | 1.0    | Obsolete [538a64e8c3][538a64e8c3]<br>Nix 2.0 Protocol 1.17 |
 | QueryDerivationOutputNames  | 28 | [af2e53fd48][af2e53fd48]<br>([194d21f9f6][194d21f9f6]) | 1.08      | 1.0 | Obsolete<br>[045b07200c][045b07200c]<br>Nix 2.4 Protocol 1.21 |
 | QueryPathFromHashPart       | 29 | [ccc52adfb2][ccc52adfb2] | 1.11  | 1.1    ||
-| QuerySubstitutablePathInfos | 30 | [eb3036da87][eb3036da87] | 1.12* | 1.2    ||
+| QuerySubstitutablePathInfos | 30 | [eb3036da87][eb3036da87] | 1.12* | 1.2    | Obsolete Nix 2.0, Protocol 1.19*|
 | QueryValidPaths             | 31 | [58ef4d9a95][58ef4d9a95] | 1.12  | 1.2    ||
 | QuerySubstitutablePaths     | 32 | [09a6321aeb][09a6321aeb] | 1.12  | 1.2    ||
 | QueryValidDerivers          | 33 | [2754a07ead][2754a07ead] | 1.13* | 1.3    ||

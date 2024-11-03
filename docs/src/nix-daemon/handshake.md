@@ -3,7 +3,7 @@
 ## client -> server
 - 0x6e697863 :: [Int](#int) (hardcoded, 'nixc' in ASCII)
 
-## server -> client
+## client <- server
 - 0x6478696f :: [Int](#int) (hardcoded, 'dxio' in ASCII)
 - protocolVersion :: [Int](#int)
 
@@ -19,7 +19,7 @@
 - reserveSpace :: [Bool](#bool) (obsolete, ignored and set to false)
 
 
-## server -> client
+## client <- server
 
 ### If clientVersion is 1.33 or later
 - nixVersion :: String
@@ -27,6 +27,6 @@
 ### If clientVersion is 1.35 or later
 - trusted :: OptTrusted
 
-## server -> client
+## client <- server
 - send logs
 - [operation](./operations.md) :: Int
