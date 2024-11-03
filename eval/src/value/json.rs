@@ -40,7 +40,7 @@ impl Value {
             }
 
             Value::List(l) => {
-                let mut out = vec![];
+                let mut out = Vec::with_capacity(l.len());
 
                 for val in l.into_iter() {
                     let (json_item, ctx) = Box::pin(val.into_contextful_json(co)).await?;
