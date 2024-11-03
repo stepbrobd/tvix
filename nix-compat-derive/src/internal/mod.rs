@@ -113,7 +113,7 @@ impl<'a> Container<'a> {
                 Data::Enum(variants)
             }
             syn::Data::Union(u) => {
-                ctx.error_spanned(u.union_token, "Union not supported by nixrs");
+                ctx.error_spanned(u.union_token, "Union not supported by nix-compat");
                 return None;
             }
         };

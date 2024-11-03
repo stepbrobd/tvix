@@ -7,9 +7,12 @@ use crate::internal::attrs::Default;
 use crate::internal::inputs::RemoteInput;
 use crate::internal::{attrs, Container, Context, Data, Field, Remote, Style, Variant};
 
-pub fn expand_nix_deserialize(nnixrs: Path, input: &mut DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_nix_deserialize(
+    crate_path: Path,
+    input: &mut DeriveInput,
+) -> syn::Result<TokenStream> {
     let cx = Context::new();
-    let cont = Container::from_ast(&cx, nnixrs, input);
+    let cont = Container::from_ast(&cx, crate_path, input);
     cx.check()?;
     let cont = cont.unwrap();
 

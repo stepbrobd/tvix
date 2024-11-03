@@ -264,8 +264,8 @@ mod internal;
 #[proc_macro_derive(NixDeserialize, attributes(nix))]
 pub fn derive_nix_deserialize(item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as DeriveInput);
-    let nnixrs: syn::Path = parse_quote!(::nix_compat);
-    de::expand_nix_deserialize(nnixrs, &mut input)
+    let crate_path: syn::Path = parse_quote!(::nix_compat);
+    de::expand_nix_deserialize(crate_path, &mut input)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
