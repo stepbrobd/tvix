@@ -154,10 +154,6 @@ impl<'a> Remote<'a> {
         input: &'a inputs::RemoteInput,
     ) -> Option<Remote<'a>> {
         let attrs = attrs::Container::from_ast(ctx, &input.attrs);
-        if attrs.from_str.is_none() && attrs.type_from.is_none() && attrs.type_try_from.is_none() {
-            ctx.error_spanned(input, "Missing from_str, from or try_from attribute");
-            return None;
-        }
         Some(Remote {
             ty: &input.ident,
             attrs,

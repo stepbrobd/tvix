@@ -181,7 +181,7 @@ pub async fn write_bytes<W: AsyncWriteExt + Unpin, B: AsRef<[u8]>>(
 
 /// Computes the number of bytes we should add to len (a length in
 /// bytes) to be aligned on 64 bits (8 bytes).
-fn padding_len(len: u64) -> u8 {
+pub(crate) fn padding_len(len: u64) -> u8 {
     let aligned = len.wrapping_add(7) & !7;
     aligned.wrapping_sub(len) as u8
 }

@@ -7299,6 +7299,12 @@ rec {
             packageId = "pretty_assertions";
           }
           {
+            name = "proptest";
+            packageId = "proptest";
+            usesDefaultFeatures = false;
+            features = [ "std" "alloc" "tempfile" ];
+          }
+          {
             name = "rstest";
             packageId = "rstest";
           }
@@ -7368,6 +7374,12 @@ rec {
           {
             name = "pretty_assertions";
             packageId = "pretty_assertions";
+          }
+          {
+            name = "proptest";
+            packageId = "proptest";
+            usesDefaultFeatures = false;
+            features = [ "std" "alloc" "tempfile" ];
           }
           {
             name = "rstest";

@@ -43,6 +43,7 @@ futures = { workspace = true }
 hex-literal = { workspace = true }
 mimalloc = { workspace = true }
 pretty_assertions = { workspace = true }
+proptest = { workspace = true, features = ["std", "alloc", "tempfile"] }
 rstest = { workspace = true }
 serde_json = { workspace = true }
 smol_str = { workspace = true }
