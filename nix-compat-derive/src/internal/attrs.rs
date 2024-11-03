@@ -10,7 +10,7 @@ use super::Context;
 pub enum Default {
     None,
     #[allow(clippy::enum_variant_names)]
-    Default,
+    Default(syn::Path),
     Path(ExprPath),
 }
 
@@ -29,6 +29,7 @@ pub struct Field {
 impl Field {
     pub fn from_ast(ctx: &Context, attrs: &Vec<Attribute>) -> Field {
         let mut version = None;
+        let mut version_path = None;
         let mut default = Default::None;
         for attr in attrs {
             if attr.path() != NIX {
@@ -37,13 +38,14 @@ impl Field {
             if let Err(err) = attr.parse_nested_meta(|meta| {
                 if meta.path == VERSION {
                     version = parse_lit(ctx, &meta, VERSION)?;
+                    version_path = Some(meta.path);
                 } else if meta.path == DEFAULT {
                     if meta.input.peek(Token![=]) {
                         if let Some(path) = parse_lit(ctx, &meta, DEFAULT)? {
                             default = Default::Path(path);
                         }
                     } else {
-                        default = Default::Default;
+                        default = Default::Default(meta.path);
                     }
                 } else {
                     let path = meta.path.to_token_stream().to_string();
@@ -56,7 +58,7 @@ impl Field {
             }
         }
         if version.is_some() && default.is_none() {
-            default = Default::Default;
+            default = Default::Default(version_path.unwrap());
         }
 
         Field { default, version }
@@ -199,7 +201,7 @@ mod test {
         assert_eq!(
             field,
             Field {
-                default: Default::Default,
+                default: Default::Default(parse_quote!(version)),
                 version: Some(parse_quote!(..34)),
             }
         );
@@ -214,7 +216,7 @@ mod test {
         assert_eq!(
             field,
             Field {
-                default: Default::Default,
+                default: Default::Default(parse_quote!(default)),
                 version: None,
             }
         );

@@ -111,7 +111,9 @@ fn nix_deserialize_struct(style: Style, fields: &[Field<'_>]) -> TokenStream {
         };
         if let Some(version) = f.attrs.version.as_ref() {
             let default = match &f.attrs.default {
-                Default::Default => quote_spanned!(ty.span()=>::std::default::Default::default),
+                Default::Default(span) => {
+                    quote_spanned!(span.span()=>::std::default::Default::default)
+                }
                 Default::Path(path) => path.to_token_stream(),
                 _ => panic!("No default for versioned field"),
             };
@@ -172,7 +174,9 @@ fn nix_deserialize_variant(variant: &Variant<'_>) -> TokenStream {
         };
         if let Some(version) = f.attrs.version.as_ref() {
             let default = match &f.attrs.default {
-                Default::Default => quote_spanned!(ty.span()=>::std::default::Default::default),
+                Default::Default(span) => {
+                    quote_spanned!(span.span()=>::std::default::Default::default)
+                }
                 Default::Path(path) => path.to_token_stream(),
                 _ => panic!("No default for versioned field"),
             };
