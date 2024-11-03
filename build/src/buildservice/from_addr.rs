@@ -14,6 +14,7 @@ use super::oci::OCIBuildService;
 ///
 /// As some of these [BuildService] need to talk to a [BlobService] and
 /// [DirectoryService], these also need to be passed in.
+#[cfg_attr(target_os = "macos", allow(unused_variables))]
 pub async fn from_addr<BS, DS>(
     uri: &str,
     blob_service: BS,
@@ -68,13 +69,17 @@ where
 mod tests {
     use super::from_addr;
     use rstest::rstest;
-    use std::sync::{Arc, LazyLock};
+    use std::sync::Arc;
+    #[cfg(target_os = "linux")]
+    use std::sync::LazyLock;
+    #[cfg(target_os = "linux")]
     use tempfile::TempDir;
     use tvix_castore::{
         blobservice::{BlobService, MemoryBlobService},
         directoryservice::{DirectoryService, MemoryDirectoryService},
     };
 
+    #[cfg(target_os = "linux")]
     static TMPDIR_OCI_1: LazyLock<TempDir> = LazyLock::new(|| TempDir::new().unwrap());
 
     #[rstest]
@@ -95,9 +100,9 @@ mod tests {
     /// Correct scheme to connect to localhost over http, but with additional path, which is invalid.
     #[case::grpc_invalid_host_and_path("grpc+http://localhost/some-path", false)]
     /// This configures OCI, but doesn't specify the bundle path
-    #[case::oci_missing_bundle_dir("oci://", false)]
+    #[cfg_attr(target_os = "linux", case::oci_missing_bundle_dir("oci://", false))]
     /// This configures OCI, specifying the bundle path
-    #[case::oci_bundle_path(&format!("oci://{}", TMPDIR_OCI_1.path().to_str().unwrap()), true)]
+    #[cfg_attr(target_os = "linux", case::oci_bundle_path(&format!("oci://{}", TMPDIR_OCI_1.path().to_str().unwrap()), true))]
     #[tokio::test]
     async fn test_from_addr(#[case] uri_str: &str, #[case] exp_succeed: bool) {
         let blob_service: Arc<dyn BlobService> = Arc::from(MemoryBlobService::default());
