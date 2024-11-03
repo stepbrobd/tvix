@@ -4,7 +4,7 @@
 /// as there is internal Nix logic that must happen within the
 /// serialisation methods.
 use super::{CoercionKind, Value};
-use crate::errors::{CatchableErrorKind, ErrorKind};
+use crate::errors::ErrorKind;
 use crate::generators::{self, GenCo};
 use crate::NixContext;
 
@@ -17,10 +17,7 @@ impl Value {
     /// Transforms the structure into a JSON
     /// and accumulate all encountered context in the second's element
     /// of the return type.
-    pub async fn into_contextful_json(
-        self,
-        co: &GenCo,
-    ) -> Result<Result<(Json, NixContext), CatchableErrorKind>, ErrorKind> {
+    pub async fn into_contextful_json(self, co: &GenCo) -> Result<(Json, NixContext), ErrorKind> {
         let self_forced = generators::request_force(co, self).await;
         let mut context = NixContext::new();
 
@@ -46,13 +43,9 @@ impl Value {
                 let mut out = vec![];
 
                 for val in l.into_iter() {
-                    match generators::request_to_json(co, val).await {
-                        Ok((v, ctx)) => {
-                            context.extend(ctx.into_iter());
-                            out.push(v)
-                        }
-                        Err(cek) => return Ok(Err(cek)),
-                    }
+                    let (json_item, ctx) = Box::pin(val.into_contextful_json(co)).await?;
+                    context.extend(ctx.into_iter());
+                    out.push(json_item);
                 }
 
                 Json::Array(out)
@@ -75,14 +68,13 @@ impl Value {
                         )
                         .await?
                     {
-                        Value::Catchable(cek) => return Ok(Err(*cek)),
+                        Value::Catchable(cek) => return Err(ErrorKind::CatchableError(*cek)),
                         Value::String(s) => {
                             // We need a fresh context here because `__toString` will discard
                             // everything.
                             let mut fresh = NixContext::new();
                             fresh.mimic(&s);
-
-                            return Ok(Ok((Json::String(s.to_str()?.to_owned()), fresh)));
+                            return Ok((Json::String(s.to_str()?.to_owned()), fresh));
                         }
                         _ => panic!("Value::coerce_to_string_() returned a non-string!"),
                     }
@@ -92,27 +84,23 @@ impl Value {
                 // serialise to a JSON serialisation of that inner
                 // value (regardless of what it is!).
                 if let Some(out_path) = attrs.select("outPath") {
-                    return Ok(generators::request_to_json(co, out_path.clone()).await);
+                    let (json_out_path, ctx) =
+                        Box::pin(out_path.clone().into_contextful_json(co)).await?;
+                    context.extend(ctx.into_iter());
+                    return Ok((json_out_path, context));
                 }
 
                 let mut out = Map::with_capacity(attrs.len());
                 for (name, value) in attrs.into_iter_sorted() {
-                    out.insert(
-                        name.to_str()?.to_owned(),
-                        match generators::request_to_json(co, value).await {
-                            Ok((v, ctx)) => {
-                                context.extend(ctx.into_iter());
-                                v
-                            }
-                            Err(cek) => return Ok(Err(cek)),
-                        },
-                    );
+                    let (json_value, ctx) = Box::pin(value.into_contextful_json(co)).await?;
+                    context.extend(ctx.into_iter());
+                    out.insert(name.to_str()?.to_owned(), json_value);
                 }
 
                 Json::Object(out)
             }
 
-            Value::Catchable(c) => return Ok(Err(*c)),
+            Value::Catchable(c) => return Err(ErrorKind::CatchableError(*c)),
 
             val @ Value::Closure(_)
             | val @ Value::Thunk(_)
@@ -121,34 +109,10 @@ impl Value {
             | val @ Value::Blueprint(_)
             | val @ Value::DeferredUpvalue(_)
             | val @ Value::UnresolvedPath(_)
-            | val @ Value::Json(..)
             | val @ Value::FinaliseRequest(_) => {
                 return Err(ErrorKind::NotSerialisableToJson(val.type_of()))
             }
         };
-
-        Ok(Ok((value, context)))
-    }
-
-    /// Generator version of the above, which wraps responses in
-    /// [`Value::Json`].
-    pub(crate) async fn into_contextful_json_generator(
-        self,
-        co: GenCo,
-    ) -> Result<Value, ErrorKind> {
-        match self.into_contextful_json(&co).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok((json, ctx)) => Ok(Value::Json(Box::new((json, ctx)))),
-        }
-    }
-
-    /// Transforms the structure into a JSON
-    /// All the accumulated context is ignored, use [`into_contextful_json`]
-    /// to obtain the resulting context of the JSON object.
-    pub async fn into_json(
-        self,
-        co: &GenCo,
-    ) -> Result<Result<Json, CatchableErrorKind>, ErrorKind> {
-        Ok(self.into_contextful_json(co).await?.map(|(json, _)| json))
+        Ok((value, context))
     }
 }

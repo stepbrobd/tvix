@@ -118,10 +118,6 @@ pub enum VMRequest {
     /// [`VM::catch_result`] for an explanation of how this works.
     TryForce(Value),
 
-    /// Request serialisation of a value to JSON, according to the
-    /// slightly odd Nix evaluation rules.
-    ToJson(Value),
-
     /// Request the VM for the file type of the given path.
     ReadFileType(PathBuf),
 }
@@ -180,7 +176,6 @@ impl Display for VMRequest {
             VMRequest::ReadDir(p) => write!(f, "read_dir({})", p.to_string_lossy()),
             VMRequest::Span => write!(f, "span"),
             VMRequest::TryForce(v) => write!(f, "try_force({})", v.type_of()),
-            VMRequest::ToJson(v) => write!(f, "to_json({})", v.type_of()),
             VMRequest::ReadFileType(p) => write!(f, "read_file_type({})", p.to_string_lossy()),
         }
     }
@@ -497,14 +492,6 @@ where
                             return Ok(false);
                         }
 
-                        VMRequest::ToJson(value) => {
-                            self.reenqueue_generator(name, span, generator);
-                            self.enqueue_generator("to_json", span, |co| {
-                                value.into_contextful_json_generator(co)
-                            });
-                            return Ok(false);
-                        }
-
                         VMRequest::ReadFileType(path) => {
                             let file_type = self
                                 .io_handle
@@ -791,20 +778,6 @@ pub(crate) async fn request_read_dir(co: &GenCo, path: PathBuf) -> Vec<(bytes::B
 pub(crate) async fn request_span(co: &GenCo) -> Span {
     match co.yield_(VMRequest::Span).await {
         VMResponse::Span(span) => span,
-        msg => panic!(
-            "Tvix bug: VM responded with incorrect generator message: {}",
-            msg
-        ),
-    }
-}
-
-pub(crate) async fn request_to_json(
-    co: &GenCo,
-    value: Value,
-) -> Result<(serde_json::Value, NixContext), CatchableErrorKind> {
-    match co.yield_(VMRequest::ToJson(value)).await {
-        VMResponse::Value(Value::Json(json_with_ctx)) => Ok(*json_with_ctx),
-        VMResponse::Value(Value::Catchable(cek)) => Err(*cek),
         msg => panic!(
             "Tvix bug: VM responded with incorrect generator message: {}",
             msg

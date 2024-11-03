@@ -300,7 +300,7 @@ pub(crate) mod derivation_builtins {
                     // Remove the original default `out` output.
                     drv.outputs.clear();
 
-                    let mut output_names = vec![];
+                    let mut output_names = Vec::with_capacity(outputs.len());
 
                     for output in outputs {
                         let output_name = generators::request_force(&co, output)
@@ -379,11 +379,7 @@ pub(crate) mod derivation_builtins {
                             return Ok(val);
                         }
 
-                        let (val_json, context) = match val.into_contextful_json(&co).await? {
-                            Ok(v) => v,
-                            Err(cek) => return Ok(Value::from(cek)),
-                        };
-
+                        let (val_json, context) = val.into_contextful_json(&co).await?;
                         input_context.extend(context.into_iter());
 
                         // No need to check for dups, we only iterate over every attribute name once

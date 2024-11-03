@@ -10,15 +10,6 @@ Feel free to add new ideas. Before picking something, ask in `#tvix-dev` to make
 sure noone is working on this, or has some specific design in mind already.
 
 ## Cleanups
-### Evaluator
- - There's not really a good reason why the `tvix_eval::Value::Json` enum kind
-   exists.
-  `builtins.toJSON` should simply produce a string with context, and everything
-   else should be a hidden implementation detail and should not be leaked to
-   `Value`.
-   This is a hack, as we wanted to use `serde_json` as is, but should be cleaned
-   up.
-
 ### Nix language test suite
  - Think about how to merge, but "categorize" `tvix_tests` in `glue` and `eval`.
    We currently only have this split as they need a different feature set /

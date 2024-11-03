@@ -442,17 +442,20 @@ mod pure_builtins {
     #[builtin("fromJSON")]
     async fn builtin_from_json(co: GenCo, json: Value) -> Result<Value, ErrorKind> {
         let json_str = json.to_str()?;
-
         serde_json::from_slice(&json_str).map_err(|err| err.into())
     }
 
     #[builtin("toJSON")]
     async fn builtin_to_json(co: GenCo, val: Value) -> Result<Value, ErrorKind> {
-        match val.into_contextful_json(&co).await? {
-            Err(cek) => Ok(Value::from(cek)),
-            Ok((json_value, ctx)) => {
-                let json_str = serde_json::to_string(&json_value)?;
-                Ok(NixString::new_context_from(ctx, json_str).into())
+        match val.into_contextful_json(&co).await {
+            Err(ErrorKind::CatchableError(catchable)) => Ok(Value::Catchable(Box::new(catchable))),
+            Err(err) => Err(err),
+            Ok((json, context)) => {
+                let json_str = serde_json::to_string(&json)
+                    .map_err(|err| ErrorKind::JsonError(err.to_string()))?;
+                Ok(Value::String(NixString::new_context_from(
+                    context, json_str,
+                )))
             }
         }
     }

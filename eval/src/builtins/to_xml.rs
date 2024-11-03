@@ -122,7 +122,6 @@ fn value_variant_to_xml<W: Write>(w: &mut XmlEmitter<W>, value: &Value) -> Resul
         | Value::Blueprint(_)
         | Value::DeferredUpvalue(_)
         | Value::UnresolvedPath(_)
-        | Value::Json(..)
         | Value::FinaliseRequest(_) => {
             return Err(ErrorKind::TvixBug {
                 msg: "internal value variant encountered in builtins.toXML",
