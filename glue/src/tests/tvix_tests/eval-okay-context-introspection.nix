@@ -80,4 +80,5 @@ in
   # `toJSON` tests
   (builtins.hasContext (builtins.toJSON an-str))
   (builtins.hasContext (builtins.toJSON an-list))
+  (builtins.hasContext (builtins.toJSON { __toString = _: "${drv}"; }))
 ]
