@@ -16,6 +16,7 @@ use super::{BlobReader, BlobService, BlobWriter, ChunkedReader};
 /// blobservice again, before falling back to the remote one.
 /// The remote BlobService is never written to.
 pub struct CombinedBlobService<BL, BR> {
+    instance_name: String,
     local: BL,
     remote: BR,
 }
@@ -27,6 +28,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            instance_name: self.instance_name.clone(),
             local: self.local.clone(),
             remote: self.remote.clone(),
         }
@@ -39,12 +41,12 @@ where
     BL: AsRef<dyn BlobService> + Clone + Send + Sync + 'static,
     BR: AsRef<dyn BlobService> + Clone + Send + Sync + 'static,
 {
-    #[instrument(skip(self, digest), fields(blob.digest=%digest))]
+    #[instrument(skip(self, digest), fields(blob.digest=%digest, instance_name=%self.instance_name))]
     async fn has(&self, digest: &B3Digest) -> std::io::Result<bool> {
         Ok(self.local.as_ref().has(digest).await? || self.remote.as_ref().has(digest).await?)
     }
 
-    #[instrument(skip(self, digest), fields(blob.digest=%digest), err)]
+    #[instrument(skip(self, digest), fields(blob.digest=%digest, instance_name=%self.instance_name), err)]
     async fn open_read(&self, digest: &B3Digest) -> std::io::Result<Option<Box<dyn BlobReader>>> {
         if self.local.as_ref().has(digest).await? {
             // local store has the blob, so we can assume it also has all chunks.
@@ -84,7 +86,7 @@ where
         }
     }
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(instance_name=%self.instance_name))]
     async fn open_write(&self) -> Box<dyn BlobWriter> {
         // direct writes to the local one.
         self.local.as_ref().open_write().await
@@ -113,7 +115,7 @@ impl ServiceBuilder for CombinedBlobServiceConfig {
     type Output = dyn BlobService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         context: &CompositionContext,
     ) -> Result<Arc<dyn BlobService>, Box<dyn std::error::Error + Send + Sync>> {
         let (local, remote) = futures::join!(
@@ -121,6 +123,7 @@ impl ServiceBuilder for CombinedBlobServiceConfig {
             context.resolve(self.remote.clone())
         );
         Ok(Arc::new(CombinedBlobService {
+            instance_name: instance_name.to_string(),
             local: local?,
             remote: remote?,
         }))

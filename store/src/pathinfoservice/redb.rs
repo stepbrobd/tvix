@@ -19,6 +19,7 @@ const PATHINFO_TABLE: TableDefinition<[u8; 20], Vec<u8>> = TableDefinition::new(
 /// redb stores all of its data in a single file with a K/V pointing from a path's output hash to
 /// its corresponding protobuf-encoded PathInfo.
 pub struct RedbPathInfoService {
+    instance_name: String,
     // We wrap db in an Arc to be able to move it into spawn_blocking,
     // as discussed in https://github.com/cberner/redb/issues/789
     db: Arc<Database>,
@@ -27,7 +28,7 @@ pub struct RedbPathInfoService {
 impl RedbPathInfoService {
     /// Constructs a new instance using the specified file system path for
     /// storage.
-    pub async fn new(path: PathBuf) -> Result<Self, Error> {
+    pub async fn new(instance_name: String, path: PathBuf) -> Result<Self, Error> {
         if path == PathBuf::from("/") {
             return Err(Error::StorageError(
                 "cowardly refusing to open / with redb".to_string(),
@@ -41,17 +42,23 @@ impl RedbPathInfoService {
         })
         .await??;
 
-        Ok(Self { db: Arc::new(db) })
+        Ok(Self {
+            instance_name,
+            db: Arc::new(db),
+        })
     }
 
     /// Constructs a new instance using the in-memory backend.
-    pub fn new_temporary() -> Result<Self, Error> {
+    pub fn new_temporary(instance_name: String) -> Result<Self, Error> {
         let db =
             redb::Database::builder().create_with_backend(redb::backends::InMemoryBackend::new())?;
 
         create_schema(&db)?;
 
-        Ok(Self { db: Arc::new(db) })
+        Ok(Self {
+            instance_name,
+            db: Arc::new(db),
+        })
     }
 }
 
@@ -68,7 +75,7 @@ fn create_schema(db: &redb::Database) -> Result<(), redb::Error> {
 
 #[async_trait]
 impl PathInfoService for RedbPathInfoService {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = BASE64.encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = BASE64.encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         let db = self.db.clone();
 
@@ -93,7 +100,7 @@ impl PathInfoService for RedbPathInfoService {
         .await?
     }
 
-    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node))]
+    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node, instance_name = %self.instance_name))]
     async fn put(&self, path_info: PathInfo) -> Result<PathInfo, Error> {
         let db = self.db.clone();
 
@@ -193,14 +200,16 @@ impl ServiceBuilder for RedbPathInfoServiceConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         match self {
             RedbPathInfoServiceConfig {
                 is_temporary: true,
                 path: None,
-            } => Ok(Arc::new(RedbPathInfoService::new_temporary()?)),
+            } => Ok(Arc::new(RedbPathInfoService::new_temporary(
+                instance_name.to_string(),
+            )?)),
             RedbPathInfoServiceConfig {
                 is_temporary: true,
                 path: Some(_),
@@ -215,7 +224,9 @@ impl ServiceBuilder for RedbPathInfoServiceConfig {
             RedbPathInfoServiceConfig {
                 is_temporary: false,
                 path: Some(path),
-            } => Ok(Arc::new(RedbPathInfoService::new(path.to_owned()).await?)),
+            } => Ok(Arc::new(
+                RedbPathInfoService::new(instance_name.to_string(), path.to_owned()).await?,
+            )),
         }
     }
 }

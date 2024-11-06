@@ -37,6 +37,7 @@ const CELL_SIZE_LIMIT: u64 = 10 * 1024 * 1024;
 /// directly at the root, so rely on store composition.
 #[derive(Clone)]
 pub struct BigtableDirectoryService {
+    instance_name: String,
     client: bigtable::BigTable,
     params: BigtableParameters,
 
@@ -49,7 +50,10 @@ pub struct BigtableDirectoryService {
 
 impl BigtableDirectoryService {
     #[cfg(not(test))]
-    pub async fn connect(params: BigtableParameters) -> Result<Self, bigtable::Error> {
+    pub async fn connect(
+        instance_name: String,
+        params: BigtableParameters,
+    ) -> Result<Self, bigtable::Error> {
         let connection = bigtable::BigTableConnection::new(
             &params.project_id,
             &params.instance_name,
@@ -60,13 +64,17 @@ impl BigtableDirectoryService {
         .await?;
 
         Ok(Self {
+            instance_name,
             client: connection.client(),
             params,
         })
     }
 
     #[cfg(test)]
-    pub async fn connect(params: BigtableParameters) -> Result<Self, bigtable::Error> {
+    pub async fn connect(
+        instance_name: String,
+        params: BigtableParameters,
+    ) -> Result<Self, bigtable::Error> {
         use std::time::Duration;
 
         use async_process::{Command, Stdio};
@@ -135,6 +143,7 @@ impl BigtableDirectoryService {
         )?;
 
         Ok(Self {
+            instance_name,
             client: connection.client(),
             params,
             emulator: (tmpdir, emulator_process).into(),
@@ -150,7 +159,7 @@ fn derive_directory_key(digest: &B3Digest) -> String {
 
 #[async_trait]
 impl DirectoryService for BigtableDirectoryService {
-    #[instrument(skip(self, digest), err, fields(directory.digest = %digest))]
+    #[instrument(skip(self, digest), err, fields(directory.digest = %digest, instance_name=%self.instance_name))]
     async fn get(&self, digest: &B3Digest) -> Result<Option<Directory>, Error> {
         let mut client = self.client.clone();
         let directory_key = derive_directory_key(digest);
@@ -250,7 +259,7 @@ impl DirectoryService for BigtableDirectoryService {
         Ok(Some(directory))
     }
 
-    #[instrument(skip(self, directory), err, fields(directory.digest = %directory.digest()))]
+    #[instrument(skip(self, directory), err, fields(directory.digest = %directory.digest(), instance_name=%self.instance_name))]
     async fn put(&self, directory: Directory) -> Result<B3Digest, Error> {
         let directory_digest = directory.digest();
         let mut client = self.client.clone();
@@ -300,7 +309,7 @@ impl DirectoryService for BigtableDirectoryService {
         Ok(directory_digest)
     }
 
-    #[instrument(skip_all, fields(directory.digest = %root_directory_digest))]
+    #[instrument(skip_all, fields(directory.digest = %root_directory_digest, instance_name=%self.instance_name))]
     fn get_recursive(
         &self,
         root_directory_digest: &B3Digest,
@@ -308,7 +317,7 @@ impl DirectoryService for BigtableDirectoryService {
         traverse_directory(self.clone(), root_directory_digest)
     }
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(instance_name=%self.instance_name))]
     fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)>
     where
         Self: Clone,
@@ -346,11 +355,11 @@ impl ServiceBuilder for BigtableParameters {
     type Output = dyn DirectoryService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync>> {
         Ok(Arc::new(
-            BigtableDirectoryService::connect(self.clone()).await?,
+            BigtableDirectoryService::connect(instance_name.to_string(), self.clone()).await?,
         ))
     }
 }

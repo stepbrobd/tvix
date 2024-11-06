@@ -17,6 +17,8 @@ use tvix_castore::Node;
 /// Connects to a (remote) tvix-store PathInfoService over gRPC.
 #[derive(Clone)]
 pub struct GRPCPathInfoService<T> {
+    instance_name: String,
+
     /// The internal reference to a gRPC client.
     /// Cloning it is cheap, and it internally handles concurrent requests.
     grpc_client: proto::path_info_service_client::PathInfoServiceClient<T>,
@@ -26,9 +28,13 @@ impl<T> GRPCPathInfoService<T> {
     /// construct a [GRPCPathInfoService] from a [proto::path_info_service_client::PathInfoServiceClient].
     /// panics if called outside the context of a tokio runtime.
     pub fn from_client(
+        instance_name: String,
         grpc_client: proto::path_info_service_client::PathInfoServiceClient<T>,
     ) -> Self {
-        Self { grpc_client }
+        Self {
+            instance_name,
+            grpc_client,
+        }
     }
 }
 
@@ -40,7 +46,7 @@ where
     <T::ResponseBody as tonic::codegen::Body>::Error: Into<tonic::codegen::StdError> + Send,
     T::Future: Send,
 {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         let path_info = self
             .grpc_client
@@ -62,7 +68,7 @@ where
         }
     }
 
-    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node))]
+    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node, instance_name = %self.instance_name))]
     async fn put(&self, path_info: PathInfo) -> Result<PathInfo, Error> {
         let path_info = self
             .grpc_client
@@ -99,6 +105,7 @@ where
     #[instrument(level = "trace", skip_all)]
     fn nar_calculation_service(&self) -> Option<Box<dyn NarCalculationService>> {
         Some(Box::new(GRPCPathInfoService {
+            instance_name: self.instance_name.clone(),
             grpc_client: self.grpc_client.clone(),
         }) as Box<dyn NarCalculationService>)
     }
@@ -163,13 +170,16 @@ impl ServiceBuilder for GRPCPathInfoServiceConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let client = proto::path_info_service_client::PathInfoServiceClient::new(
             tvix_castore::tonic::channel_from_url(&self.url.parse()?).await?,
         );
-        Ok(Arc::new(GRPCPathInfoService::from_client(client)))
+        Ok(Arc::new(GRPCPathInfoService::from_client(
+            instance_name.to_string(),
+            client,
+        )))
     }
 }
 

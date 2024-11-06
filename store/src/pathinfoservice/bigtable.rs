@@ -35,6 +35,7 @@ const CELL_SIZE_LIMIT: u64 = 10 * 1024 * 1024;
 /// "unimplemented" error.
 #[derive(Clone)]
 pub struct BigtablePathInfoService {
+    instance_name: String,
     client: bigtable::BigTable,
     params: BigtableParameters,
 
@@ -47,7 +48,10 @@ pub struct BigtablePathInfoService {
 
 impl BigtablePathInfoService {
     #[cfg(not(test))]
-    pub async fn connect(params: BigtableParameters) -> Result<Self, bigtable::Error> {
+    pub async fn connect(
+        instance_name: String,
+        params: BigtableParameters,
+    ) -> Result<Self, bigtable::Error> {
         let connection = bigtable::BigTableConnection::new(
             &params.project_id,
             &params.instance_name,
@@ -58,13 +62,17 @@ impl BigtablePathInfoService {
         .await?;
 
         Ok(Self {
+            instance_name,
             client: connection.client(),
             params,
         })
     }
 
     #[cfg(test)]
-    pub async fn connect(params: BigtableParameters) -> Result<Self, bigtable::Error> {
+    pub async fn connect(
+        instance_name: String,
+        params: BigtableParameters,
+    ) -> Result<Self, bigtable::Error> {
         use std::time::Duration;
 
         use async_process::{Command, Stdio};
@@ -133,6 +141,7 @@ impl BigtablePathInfoService {
         )?;
 
         Ok(Self {
+            instance_name: instance_name.to_string(),
             client: connection.client(),
             params,
             emulator: (tmpdir, emulator_process).into(),
@@ -148,7 +157,7 @@ fn derive_pathinfo_key(digest: &[u8; 20]) -> String {
 
 #[async_trait]
 impl PathInfoService for BigtablePathInfoService {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         let mut client = self.client.clone();
         let path_info_key = derive_pathinfo_key(&digest);
@@ -244,7 +253,7 @@ impl PathInfoService for BigtablePathInfoService {
         Ok(Some(path_info))
     }
 
-    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node))]
+    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node, instance_name = %self.instance_name))]
     async fn put(&self, path_info: PathInfo) -> Result<PathInfo, Error> {
         let mut client = self.client.clone();
         let path_info_key = derive_pathinfo_key(path_info.store_path.digest());
@@ -410,11 +419,11 @@ impl ServiceBuilder for BigtableParameters {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync>> {
         Ok(Arc::new(
-            BigtablePathInfoService::connect(self.clone()).await?,
+            BigtablePathInfoService::connect(instance_name.to_string(), self.clone()).await?,
         ))
     }
 }

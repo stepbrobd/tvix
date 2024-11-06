@@ -22,13 +22,18 @@ use crate::Error;
 /// Inserts and listings are not implemented for now.
 #[derive(Clone)]
 pub struct Cache<DS1, DS2> {
+    instance_name: String,
     near: DS1,
     far: DS2,
 }
 
 impl<DS1, DS2> Cache<DS1, DS2> {
-    pub fn new(near: DS1, far: DS2) -> Self {
-        Self { near, far }
+    pub fn new(instance_name: String, near: DS1, far: DS2) -> Self {
+        Self {
+            instance_name,
+            near,
+            far,
+        }
     }
 }
 
@@ -38,7 +43,7 @@ where
     DS1: DirectoryService + Clone + 'static,
     DS2: DirectoryService + Clone + 'static,
 {
-    #[instrument(skip(self, digest), fields(directory.digest = %digest))]
+    #[instrument(skip(self, digest), fields(directory.digest = %digest, instance_name = %self.instance_name))]
     async fn get(&self, digest: &B3Digest) -> Result<Option<Directory>, Error> {
         match self.near.get(digest).await? {
             Some(directory) => {
@@ -80,12 +85,12 @@ where
         }
     }
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(instance_name = %self.instance_name))]
     async fn put(&self, _directory: Directory) -> Result<B3Digest, Error> {
         Err(Error::StorageError("unimplemented".to_string()))
     }
 
-    #[instrument(skip_all, fields(directory.digest = %root_directory_digest))]
+    #[instrument(skip_all, fields(directory.digest = %root_directory_digest, instance_name = %self.instance_name))]
     fn get_recursive(
         &self,
         root_directory_digest: &B3Digest,
@@ -166,7 +171,7 @@ impl ServiceBuilder for CacheConfig {
     type Output = dyn DirectoryService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (near, far) = futures::join!(
@@ -174,6 +179,7 @@ impl ServiceBuilder for CacheConfig {
             context.resolve::<Self::Output>(self.far.clone())
         );
         Ok(Arc::new(Cache {
+            instance_name: instance_name.to_string(),
             near: near?,
             far: far?,
         }))

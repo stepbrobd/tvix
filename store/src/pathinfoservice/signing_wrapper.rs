@@ -27,6 +27,7 @@ use super::MemoryPathInfoService;
 ///
 /// The service signs the [PathInfo] **only if it has a narinfo attribute**
 pub struct SigningPathInfoService<T, S> {
+    instance_name: String,
     /// The inner [PathInfoService]
     inner: T,
     /// The key to sign narinfos
@@ -34,8 +35,12 @@ pub struct SigningPathInfoService<T, S> {
 }
 
 impl<T, S> SigningPathInfoService<T, S> {
-    pub fn new(inner: T, signing_key: Arc<SigningKey<S>>) -> Self {
-        Self { inner, signing_key }
+    pub fn new(instance_name: String, inner: T, signing_key: Arc<SigningKey<S>>) -> Self {
+        Self {
+            instance_name,
+            inner,
+            signing_key,
+        }
     }
 }
 
@@ -45,7 +50,7 @@ where
     T: PathInfoService,
     S: ed25519::signature::Signer<ed25519::Signature> + Sync + Send,
 {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         self.inner.get(digest).await
     }
@@ -101,7 +106,7 @@ impl ServiceBuilder for KeyFileSigningPathInfoServiceConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let inner = context.resolve::<Self::Output>(self.inner.clone()).await?;
@@ -110,7 +115,11 @@ impl ServiceBuilder for KeyFileSigningPathInfoServiceConfig {
                 .map_err(|e| Error::StorageError(e.to_string()))?
                 .0,
         );
-        Ok(Arc::new(SigningPathInfoService { inner, signing_key }))
+        Ok(Arc::new(SigningPathInfoService {
+            instance_name: instance_name.to_string(),
+            inner,
+            signing_key,
+        }))
     }
 }
 
@@ -118,6 +127,7 @@ impl ServiceBuilder for KeyFileSigningPathInfoServiceConfig {
 pub(crate) fn test_signing_service() -> Arc<dyn PathInfoService> {
     let memory_svc: Arc<dyn PathInfoService> = Arc::new(MemoryPathInfoService::default());
     Arc::new(SigningPathInfoService {
+        instance_name: "test".into(),
         inner: memory_svc,
         signing_key: Arc::new(
             parse_keypair(DUMMY_KEYPAIR)

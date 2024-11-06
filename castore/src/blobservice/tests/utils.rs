@@ -29,14 +29,17 @@ pub async fn make_grpc_blob_service_client() -> Box<dyn BlobService> {
     // Create a client, connecting to the right side. The URI is unused.
     let mut maybe_right = Some(right);
 
-    Box::new(GRPCBlobService::from_client(BlobServiceClient::new(
-        Endpoint::try_from("http://[::]:50051")
-            .unwrap()
-            .connect_with_connector(tower::service_fn(move |_: Uri| {
-                let right = maybe_right.take().unwrap();
-                async move { Ok::<_, std::io::Error>(TokioIo::new(right)) }
-            }))
-            .await
-            .unwrap(),
-    )))
+    Box::new(GRPCBlobService::from_client(
+        "default".into(),
+        BlobServiceClient::new(
+            Endpoint::try_from("http://[::]:50051")
+                .unwrap()
+                .connect_with_connector(tower::service_fn(move |_: Uri| {
+                    let right = maybe_right.take().unwrap();
+                    async move { Ok::<_, std::io::Error>(TokioIo::new(right)) }
+                }))
+                .await
+                .unwrap(),
+        ),
+    ))
 }

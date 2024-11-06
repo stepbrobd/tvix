@@ -19,6 +19,7 @@ const DIRECTORY_TABLE: TableDefinition<[u8; digests::B3_LEN], Vec<u8>> =
 
 #[derive(Clone)]
 pub struct RedbDirectoryService {
+    instance_name: String,
     // We wrap the db in an Arc to be able to move it into spawn_blocking,
     // as discussed in https://github.com/cberner/redb/issues/789
     db: Arc<Database>,
@@ -27,7 +28,7 @@ pub struct RedbDirectoryService {
 impl RedbDirectoryService {
     /// Constructs a new instance using the specified filesystem path for
     /// storage.
-    pub async fn new(path: PathBuf) -> Result<Self, Error> {
+    pub async fn new(instance_name: String, path: PathBuf) -> Result<Self, Error> {
         if path == PathBuf::from("/") {
             return Err(Error::StorageError(
                 "cowardly refusing to open / with redb".to_string(),
@@ -41,7 +42,10 @@ impl RedbDirectoryService {
         })
         .await??;
 
-        Ok(Self { db: Arc::new(db) })
+        Ok(Self {
+            instance_name,
+            db: Arc::new(db),
+        })
     }
 
     /// Constructs a new instance using the in-memory backend.
@@ -51,7 +55,10 @@ impl RedbDirectoryService {
 
         create_schema(&db)?;
 
-        Ok(Self { db: Arc::new(db) })
+        Ok(Self {
+            instance_name: "default".into(),
+            db: Arc::new(db),
+        })
     }
 }
 
@@ -68,7 +75,7 @@ fn create_schema(db: &redb::Database) -> Result<(), redb::Error> {
 
 #[async_trait]
 impl DirectoryService for RedbDirectoryService {
-    #[instrument(skip(self, digest), fields(directory.digest = %digest))]
+    #[instrument(skip(self, digest), fields(directory.digest = %digest, instance_name = %self.instance_name))]
     async fn get(&self, digest: &B3Digest) -> Result<Option<Directory>, Error> {
         let db = self.db.clone();
 
@@ -121,7 +128,7 @@ impl DirectoryService for RedbDirectoryService {
         Ok(Some(directory))
     }
 
-    #[instrument(skip(self, directory), fields(directory.digest = %directory.digest()))]
+    #[instrument(skip(self, directory), fields(directory.digest = %directory.digest(), instance_name = %self.instance_name))]
     async fn put(&self, directory: Directory) -> Result<B3Digest, Error> {
         tokio::task::spawn_blocking({
             let db = self.db.clone();
@@ -146,7 +153,7 @@ impl DirectoryService for RedbDirectoryService {
         .await?
     }
 
-    #[instrument(skip_all, fields(directory.digest = %root_directory_digest))]
+    #[instrument(skip_all, fields(directory.digest = %root_directory_digest, instance_name = %self.instance_name))]
     fn get_recursive(
         &self,
         root_directory_digest: &B3Digest,
@@ -275,7 +282,7 @@ impl ServiceBuilder for RedbDirectoryServiceConfig {
     type Output = dyn DirectoryService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         match self {
@@ -297,7 +304,9 @@ impl ServiceBuilder for RedbDirectoryServiceConfig {
             RedbDirectoryServiceConfig {
                 is_temporary: false,
                 path: Some(path),
-            } => Ok(Arc::new(RedbDirectoryService::new(path.into()).await?)),
+            } => Ok(Arc::new(
+                RedbDirectoryService::new(instance_name.to_string(), path.into()).await?,
+            )),
         }
     }
 }

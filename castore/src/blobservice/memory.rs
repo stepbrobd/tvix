@@ -11,18 +11,19 @@ use crate::{B3Digest, Error};
 
 #[derive(Clone, Default)]
 pub struct MemoryBlobService {
+    instance_name: String,
     db: Arc<RwLock<HashMap<B3Digest, Vec<u8>>>>,
 }
 
 #[async_trait]
 impl BlobService for MemoryBlobService {
-    #[instrument(skip_all, ret, err, fields(blob.digest=%digest))]
+    #[instrument(skip_all, ret, err, fields(blob.digest=%digest, instance_name=%self.instance_name))]
     async fn has(&self, digest: &B3Digest) -> io::Result<bool> {
         let db = self.db.read();
         Ok(db.contains_key(digest))
     }
 
-    #[instrument(skip_all, err, fields(blob.digest=%digest))]
+    #[instrument(skip_all, err, fields(blob.digest=%digest, instance_name=%self.instance_name))]
     async fn open_read(&self, digest: &B3Digest) -> io::Result<Option<Box<dyn BlobReader>>> {
         let db = self.db.read();
 
@@ -32,7 +33,7 @@ impl BlobService for MemoryBlobService {
         }
     }
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(instance_name=%self.instance_name))]
     async fn open_write(&self) -> Box<dyn BlobWriter> {
         Box::new(MemoryBlobWriter::new(self.db.clone()))
     }
@@ -58,10 +59,13 @@ impl ServiceBuilder for MemoryBlobServiceConfig {
     type Output = dyn BlobService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn BlobService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Arc::new(MemoryBlobService::default()))
+        Ok(Arc::new(MemoryBlobService {
+            instance_name: instance_name.to_string(),
+            db: Default::default(),
+        }))
     }
 }
 

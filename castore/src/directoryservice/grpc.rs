@@ -17,6 +17,7 @@ use tracing::{instrument, warn, Instrument as _};
 /// Connects to a (remote) tvix-store DirectoryService over gRPC.
 #[derive(Clone)]
 pub struct GRPCDirectoryService<T> {
+    instance_name: String,
     /// The internal reference to a gRPC client.
     /// Cloning it is cheap, and it internally handles concurrent requests.
     grpc_client: proto::directory_service_client::DirectoryServiceClient<T>,
@@ -26,9 +27,13 @@ impl<T> GRPCDirectoryService<T> {
     /// construct a [GRPCDirectoryService] from a [proto::directory_service_client::DirectoryServiceClient].
     /// panics if called outside the context of a tokio runtime.
     pub fn from_client(
+        instance_name: String,
         grpc_client: proto::directory_service_client::DirectoryServiceClient<T>,
     ) -> Self {
-        Self { grpc_client }
+        Self {
+            instance_name,
+            grpc_client,
+        }
     }
 }
 
@@ -40,7 +45,7 @@ where
     <T::ResponseBody as tonic::codegen::Body>::Error: Into<tonic::codegen::StdError> + Send,
     T::Future: Send,
 {
-    #[instrument(level = "trace", skip_all, fields(directory.digest = %digest))]
+    #[instrument(level = "trace", skip_all, fields(directory.digest = %digest, instance_name = %self.instance_name))]
     async fn get(&self, digest: &B3Digest) -> Result<Option<Directory>, crate::Error> {
         // Get a new handle to the gRPC client, and copy the digest.
         let mut grpc_client = self.grpc_client.clone();
@@ -81,7 +86,7 @@ where
         }
     }
 
-    #[instrument(level = "trace", skip_all, fields(directory.digest = %directory.digest()))]
+    #[instrument(level = "trace", skip_all, fields(directory.digest = %directory.digest(), instance_name = %self.instance_name))]
     async fn put(&self, directory: Directory) -> Result<B3Digest, crate::Error> {
         let resp = self
             .grpc_client
@@ -101,7 +106,7 @@ where
         }
     }
 
-    #[instrument(level = "trace", skip_all, fields(directory.digest = %root_directory_digest))]
+    #[instrument(level = "trace", skip_all, fields(directory.digest = %root_directory_digest, instance_name = %self.instance_name))]
     fn get_recursive(
         &self,
         root_directory_digest: &B3Digest,
@@ -240,13 +245,16 @@ impl ServiceBuilder for GRPCDirectoryServiceConfig {
     type Output = dyn DirectoryService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let client = proto::directory_service_client::DirectoryServiceClient::new(
             crate::tonic::channel_from_url(&self.url.parse()?).await?,
         );
-        Ok(Arc::new(GRPCDirectoryService::from_client(client)))
+        Ok(Arc::new(GRPCDirectoryService::from_client(
+            instance_name.to_string(),
+            client,
+        )))
     }
 }
 
@@ -374,7 +382,7 @@ mod tests {
                     .await
                     .expect("must succeed"),
             );
-            GRPCDirectoryService::from_client(client)
+            GRPCDirectoryService::from_client("test-instance".into(), client)
         };
 
         assert!(grpc_client

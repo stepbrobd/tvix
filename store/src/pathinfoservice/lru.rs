@@ -14,12 +14,14 @@ use tvix_castore::Error;
 use super::{PathInfo, PathInfoService};
 
 pub struct LruPathInfoService {
+    instance_name: String,
     lru: Arc<RwLock<LruCache<[u8; 20], PathInfo>>>,
 }
 
 impl LruPathInfoService {
-    pub fn with_capacity(capacity: NonZeroUsize) -> Self {
+    pub fn with_capacity(instance_name: String, capacity: NonZeroUsize) -> Self {
         Self {
+            instance_name,
             lru: Arc::new(RwLock::new(LruCache::new(capacity))),
         }
     }
@@ -27,12 +29,12 @@ impl LruPathInfoService {
 
 #[async_trait]
 impl PathInfoService for LruPathInfoService {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         Ok(self.lru.write().await.get(&digest).cloned())
     }
 
-    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node))]
+    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node, instance_name = %self.instance_name))]
     async fn put(&self, path_info: PathInfo) -> Result<PathInfo, Error> {
         self.lru
             .write()
@@ -76,10 +78,13 @@ impl ServiceBuilder for LruPathInfoServiceConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Arc::new(LruPathInfoService::with_capacity(self.capacity)))
+        Ok(Arc::new(LruPathInfoService::with_capacity(
+            instance_name.to_string(),
+            self.capacity,
+        )))
     }
 }
 
@@ -103,7 +108,7 @@ mod test {
 
     #[tokio::test]
     async fn evict() {
-        let svc = LruPathInfoService::with_capacity(NonZeroUsize::new(1).unwrap());
+        let svc = LruPathInfoService::with_capacity("test".into(), NonZeroUsize::new(1).unwrap());
 
         // pathinfo_1 should not be there
         assert!(svc

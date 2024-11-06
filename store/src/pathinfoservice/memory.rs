@@ -11,12 +11,13 @@ use tvix_castore::Error;
 
 #[derive(Default)]
 pub struct MemoryPathInfoService {
+    instance_name: String,
     db: Arc<RwLock<HashMap<[u8; 20], PathInfo>>>,
 }
 
 #[async_trait]
 impl PathInfoService for MemoryPathInfoService {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         let db = self.db.read().await;
 
@@ -26,7 +27,7 @@ impl PathInfoService for MemoryPathInfoService {
         }
     }
 
-    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node))]
+    #[instrument(level = "trace", skip_all, fields(path_info.root_node = ?path_info.node, instance_name = %self.instance_name))]
     async fn put(&self, path_info: PathInfo) -> Result<PathInfo, Error> {
         // This overwrites existing PathInfo objects with the same store path digest.
         let mut db = self.db.write().await;
@@ -69,9 +70,12 @@ impl ServiceBuilder for MemoryPathInfoServiceConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Arc::new(MemoryPathInfoService::default()))
+        Ok(Arc::new(MemoryPathInfoService {
+            instance_name: instance_name.to_string(),
+            db: Default::default(),
+        }))
     }
 }

@@ -15,13 +15,18 @@ use super::{PathInfo, PathInfoService};
 /// There is no negative cache.
 /// Inserts and listings are not implemented for now.
 pub struct Cache<PS1, PS2> {
+    instance_name: String,
     near: PS1,
     far: PS2,
 }
 
 impl<PS1, PS2> Cache<PS1, PS2> {
-    pub fn new(near: PS1, far: PS2) -> Self {
-        Self { near, far }
+    pub fn new(instance_name: String, near: PS1, far: PS2) -> Self {
+        Self {
+            instance_name,
+            near,
+            far,
+        }
     }
 }
 
@@ -31,7 +36,7 @@ where
     PS1: PathInfoService,
     PS2: PathInfoService,
 {
-    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest)))]
+    #[instrument(level = "trace", skip_all, fields(path_info.digest = nixbase32::encode(&digest), instance_name = %self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         match self.near.get(digest).await? {
             Some(path_info) => {
@@ -84,7 +89,7 @@ impl ServiceBuilder for CacheConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         context: &CompositionContext,
     ) -> Result<Arc<dyn PathInfoService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (near, far) = futures::join!(
@@ -92,6 +97,7 @@ impl ServiceBuilder for CacheConfig {
             context.resolve::<Self::Output>(self.far.clone())
         );
         Ok(Arc::new(Cache {
+            instance_name: instance_name.to_string(),
             near: near?,
             far: far?,
         }))
@@ -114,10 +120,10 @@ mod test {
         let far = MemoryPathInfoService::default();
 
         // … and an instance of a "near" PathInfoService.
-        let near = LruPathInfoService::with_capacity(NonZeroUsize::new(1).unwrap());
+        let near = LruPathInfoService::with_capacity("test".into(), NonZeroUsize::new(1).unwrap());
 
         // create a Pathinfoservice combining the two and return it.
-        super::Cache::new(near, far)
+        super::Cache::new("test".into(), near, far)
     }
 
     /// Getting from the far backend is gonna insert it into the near one.

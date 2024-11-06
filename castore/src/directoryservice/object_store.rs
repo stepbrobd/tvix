@@ -32,6 +32,7 @@ use crate::{proto, B3Digest, Error, Node};
 /// be returned to the client in get_recursive.
 #[derive(Clone)]
 pub struct ObjectStoreDirectoryService {
+    instance_name: String,
     object_store: Arc<dyn ObjectStore>,
     base_path: Path,
 }
@@ -63,6 +64,7 @@ impl ObjectStoreDirectoryService {
         let (object_store, path) = object_store::parse_url_opts(url, options)?;
 
         Ok(Self {
+            instance_name: "default".into(),
             object_store: Arc::new(object_store),
             base_path: path,
         })
@@ -72,18 +74,26 @@ impl ObjectStoreDirectoryService {
     pub fn parse_url(url: &Url) -> Result<Self, object_store::Error> {
         Self::parse_url_opts(url, Vec::<(String, String)>::new())
     }
+
+    pub fn new(instance_name: String, object_store: Arc<dyn ObjectStore>, base_path: Path) -> Self {
+        Self {
+            instance_name,
+            object_store,
+            base_path,
+        }
+    }
 }
 
 #[async_trait]
 impl DirectoryService for ObjectStoreDirectoryService {
     /// This is the same steps as for get_recursive anyways, so we just call get_recursive and
     /// return the first element of the stream and drop the request.
-    #[instrument(skip(self, digest), fields(directory.digest = %digest))]
+    #[instrument(level = "trace", skip_all, fields(directory.digest = %digest, instance_name = %self.instance_name))]
     async fn get(&self, digest: &B3Digest) -> Result<Option<Directory>, Error> {
         self.get_recursive(digest).take(1).next().await.transpose()
     }
 
-    #[instrument(skip(self, directory), fields(directory.digest = %directory.digest()))]
+    #[instrument(level = "trace", skip_all, fields(directory.digest = %directory.digest(), instance_name = %self.instance_name))]
     async fn put(&self, directory: Directory) -> Result<B3Digest, Error> {
         // Ensure the directory doesn't contain other directory children
         if directory
@@ -100,7 +110,7 @@ impl DirectoryService for ObjectStoreDirectoryService {
         handle.close().await
     }
 
-    #[instrument(skip_all, fields(directory.digest = %root_directory_digest))]
+    #[instrument(level = "trace", skip_all, fields(directory.digest = %root_directory_digest, instance_name = %self.instance_name))]
     fn get_recursive(
         &self,
         root_directory_digest: &B3Digest,
@@ -219,17 +229,18 @@ impl ServiceBuilder for ObjectStoreDirectoryServiceConfig {
     type Output = dyn DirectoryService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (object_store, path) = object_store::parse_url_opts(
             &self.object_store_url.parse()?,
             &self.object_store_options,
         )?;
-        Ok(Arc::new(ObjectStoreDirectoryService {
-            object_store: Arc::new(object_store),
-            base_path: path,
-        }))
+        Ok(Arc::new(ObjectStoreDirectoryService::new(
+            instance_name.to_string(),
+            Arc::new(object_store),
+            path,
+        )))
     }
 }
 

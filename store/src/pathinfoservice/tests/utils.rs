@@ -53,16 +53,19 @@ pub async fn make_grpc_path_info_service_client() -> (
     // Create a client, connecting to the right side. The URI is unused.
     let mut maybe_right = Some(right);
 
-    let path_info_service = GRPCPathInfoService::from_client(PathInfoServiceClient::new(
-        Endpoint::try_from("http://[::]:50051")
-            .unwrap()
-            .connect_with_connector(tower::service_fn(move |_: Uri| {
-                let right = maybe_right.take().unwrap();
-                async move { Ok::<_, std::io::Error>(TokioIo::new(right)) }
-            }))
-            .await
-            .unwrap(),
-    ));
+    let path_info_service = GRPCPathInfoService::from_client(
+        "default".into(),
+        PathInfoServiceClient::new(
+            Endpoint::try_from("http://[::]:50051")
+                .unwrap()
+                .connect_with_connector(tower::service_fn(move |_: Uri| {
+                    let right = maybe_right.take().unwrap();
+                    async move { Ok::<_, std::io::Error>(TokioIo::new(right)) }
+                }))
+                .await
+                .unwrap(),
+        ),
+    );
 
     (blob_service, directory_service, path_info_service)
 }
@@ -73,7 +76,7 @@ pub(crate) async fn make_bigtable_path_info_service(
     use crate::pathinfoservice::bigtable::BigtableParameters;
     use crate::pathinfoservice::BigtablePathInfoService;
 
-    BigtablePathInfoService::connect(BigtableParameters::default_for_tests())
+    BigtablePathInfoService::connect("test".into(), BigtableParameters::default_for_tests())
         .await
         .unwrap()
 }

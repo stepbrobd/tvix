@@ -13,12 +13,13 @@ use crate::proto;
 
 #[derive(Clone, Default)]
 pub struct MemoryDirectoryService {
+    instance_name: String,
     db: Arc<RwLock<HashMap<B3Digest, proto::Directory>>>,
 }
 
 #[async_trait]
 impl DirectoryService for MemoryDirectoryService {
-    #[instrument(skip(self, digest), fields(directory.digest = %digest))]
+    #[instrument(skip(self, digest), err, fields(directory.digest = %digest, instance_name=%self.instance_name))]
     async fn get(&self, digest: &B3Digest) -> Result<Option<Directory>, Error> {
         let db = self.db.read().await;
 
@@ -45,7 +46,7 @@ impl DirectoryService for MemoryDirectoryService {
         }
     }
 
-    #[instrument(skip(self, directory), fields(directory.digest = %directory.digest()))]
+    #[instrument(skip(self, directory), err, fields(directory.digest = %directory.digest(), instance_name=%self.instance_name))]
     async fn put(&self, directory: Directory) -> Result<B3Digest, Error> {
         let digest = directory.digest();
 
@@ -56,7 +57,7 @@ impl DirectoryService for MemoryDirectoryService {
         Ok(digest)
     }
 
-    #[instrument(skip_all, fields(directory.digest = %root_directory_digest))]
+    #[instrument(skip_all, fields(directory.digest = %root_directory_digest, instance_name=%self.instance_name))]
     fn get_recursive(
         &self,
         root_directory_digest: &B3Digest,
@@ -64,7 +65,7 @@ impl DirectoryService for MemoryDirectoryService {
         traverse_directory(self.clone(), root_directory_digest)
     }
 
-    #[instrument(skip_all)]
+    #[instrument(skip_all, fields(instance_name=%self.instance_name))]
     fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)>
     where
         Self: Clone,
@@ -93,9 +94,12 @@ impl ServiceBuilder for MemoryDirectoryServiceConfig {
     type Output = dyn DirectoryService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Arc::new(MemoryDirectoryService::default()))
+        Ok(Arc::new(MemoryDirectoryService {
+            instance_name: instance_name.to_string(),
+            db: Default::default(),
+        }))
     }
 }

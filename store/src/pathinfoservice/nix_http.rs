@@ -32,6 +32,7 @@ use url::Url;
 /// [PathInfoService::put] is not implemented and returns an error if called.
 /// TODO: what about reading from nix-cache-info?
 pub struct NixHTTPPathInfoService<BS, DS> {
+    instance_name: String,
     base_url: url::Url,
     http_client: reqwest_middleware::ClientWithMiddleware,
 
@@ -44,8 +45,14 @@ pub struct NixHTTPPathInfoService<BS, DS> {
 }
 
 impl<BS, DS> NixHTTPPathInfoService<BS, DS> {
-    pub fn new(base_url: url::Url, blob_service: BS, directory_service: DS) -> Self {
+    pub fn new(
+        instance_name: String,
+        base_url: url::Url,
+        blob_service: BS,
+        directory_service: DS,
+    ) -> Self {
         Self {
+            instance_name,
             base_url,
             http_client: reqwest_middleware::ClientBuilder::new(reqwest::Client::new())
                 .with(tvix_tracing::propagate::reqwest::tracing_middleware())
@@ -69,7 +76,7 @@ where
     BS: BlobService + Send + Sync + Clone + 'static,
     DS: DirectoryService + Send + Sync + Clone + 'static,
 {
-    #[instrument(skip_all, err, fields(path.digest=nixbase32::encode(&digest)))]
+    #[instrument(skip_all, err, fields(path.digest=nixbase32::encode(&digest), instance_name=%self.instance_name))]
     async fn get(&self, digest: [u8; 20]) -> Result<Option<PathInfo>, Error> {
         let narinfo_url = self
             .base_url
@@ -241,7 +248,7 @@ where
         }))
     }
 
-    #[instrument(skip_all, fields(path_info=?_path_info))]
+    #[instrument(skip_all, fields(path_info=?_path_info, instance_name=%self.instance_name))]
     async fn put(&self, _path_info: PathInfo) -> Result<PathInfo, Error> {
         Err(Error::InvalidRequest(
             "put not supported for this backend".to_string(),
@@ -314,7 +321,7 @@ impl ServiceBuilder for NixHTTPPathInfoServiceConfig {
     type Output = dyn PathInfoService;
     async fn build<'a>(
         &'a self,
-        _instance_name: &str,
+        instance_name: &str,
         context: &CompositionContext,
     ) -> Result<Arc<Self::Output>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (blob_service, directory_service) = futures::join!(
@@ -322,6 +329,7 @@ impl ServiceBuilder for NixHTTPPathInfoServiceConfig {
             context.resolve::<dyn DirectoryService>(self.directory_service.clone())
         );
         let mut svc = NixHTTPPathInfoService::new(
+            instance_name.to_string(),
             Url::parse(&self.base_url)?,
             blob_service?,
             directory_service?,
