@@ -1,8 +1,18 @@
+pub mod worker_protocol;
+
+use std::io::Result;
+
+use types::UnkeyedValidPathInfo;
+
+use crate::store_path::StorePath;
+
 pub mod handler;
 pub mod types;
-pub mod worker_protocol;
 
 /// Represents all possible operations over the nix-daemon protocol.
 pub trait NixDaemonIO {
-    // TODO add methods to it.
+    fn query_path_info(
+        &self,
+        path: &StorePath<String>,
+    ) -> impl std::future::Future<Output = Result<Option<UnkeyedValidPathInfo>>> + Send;
 }

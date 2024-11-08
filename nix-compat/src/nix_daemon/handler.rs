@@ -10,11 +10,16 @@ use super::{
     worker_protocol::{server_handshake_client, ClientSettings, Operation, Trust, STDERR_LAST},
     NixDaemonIO,
 };
-use crate::wire::{
-    de::{NixRead, NixReader},
-    ser::{NixSerialize, NixWrite, NixWriter, NixWriterBuilder},
-    ProtocolVersion,
+
+use crate::{
+    store_path::StorePath,
+    wire::{
+        de::{NixRead, NixReader},
+        ser::{NixSerialize, NixWrite, NixWriter, NixWriterBuilder},
+        ProtocolVersion,
+    },
 };
+
 use crate::{nix_daemon::types::NixError, worker_protocol::STDERR_ERROR};
 
 /// Handles a single connection with a nix client.
@@ -105,6 +110,7 @@ where
 
     /// Main client connection loop, reads client's requests and responds to them accordingly.
     pub async fn handle_client(&mut self) -> Result<(), std::io::Error> {
+        let io = self.io.clone();
         loop {
             let op_code = self.reader.read_number().await?;
             match TryInto::<Operation>::try_into(op_code) {
@@ -112,6 +118,15 @@ where
                     Operation::SetOptions => {
                         self.client_settings = self.reader.read_value().await?;
                         self.handle(async { Ok(()) }).await?
+                    }
+                    Operation::QueryPathInfo => {
+                        let path: StorePath<String> = self.reader.read_value().await?;
+                        self.handle(io.query_path_info(&path)).await?
+                    }
+                    Operation::IsValidPath => {
+                        let path: StorePath<String> = self.reader.read_value().await?;
+                        self.handle(async { Ok(io.query_path_info(&path).await?.is_some()) })
+                            .await?
                     }
                     _ => {
                         return Err(std::io::Error::other(format!(
@@ -168,18 +183,26 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
+    use std::{io::Result, sync::Arc};
 
     use tokio::io::AsyncWriteExt;
 
     use crate::{
+        nix_daemon::types::UnkeyedValidPathInfo,
         wire::ProtocolVersion,
         worker_protocol::{ClientSettings, WORKER_MAGIC_1, WORKER_MAGIC_2},
     };
 
     struct MockDaemonIO {}
 
-    impl NixDaemonIO for MockDaemonIO {}
+    impl NixDaemonIO for MockDaemonIO {
+        async fn query_path_info(
+            &self,
+            _path: &crate::store_path::StorePath<String>,
+        ) -> Result<Option<UnkeyedValidPathInfo>> {
+            Ok(None)
+        }
+    }
 
     #[tokio::test]
     async fn test_daemon_initialization() {
