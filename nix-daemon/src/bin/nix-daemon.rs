@@ -1,8 +1,10 @@
 use clap::Parser;
 use mimalloc::MiMalloc;
-use std::error::Error;
-use tokio::io::AsyncWriteExt;
+use nix_compat::nix_daemon::handler::NixDaemon;
+use nix_daemon::TvixDaemon;
+use std::{error::Error, sync::Arc};
 use tokio_listener::SystemOptions;
+use tracing::error;
 use tvix_store::utils::{construct_services, ServiceUrlsGrpc};
 
 #[global_allocator]
@@ -58,7 +60,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 }
 
 async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let (_blob_service, _directory_service, _path_info_service, _nar_calculation_service) =
+    let (_blob_service, _directory_service, path_info_service, _nar_calculation_service) =
         construct_services(cli.service_addrs).await?;
 
     let listen_address = cli.listen_args.listen_address.unwrap_or_else(|| {
@@ -74,16 +76,29 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     )
     .await?;
 
-    while let Ok((mut connection, _)) = listener.accept().await {
-        tokio::spawn(async move {
-            let ucred = connection
-                .try_borrow_unix()
-                .and_then(|u| u.peer_cred().ok());
+    let io = Arc::new(TvixDaemon::new(path_info_service));
 
-            // For now we just write the connected process credentials into the connection.
-            let _ = connection
-                .write_all(format!("Hello {:?}", ucred).as_bytes())
-                .await;
+    while let Ok((connection, _)) = listener.accept().await {
+        let io = io.clone();
+        tokio::spawn(async move {
+            match NixDaemon::initialize(io.clone(), connection).await {
+                Ok(mut daemon) => {
+                    if let Err(error) = daemon.handle_client().await {
+                        match error.kind() {
+                            std::io::ErrorKind::UnexpectedEof => {
+                                // client disconnected, nothing to do
+                            }
+                            _ => {
+                                // otherwise log the error and disconnect
+                                error!(error=?error, "client error");
+                            }
+                        }
+                    }
+                }
+                Err(error) => {
+                    error!(error=?error, "nix-daemon handshake failed");
+                }
+            }
         });
     }
     Ok(())

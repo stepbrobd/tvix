@@ -38,6 +38,15 @@ impl NixSerialize for str {
     }
 }
 
+impl NixSerialize for &str {
+    async fn serialize<W>(&self, writer: &mut W) -> Result<(), W::Error>
+    where
+        W: NixWrite,
+    {
+        writer.write_slice(self.as_bytes()).await
+    }
+}
+
 #[cfg(test)]
 mod test {
     use hex_literal::hex;

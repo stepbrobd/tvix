@@ -8,10 +8,13 @@ edition = "2021"
 async = ["tokio"]
 # code emitting low-level packets used in the daemon protocol.
 wire = ["tokio", "pin-project-lite", "bytes"]
+
+# nix-daemon protocol handling
+daemon = ["tokio", "nix-compat-derive"]
 test = []
 
 # Enable all features by default.
-default = ["async", "wire", "nix-compat-derive"]
+default = ["async", "daemon", "wire", "nix-compat-derive"]
 
 [dependencies]
 bitflags = { workspace = true }
@@ -30,8 +33,9 @@ sha2 = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 bytes = { workspace = true, optional = true }
-tokio = { workspace = true, features = ["io-util", "macros"], optional = true }
+tokio = { workspace = true, features = ["io-util", "macros", "sync"], optional = true }
 pin-project-lite = { workspace = true, optional = true }
+num_enum = "0.7.3"
 
 [dependencies.nix-compat-derive]
 path = "../nix-compat-derive"
