@@ -1,6 +1,7 @@
 use clap::Parser;
 use mimalloc::MiMalloc;
 use nar_bridge::AppState;
+use std::num::NonZeroUsize;
 use tower::ServiceBuilder;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::info;
@@ -24,6 +25,11 @@ struct Cli {
     /// The address to listen on.
     #[clap(flatten)]
     listen_args: tokio_listener::ListenerAddressLFlag,
+
+    /// The capacity of the lookup table from NarHash to [Node].
+    /// Should be bigger than the number of concurrent NAR uploads.
+    #[arg(long, env, default_value_t = NonZeroUsize::new(1000).unwrap())]
+    root_nodes_cache_capacity: NonZeroUsize,
 
     #[cfg(feature = "otlp")]
     /// Whether to configure OTLP. Set --otlp=false to disable.
@@ -51,7 +57,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let (blob_service, directory_service, path_info_service, _nar_calculation_service) =
         tvix_store::utils::construct_services(cli.service_addrs).await?;
 
-    let state = AppState::new(blob_service, directory_service, path_info_service);
+    let state = AppState::new(
+        blob_service,
+        directory_service,
+        path_info_service,
+        cli.root_nodes_cache_capacity,
+    );
 
     let app = nar_bridge::gen_router(cli.priority)
         .layer(

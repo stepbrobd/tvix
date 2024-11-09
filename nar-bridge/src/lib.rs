@@ -15,12 +15,6 @@ use tvix_store::pathinfoservice::PathInfoService;
 mod nar;
 mod narinfo;
 
-/// The capacity of the lookup table from NarHash to [Node].
-/// Should be bigger than the number of concurrent NAR upload.
-/// Cannot be [NonZeroUsize] here due to rust-analyzer going bananas.
-/// SAFETY: 1000 != 0
-const ROOT_NODES_CACHE_CAPACITY: usize = 1000;
-
 #[derive(Clone)]
 pub struct AppState {
     blob_service: Arc<dyn BlobService>,
@@ -37,15 +31,13 @@ impl AppState {
         blob_service: Arc<dyn BlobService>,
         directory_service: Arc<dyn DirectoryService>,
         path_info_service: Arc<dyn PathInfoService>,
+        root_nodes_cache_capacity: NonZeroUsize,
     ) -> Self {
         Self {
             blob_service,
             directory_service,
             path_info_service,
-            root_nodes: Arc::new(RwLock::new(LruCache::new({
-                // SAFETY: 1000 != 0
-                unsafe { NonZeroUsize::new_unchecked(ROOT_NODES_CACHE_CAPACITY) }
-            }))),
+            root_nodes: Arc::new(RwLock::new(LruCache::new(root_nodes_cache_capacity))),
         }
     }
 }
