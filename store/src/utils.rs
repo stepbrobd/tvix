@@ -9,11 +9,12 @@ use tokio::io::{self, AsyncWrite};
 use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
 use url::Url;
 
-use crate::composition::{
-    with_registry, Composition, DeserializeWithRegistry, ServiceBuilder, REG,
-};
+use crate::composition::REG;
 use crate::nar::{NarCalculationService, SimpleRenderer};
 use crate::pathinfoservice::PathInfoService;
+use tvix_castore::composition::{
+    with_registry, Composition, DeserializeWithRegistry, ServiceBuilder,
+};
 
 #[derive(serde::Deserialize, Default)]
 pub struct CompositionConfigs {
@@ -127,6 +128,10 @@ impl From<ServiceUrlsMemory> for ServiceUrls {
     }
 }
 
+/// Deserializes service addresses into composition config, configuring each
+/// service as the single "root".
+/// If the `xp-composition-cli` feature is enabled, and a file specified in the
+/// `--experimental-store-composition` parameter, this is used instead.
 pub async fn addrs_to_configs(
     urls: impl Into<ServiceUrls>,
 ) -> Result<CompositionConfigs, Box<dyn std::error::Error + Send + Sync>> {

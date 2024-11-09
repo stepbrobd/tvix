@@ -1,9 +1,10 @@
 use super::PathInfoService;
 
-use crate::composition::{
-    with_registry, CompositionContext, DeserializeWithRegistry, ServiceBuilder, REG,
-};
+use crate::composition::REG;
 use std::sync::Arc;
+use tvix_castore::composition::{
+    with_registry, CompositionContext, DeserializeWithRegistry, ServiceBuilder,
+};
 use tvix_castore::Error;
 use url::Url;
 
@@ -56,11 +57,12 @@ pub async fn from_addr(
 #[cfg(test)]
 mod tests {
     use super::from_addr;
-    use crate::composition::{Composition, DeserializeWithRegistry, ServiceBuilder, REG};
+    use crate::composition::REG;
     use rstest::rstest;
     use std::sync::LazyLock;
     use tempfile::TempDir;
     use tvix_castore::blobservice::{BlobService, MemoryBlobServiceConfig};
+    use tvix_castore::composition::{Composition, DeserializeWithRegistry, ServiceBuilder};
     use tvix_castore::directoryservice::{DirectoryService, MemoryDirectoryServiceConfig};
 
     static TMPDIR_REDB_1: LazyLock<TempDir> = LazyLock::new(|| TempDir::new().unwrap());
