@@ -57,6 +57,8 @@ The flexibility of this doesn't need to be exposed to the user in the default
 case; in most cases we should be fine with some form of on-disk storage and a
 bunch of substituters with different priorities.
 
+Check [Store Configuration](./store-configuration.md) for more details.
+
 ### gRPC Clients
 Clients are encouraged to always read blobs in a chunked fashion (asking for a
 list of chunks for a blob via `BlobService.Stat()`, then fetching chunks via

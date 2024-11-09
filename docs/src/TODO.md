@@ -120,8 +120,6 @@ Extend the other pages in here. Some ideas on what should be tackled:
    and trait-focused?
  - Restructure docs on castore vs store, this seems to be duplicated a bit and
    is probably still not too clear.
- - Describe store composition(s) in more detail. There's some notes on granular
-   fetching which probably can be repurposed.
  - Absorb the rest of //tvix/website into this.
 
 ## Features
