@@ -30,7 +30,7 @@ pub async fn make_grpc_blob_service_client() -> Box<dyn BlobService> {
     let mut maybe_right = Some(right);
 
     Box::new(GRPCBlobService::from_client(
-        "default".into(),
+        "root".into(),
         BlobServiceClient::new(
             Endpoint::try_from("http://[::]:50051")
                 .unwrap()

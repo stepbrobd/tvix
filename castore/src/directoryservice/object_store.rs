@@ -64,7 +64,7 @@ impl ObjectStoreDirectoryService {
         let (object_store, path) = object_store::parse_url_opts(url, options)?;
 
         Ok(Self {
-            instance_name: "default".into(),
+            instance_name: "root".into(),
             object_store: Arc::new(object_store),
             base_path: path,
         })

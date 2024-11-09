@@ -56,7 +56,7 @@ impl RedbDirectoryService {
         create_schema(&db)?;
 
         Ok(Self {
-            instance_name: "default".into(),
+            instance_name: "root".into(),
             db: Arc::new(db),
         })
     }

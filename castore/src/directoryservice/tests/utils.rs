@@ -33,7 +33,7 @@ pub async fn make_grpc_directory_service_client() -> Box<dyn DirectoryService> {
     // Create a client, connecting to the right side. The URI is unused.
     let mut maybe_right = Some(right);
     Box::new(GRPCDirectoryService::from_client(
-        "default".into(),
+        "root".into(),
         DirectoryServiceClient::new(
             Endpoint::try_from("http://[::]:50051")
                 .unwrap()

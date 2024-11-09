@@ -128,12 +128,12 @@ mod tests {
     async fn test_from_addr_tokio(#[case] uri_str: &str, #[case] exp_succeed: bool) {
         let mut comp = Composition::new(&REG);
         comp.extend(vec![(
-            "default".into(),
+            "root".into(),
             DeserializeWithRegistry(Box::new(MemoryBlobServiceConfig {})
                 as Box<dyn ServiceBuilder<Output = dyn BlobService>>),
         )]);
         comp.extend(vec![(
-            "default".into(),
+            "root".into(),
             DeserializeWithRegistry(Box::new(MemoryDirectoryServiceConfig {})
                 as Box<dyn ServiceBuilder<Output = dyn DirectoryService>>),
         )]);

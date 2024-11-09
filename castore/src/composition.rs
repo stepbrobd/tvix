@@ -62,7 +62,7 @@
 //!   "blobstore2": {
 //!     "type": "memory"
 //!   },
-//!   "default": {
+//!   "root": {
 //!     "type": "combined",
 //!     "local": "blobstore1",
 //!     "remote": "blobstore2"
@@ -72,7 +72,7 @@
 //! let blob_services_configs = with_registry(&REG, || serde_json::from_value(blob_services_configs_json))?;
 //! let mut blob_service_composition = Composition::new(&REG);
 //! blob_service_composition.extend_with_configs::<dyn BlobService>(blob_services_configs);
-//! let blob_service: Arc<dyn BlobService> = blob_service_composition.build("default").await?;
+//! let blob_service: Arc<dyn BlobService> = blob_service_composition.build("root").await?;
 //! # Ok(())
 //! # })
 //! # }
@@ -281,7 +281,7 @@ pub fn add_default_services(reg: &mut Registry) {
 pub struct CompositionContext<'a> {
     // The stack used to detect recursive instantiations and prevent deadlocks
     // The TypeId of the trait object is included to distinguish e.g. the
-    // BlobService "default" and the DirectoryService "default".
+    // BlobService "root" and the DirectoryService "root".
     stack: Vec<(TypeId, String)>,
     registry: &'static Registry,
     composition: Option<&'a Composition>,
@@ -529,7 +529,7 @@ mod test {
     #[tokio::test]
     async fn concurrent() {
         let blob_services_configs_json = serde_json::json!({
-            "default": {
+            "root": {
                 "type": "memory",
             }
         });
@@ -539,8 +539,8 @@ mod test {
         let mut blob_service_composition = Composition::new(&REG);
         blob_service_composition.extend_with_configs::<dyn BlobService>(blob_services_configs);
         let (blob_service1, blob_service2) = tokio::join!(
-            blob_service_composition.build::<dyn BlobService>("default"),
-            blob_service_composition.build::<dyn BlobService>("default")
+            blob_service_composition.build::<dyn BlobService>("root"),
+            blob_service_composition.build::<dyn BlobService>("root")
         );
         assert!(Arc::ptr_eq(
             &blob_service1.unwrap(),
@@ -552,15 +552,15 @@ mod test {
     #[tokio::test]
     async fn reject_recursion() {
         let blob_services_configs_json = serde_json::json!({
-            "default": {
+            "root": {
                 "type": "combined",
                 "local": "other",
                 "remote": "other"
             },
             "other": {
                 "type": "combined",
-                "local": "default",
-                "remote": "default"
+                "local": "root",
+                "remote": "root"
             }
         });
 
@@ -569,11 +569,11 @@ mod test {
         let mut blob_service_composition = Composition::new(&REG);
         blob_service_composition.extend_with_configs::<dyn BlobService>(blob_services_configs);
         match blob_service_composition
-            .build::<dyn BlobService>("default")
+            .build::<dyn BlobService>("root")
             .await
         {
             Err(CompositionError::Recursion(stack)) => {
-                assert_eq!(stack, vec!["default".to_string(), "other".to_string()])
+                assert_eq!(stack, vec!["root".to_string(), "other".to_string()])
             }
             other => panic!("should have returned an error, returned: {:?}", other.err()),
         }

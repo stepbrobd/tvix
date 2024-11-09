@@ -385,7 +385,7 @@ mod tests {
                     .await
                     .expect("must succeed"),
             );
-            GRPCBlobService::from_client("default".into(), client)
+            GRPCBlobService::from_client("root".into(), client)
         };
 
         let has = grpc_client

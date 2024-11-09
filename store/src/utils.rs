@@ -145,15 +145,15 @@ pub async fn addrs_to_configs(
     let path_info_service_url = Url::parse(&urls.path_info_service_addr)?;
 
     configs.blobservices.insert(
-        "default".into(),
+        "root".into(),
         with_registry(&REG, || blob_service_url.try_into())?,
     );
     configs.directoryservices.insert(
-        "default".into(),
+        "root".into(),
         with_registry(&REG, || directory_service_url.try_into())?,
     );
     configs.pathinfoservices.insert(
-        "default".into(),
+        "root".into(),
         with_registry(&REG, || path_info_service_url.try_into())?,
     );
 
@@ -194,9 +194,9 @@ pub async fn construct_services_from_configs(
     comp.extend(configs.directoryservices);
     comp.extend(configs.pathinfoservices);
 
-    let blob_service: Arc<dyn BlobService> = comp.build("default").await?;
-    let directory_service: Arc<dyn DirectoryService> = comp.build("default").await?;
-    let path_info_service: Arc<dyn PathInfoService> = comp.build("default").await?;
+    let blob_service: Arc<dyn BlobService> = comp.build("root").await?;
+    let directory_service: Arc<dyn DirectoryService> = comp.build("root").await?;
+    let path_info_service: Arc<dyn PathInfoService> = comp.build("root").await?;
 
     // HACK: The grpc client also implements NarCalculationService, and we
     // really want to use it (otherwise we'd need to fetch everything again for hashing).

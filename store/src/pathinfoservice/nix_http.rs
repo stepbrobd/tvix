@@ -296,13 +296,13 @@ impl TryFrom<Url> for NixHTTPPathInfoServiceConfig {
             .into_iter()
             .find(|(k, _)| k == "blob_service")
             .map(|(_, v)| v.to_string())
-            .unwrap_or("default".to_string());
+            .unwrap_or("root".to_string());
         let directory_service = url
             .query_pairs()
             .into_iter()
             .find(|(k, _)| k == "directory_service")
             .map(|(_, v)| v.to_string())
-            .unwrap_or("default".to_string());
+            .unwrap_or("root".to_string());
 
         Ok(NixHTTPPathInfoServiceConfig {
             // Stringify the URL and remove the nix+ prefix.
