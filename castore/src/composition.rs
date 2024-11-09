@@ -64,8 +64,8 @@
 //!   },
 //!   "root": {
 //!     "type": "combined",
-//!     "local": "blobstore1",
-//!     "remote": "blobstore2"
+//!     "near": "blobstore1",
+//!     "far": "blobstore2"
 //!   }
 //! });
 //!
@@ -555,13 +555,13 @@ mod test {
         let blob_services_configs_json = serde_json::json!({
             "root": {
                 "type": "combined",
-                "local": "other",
-                "remote": "other"
+                "near": "other",
+                "far": "other"
             },
             "other": {
                 "type": "combined",
-                "local": "root",
-                "remote": "root"
+                "near": "root",
+                "far": "root"
             }
         });
 

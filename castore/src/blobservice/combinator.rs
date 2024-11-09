@@ -8,17 +8,17 @@ use crate::{B3Digest, Error};
 
 use super::{BlobReader, BlobService, BlobWriter, ChunkedReader};
 
-/// Combinator for a BlobService, using a "local" and "remote" blobservice.
-/// Requests are tried in (and returned from) the local store first, only if
-/// things are not present there, the remote BlobService is queried.
-/// In case the local blobservice doesn't have the blob, we ask the remote
-/// blobservice for chunks, and try to read each of these chunks from the local
-/// blobservice again, before falling back to the remote one.
-/// The remote BlobService is never written to.
+/// Combinator for a BlobService, using a "near" and "far" blobservice.
+/// Requests are tried in (and returned from) the near store first, only if
+/// things are not present there, the far BlobService is queried.
+/// In case the near blobservice doesn't have the blob, we ask the remote
+/// blobservice for chunks, and try to read each of these chunks from the near
+/// blobservice again, before falling back to the far one.
+/// The far BlobService is never written to.
 pub struct CombinedBlobService<BL, BR> {
     instance_name: String,
-    local: BL,
-    remote: BR,
+    near: BL,
+    far: BR,
 }
 
 impl<BL, BR> Clone for CombinedBlobService<BL, BR>
@@ -29,8 +29,8 @@ where
     fn clone(&self) -> Self {
         Self {
             instance_name: self.instance_name.clone(),
-            local: self.local.clone(),
-            remote: self.remote.clone(),
+            near: self.near.clone(),
+            far: self.far.clone(),
         }
     }
 }
@@ -43,33 +43,33 @@ where
 {
     #[instrument(skip(self, digest), fields(blob.digest=%digest, instance_name=%self.instance_name))]
     async fn has(&self, digest: &B3Digest) -> std::io::Result<bool> {
-        Ok(self.local.as_ref().has(digest).await? || self.remote.as_ref().has(digest).await?)
+        Ok(self.near.as_ref().has(digest).await? || self.far.as_ref().has(digest).await?)
     }
 
     #[instrument(skip(self, digest), fields(blob.digest=%digest, instance_name=%self.instance_name), err)]
     async fn open_read(&self, digest: &B3Digest) -> std::io::Result<Option<Box<dyn BlobReader>>> {
-        if self.local.as_ref().has(digest).await? {
-            // local store has the blob, so we can assume it also has all chunks.
-            self.local.as_ref().open_read(digest).await
+        if self.near.as_ref().has(digest).await? {
+            // near store has the blob, so we can assume it also has all chunks.
+            self.near.as_ref().open_read(digest).await
         } else {
-            // Local store doesn't have the blob.
+            // near store doesn't have the blob.
             // Ask the remote one for the list of chunks,
             // and create a chunked reader that uses self.open_read() for
             // individual chunks. There's a chance we already have some chunks
-            // locally, meaning we don't need to fetch them all from the remote
+            // in near, meaning we don't need to fetch them all from the far
             // BlobService.
-            match self.remote.as_ref().chunks(digest).await? {
-                // blob doesn't exist on the remote side either, nothing we can do.
+            match self.far.as_ref().chunks(digest).await? {
+                // blob doesn't exist on the near side either, nothing we can do.
                 None => Ok(None),
                 Some(remote_chunks) => {
-                    // if there's no more granular chunks, or the remote
+                    // if there's no more granular chunks, or the far
                     // blobservice doesn't support chunks, read the blob from
-                    // the remote blobservice directly.
+                    // the far blobservice directly.
                     if remote_chunks.is_empty() {
-                        return self.remote.as_ref().open_read(digest).await;
+                        return self.far.as_ref().open_read(digest).await;
                     }
                     // otherwise, a chunked reader, which will always try the
-                    // local backend first.
+                    // near backend first.
 
                     let chunked_reader = ChunkedReader::from_chunks(
                         remote_chunks.into_iter().map(|chunk| {
@@ -88,16 +88,16 @@ where
 
     #[instrument(skip_all, fields(instance_name=%self.instance_name))]
     async fn open_write(&self) -> Box<dyn BlobWriter> {
-        // direct writes to the local one.
-        self.local.as_ref().open_write().await
+        // direct writes to the near one.
+        self.near.as_ref().open_write().await
     }
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct CombinedBlobServiceConfig {
-    local: String,
-    remote: String,
+    near: String,
+    far: String,
 }
 
 impl TryFrom<url::Url> for CombinedBlobServiceConfig {
@@ -119,13 +119,13 @@ impl ServiceBuilder for CombinedBlobServiceConfig {
         context: &CompositionContext,
     ) -> Result<Arc<dyn BlobService>, Box<dyn std::error::Error + Send + Sync>> {
         let (local, remote) = futures::join!(
-            context.resolve(self.local.clone()),
-            context.resolve(self.remote.clone())
+            context.resolve(self.near.clone()),
+            context.resolve(self.far.clone())
         );
         Ok(Arc::new(CombinedBlobService {
             instance_name: instance_name.to_string(),
-            local: local?,
-            remote: remote?,
+            near: local?,
+            far: remote?,
         }))
     }
 }
