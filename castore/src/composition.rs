@@ -89,7 +89,7 @@
 //!
 //! Continue with Example 2, with my_registry instead of REG
 //!
-//! EXPERIMENTAL: If the xp-store-composition feature is enabled,
+//! EXPERIMENTAL: If the xp-composition-url-refs feature is enabled,
 //! entrypoints can also be URL strings, which are created as
 //! anonymous stores. Instantiations of the same URL will
 //! result in a new, distinct anonymous store each time, so creating
@@ -315,7 +315,7 @@ impl<'a> CompositionContext<'a> {
         Ok(self.build_internal(entrypoint).await?)
     }
 
-    #[cfg(feature = "xp-store-composition")]
+    #[cfg(feature = "xp-composition-url-refs")]
     async fn build_anonymous<T: ?Sized + Send + Sync + 'static>(
         &self,
         entrypoint: String,
@@ -330,7 +330,7 @@ impl<'a> CompositionContext<'a> {
         &self,
         entrypoint: String,
     ) -> BoxFuture<'_, Result<Arc<T>, CompositionError>> {
-        #[cfg(feature = "xp-store-composition")]
+        #[cfg(feature = "xp-composition-url-refs")]
         if entrypoint.contains("://") {
             // There is a chance this is a url. we are building an anonymous store
             return Box::pin(async move {

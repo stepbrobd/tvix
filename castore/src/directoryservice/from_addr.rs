@@ -89,12 +89,12 @@ mod tests {
     #[case::grpc_invalid_host_and_path("grpc+http://localhost/some-path", false)]
     /// A valid example for store composition using anonymous urls
     #[cfg_attr(
-        feature = "xp-store-composition",
+        feature = "xp-composition-url-refs",
         case::anonymous_url_composition("cache://?near=memory://&far=memory://", true)
     )]
     /// Store composition with anonymous urls should fail if the feature is disabled
     #[cfg_attr(
-        not(feature = "xp-store-composition"),
+        not(feature = "xp-composition-url-refs"),
         case::anonymous_url_composition("cache://?near=memory://&far=memory://", false)
     )]
     /// A valid example for Bigtable

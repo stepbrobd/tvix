@@ -55,7 +55,7 @@ pub struct ServiceUrls {
     /// Path to a TOML file describing the way the services should be composed
     /// Experimental because the format is not final.
     /// If specified, the other service addrs are ignored.
-    #[cfg(feature = "xp-store-composition")]
+    #[cfg(feature = "xp-composition-cli")]
     #[arg(long, env)]
     experimental_store_composition: Option<String>,
 }
@@ -75,7 +75,7 @@ pub struct ServiceUrlsGrpc {
     #[arg(long, env, default_value = "grpc+http://[::1]:8000")]
     path_info_service_addr: String,
 
-    #[cfg(feature = "xp-store-composition")]
+    #[cfg(feature = "xp-composition-cli")]
     #[arg(long, env)]
     experimental_store_composition: Option<String>,
 }
@@ -98,7 +98,7 @@ pub struct ServiceUrlsMemory {
     #[arg(long, env, default_value = "memory://")]
     path_info_service_addr: String,
 
-    #[cfg(feature = "xp-store-composition")]
+    #[cfg(feature = "xp-composition-cli")]
     #[arg(long, env)]
     experimental_store_composition: Option<String>,
 }
@@ -109,7 +109,7 @@ impl From<ServiceUrlsGrpc> for ServiceUrls {
             blob_service_addr: urls.blob_service_addr,
             directory_service_addr: urls.directory_service_addr,
             path_info_service_addr: urls.path_info_service_addr,
-            #[cfg(feature = "xp-store-composition")]
+            #[cfg(feature = "xp-composition-cli")]
             experimental_store_composition: urls.experimental_store_composition,
         }
     }
@@ -121,7 +121,7 @@ impl From<ServiceUrlsMemory> for ServiceUrls {
             blob_service_addr: urls.blob_service_addr,
             directory_service_addr: urls.directory_service_addr,
             path_info_service_addr: urls.path_info_service_addr,
-            #[cfg(feature = "xp-store-composition")]
+            #[cfg(feature = "xp-composition-cli")]
             experimental_store_composition: urls.experimental_store_composition,
         }
     }
@@ -132,7 +132,7 @@ pub async fn addrs_to_configs(
 ) -> Result<CompositionConfigs, Box<dyn std::error::Error + Send + Sync>> {
     let urls: ServiceUrls = urls.into();
 
-    #[cfg(feature = "xp-store-composition")]
+    #[cfg(feature = "xp-composition-cli")]
     if let Some(conf_path) = urls.experimental_store_composition {
         let conf_text = tokio::fs::read_to_string(conf_path).await?;
         return Ok(with_registry(&REG, || toml::from_str(&conf_text))?);

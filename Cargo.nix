@@ -15507,7 +15507,7 @@ rec {
           "tonic-reflection" = [ "dep:tonic-reflection" ];
           "virtiofs" = [ "fs" "dep:vhost" "dep:vhost-user-backend" "dep:virtio-queue" "dep:vm-memory" "dep:vmm-sys-util" "dep:virtio-bindings" "fuse-backend-rs?/vhost-user-fs" "fuse-backend-rs?/virtiofs" ];
         };
-        resolvedDefaultFeatures = [ "cloud" "default" "fs" "fuse" "integration" "tonic-reflection" "virtiofs" "xp-store-composition" ];
+        resolvedDefaultFeatures = [ "cloud" "default" "fs" "fuse" "integration" "tonic-reflection" "virtiofs" "xp-composition-url-refs" ];
       };
       "tvix-cli" = rec {
         crateName = "tvix-cli";
@@ -16260,9 +16260,9 @@ rec {
           "tonic-reflection" = [ "dep:tonic-reflection" "tvix-castore/tonic-reflection" ];
           "tracy" = [ "tvix-tracing/tracy" ];
           "virtiofs" = [ "tvix-castore/virtiofs" ];
-          "xp-store-composition" = [ "toml" "tvix-castore/xp-store-composition" ];
+          "xp-composition-cli" = [ "toml" "tvix-castore/xp-composition-url-refs" ];
         };
-        resolvedDefaultFeatures = [ "cloud" "default" "fuse" "integration" "otlp" "toml" "tonic-reflection" "tracy" "virtiofs" "xp-store-composition" ];
+        resolvedDefaultFeatures = [ "cloud" "default" "fuse" "integration" "otlp" "toml" "tonic-reflection" "tracy" "virtiofs" "xp-composition-cli" ];
       };
       "tvix-tracing" = rec {
         crateName = "tvix-tracing";
