@@ -1,6 +1,5 @@
 use axum::extract::Query;
-use axum::http::StatusCode;
-use axum::response::Response;
+use axum::http::{Response, StatusCode};
 use axum::{body::Body, response::IntoResponse};
 use axum_extra::{headers::Range, TypedHeader};
 use axum_range::{KnownSize, Ranged};
@@ -116,6 +115,36 @@ pub async fn get_head(
     ))
 }
 
+/// Handler to respond to GET/HEAD requests for recently uploaded NAR files.
+/// Nix probes at {narhash}.nar[.compression_suffix] to determine whether a NAR
+/// has already been uploaded, by responding to (some of) these requests we
+/// avoid it unnecessarily uploading.
+/// We don't keep a full K/V from NAR hash to root note around, only the
+/// in-memory cache used to connect to the castore node when processing a PUT
+/// for the NARInfo.
+#[instrument(skip_all, fields(nar_str))]
+pub async fn head_root_nodes(
+    axum::extract::Path(nar_str): axum::extract::Path<String>,
+    axum::extract::State(AppState { root_nodes, .. }): axum::extract::State<AppState>,
+) -> Result<impl axum::response::IntoResponse, StatusCode> {
+    let (nar_hash, compression_suffix) =
+        nix_http::parse_nar_str(&nar_str).ok_or(StatusCode::UNAUTHORIZED)?;
+
+    // No paths with compression suffix are supported.
+    if !compression_suffix.is_empty() {
+        warn!(%compression_suffix, "invalid compression suffix requested");
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    // Check root_nodes, updating the moving it to the most recently used,
+    // as it might be referred in a subsequent NARInfo upload.
+    if root_nodes.write().get(&nar_hash).is_some() {
+        Ok("")
+    } else {
+        Err(StatusCode::NOT_FOUND)
+    }
+}
+
 #[instrument(skip(blob_service, directory_service, request))]
 pub async fn put(
     axum::extract::Path(nar_str): axum::extract::Path<String>,
@@ -172,6 +201,3 @@ pub async fn put(
 
     Ok("")
 }
-
-// FUTUREWORK: maybe head by narhash. Though not too critical, as we do
-// implement HEAD for .narinfo.

@@ -53,10 +53,8 @@ impl AppState {
 pub fn gen_router(priority: u64) -> Router<AppState> {
     Router::new()
         .route("/", get(root))
-        // FUTUREWORK: respond for NARs that we still have in root_nodes (at least HEAD)
-        // This avoids some unnecessary NAR uploading from multiple concurrent clients, and is cheap.
         .route("/nar/:nar_str", get(four_o_four))
-        .route("/nar/:nar_str", head(four_o_four))
+        .route("/nar/:nar_str", head(nar::head_root_nodes))
         .route("/nar/:nar_str", put(nar::put))
         .route("/nar/tvix-castore/:root_node_enc", get(nar::get_head))
         .route("/nar/tvix-castore/:root_node_enc", head(nar::get_head))
