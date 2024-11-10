@@ -1,6 +1,6 @@
 use std::fmt;
 
-use nix_compat::nix_daemon::ser::{
+use nix_compat::wire::ser::{
     mock::{Builder, Error},
     NixWrite as _,
 };

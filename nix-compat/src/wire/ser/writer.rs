@@ -8,9 +8,7 @@ use bytes::{Buf, BufMut, BytesMut};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
-use crate::nix_daemon::ProtocolVersion;
-use crate::wire::padding_len;
-use crate::wire::EMPTY_BYTES;
+use crate::wire::{padding_len, ProtocolVersion, EMPTY_BYTES};
 
 use super::{Error, NixWrite};
 
@@ -225,7 +223,7 @@ mod test {
     use tokio::io::AsyncWriteExt as _;
     use tokio_test::io::Builder;
 
-    use crate::nix_daemon::ser::NixWrite;
+    use crate::wire::ser::NixWrite;
 
     use super::NixWriter;
 

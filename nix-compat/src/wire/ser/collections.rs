@@ -53,7 +53,7 @@ mod test {
     use tokio::io::AsyncWriteExt as _;
     use tokio_test::io::Builder;
 
-    use crate::nix_daemon::ser::{NixSerialize, NixWrite, NixWriter};
+    use crate::wire::ser::{NixSerialize, NixWrite, NixWriter};
 
     #[rstest]
     #[case::empty(vec![], &hex!("0000 0000 0000 0000"))]

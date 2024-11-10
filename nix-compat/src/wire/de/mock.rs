@@ -6,7 +6,7 @@ use std::thread;
 use bytes::Bytes;
 use thiserror::Error;
 
-use crate::nix_daemon::ProtocolVersion;
+use crate::wire::ProtocolVersion;
 
 use super::NixRead;
 
@@ -189,7 +189,7 @@ mod test {
     use bytes::Bytes;
     use hex_literal::hex;
 
-    use crate::nix_daemon::de::NixRead;
+    use crate::wire::de::NixRead;
 
     use super::{Builder, Error};
 

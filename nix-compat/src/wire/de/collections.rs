@@ -64,7 +64,7 @@ mod test {
     use rstest::rstest;
     use tokio_test::io::Builder;
 
-    use crate::nix_daemon::de::{NixDeserialize, NixRead, NixReader};
+    use crate::wire::de::{NixDeserialize, NixRead, NixReader};
 
     #[rstest]
     #[case::empty(vec![], &hex!("0000 0000 0000 0000"))]

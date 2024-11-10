@@ -45,7 +45,7 @@ mod test {
     use tokio::io::AsyncWriteExt as _;
     use tokio_test::io::Builder;
 
-    use crate::nix_daemon::ser::{NixWrite, NixWriter};
+    use crate::wire::ser::{NixWrite, NixWriter};
 
     #[rstest]
     #[case::empty("", &hex!("0000 0000 0000 0000"))]

@@ -34,7 +34,7 @@ mod test {
     use rstest::rstest;
     use tokio_test::io::Builder;
 
-    use crate::nix_daemon::de::{NixRead, NixReader};
+    use crate::wire::de::{NixRead, NixReader};
 
     #[rstest]
     #[case::empty("", &hex!("0000 0000 0000 0000"))]

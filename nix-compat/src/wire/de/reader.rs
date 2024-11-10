@@ -8,8 +8,7 @@ use bytes::{Buf, BufMut, Bytes, BytesMut};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt, ReadBuf};
 
-use crate::nix_daemon::ProtocolVersion;
-use crate::wire::EMPTY_BYTES;
+use crate::wire::{ProtocolVersion, EMPTY_BYTES};
 
 use super::{Error, NixRead};
 
@@ -270,7 +269,7 @@ mod test {
     use tokio_test::io::Builder;
 
     use super::*;
-    use crate::nix_daemon::de::NixRead;
+    use crate::wire::de::NixRead;
 
     #[tokio::test]
     async fn test_read_u64() {

@@ -7,7 +7,7 @@ use std::thread;
 use ::proptest::prelude::TestCaseError;
 use thiserror::Error;
 
-use crate::nix_daemon::ProtocolVersion;
+use crate::wire::ProtocolVersion;
 
 use super::NixWrite;
 
@@ -491,11 +491,11 @@ mod test {
     use proptest::prelude::TestCaseError;
     use proptest::proptest;
 
-    use crate::nix_daemon::ser::mock::proptest::arb_extra_write;
-    use crate::nix_daemon::ser::mock::Operation;
-    use crate::nix_daemon::ser::mock::OperationType;
-    use crate::nix_daemon::ser::Error as _;
-    use crate::nix_daemon::ser::NixWrite;
+    use crate::wire::ser::mock::proptest::arb_extra_write;
+    use crate::wire::ser::mock::Operation;
+    use crate::wire::ser::mock::OperationType;
+    use crate::wire::ser::Error as _;
+    use crate::wire::ser::NixWrite;
 
     use super::{Builder, Error};
 

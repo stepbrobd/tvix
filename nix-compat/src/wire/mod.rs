@@ -3,3 +3,9 @@
 
 mod bytes;
 pub use bytes::*;
+
+mod protocol_version;
+pub use protocol_version::ProtocolVersion;
+
+pub mod de;
+pub mod ser;

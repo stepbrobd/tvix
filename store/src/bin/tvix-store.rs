@@ -3,9 +3,9 @@ use clap::Subcommand;
 
 use futures::StreamExt;
 use futures::TryStreamExt;
-use nix_compat::nix_daemon::de::Error;
 use nix_compat::nixhash::CAHash;
 use nix_compat::nixhash::NixHash;
+use nix_compat::wire::de::Error;
 use nix_compat::{path_info::ExportedPathInfo, store_path::StorePath};
 use serde::Deserialize;
 use serde::Serialize;
