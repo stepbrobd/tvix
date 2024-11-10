@@ -58,13 +58,19 @@ the tooling and communication methods outlined above.
 
 This folder contains the following components:
 
+* `//tvix/boot` - tooling to boot MicroVMs off of `tvix-[ca]store`
+* `//tvix/build` - a generic (Nix-unaware) builder protocol and various implementations
 * `//tvix/castore` - subtree storage/transfer in a content-addressed fashion
 * `//tvix/cli` - preliminary REPL & CLI implementation for Tvix
+* `//tvix/docs` - standalone documentation
 * `//tvix/eval` - an implementation of the Nix programming language
+* `//tvix/glue` - combines tvix-eval with tvix-[ca]store and tvix-build, implementation of build- and import-related builtins
 * `//tvix/nar-bridge` - a HTTP webserver providing a Nix HTTP Binary Cache interface in front of a tvix-store
 * `//tvix/nix-compat` - a Rust library for compatibility with C++ Nix, features like encodings and hashing schemes and formats
+* `//tvix/nix-daemon` - a Nix-compatible store daemon backed by Tvix
 * `//tvix/serde` - a Rust library for using the Nix language for app configuration
 * `//tvix/store` - a "filesystem" linking Nix store paths and metadata with the content-addressed layer
+* `//tvix/tracing` - unified library to configure logging, tracing, instrumentation and progress concerns
 
 Some additional folders with auxiliary things exist and can be explored at your
 leisure.
