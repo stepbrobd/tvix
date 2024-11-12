@@ -85,9 +85,17 @@ enum Commands {
         #[clap(flatten)]
         service_addrs: ServiceUrlsGrpc,
 
-        /// A path pointing to a JSON file produced by the Nix
+        /// A path pointing to a JSON file(or '-' for stdin) produced by the Nix
         /// `__structuredAttrs` containing reference graph information provided
         /// by the `exportReferencesGraph` feature.
+        ///
+        /// Additionally supports the output from the following nix command:
+        ///
+        /// ```notrust
+        /// nix path-info --json --closure-size --recursive <some-path> | \
+        ///   jq -s '{closure: add}' | \
+        ///   tvix-store copy -
+        /// ```
         ///
         /// This can be used to invoke tvix-store inside a Nix derivation
         /// copying to a Tvix store (or outside, if the JSON file is copied
@@ -348,9 +356,14 @@ async fn run_cli(
         } => {
             let (blob_service, directory_service, path_info_service, _nar_calculation_service) =
                 tvix_store::utils::construct_services(service_addrs).await?;
-
             // Parse the file at reference_graph_path.
-            let reference_graph_json = tokio::fs::read(&reference_graph_path).await?;
+            let reference_graph_json = if reference_graph_path == PathBuf::from("-") {
+                let mut writer: Vec<u8> = vec![];
+                tokio::io::copy(&mut tokio::io::stdin(), &mut writer).await?;
+                writer
+            } else {
+                tokio::fs::read(&reference_graph_path).await?
+            };
 
             #[derive(Deserialize, Serialize)]
             struct ReferenceGraph<'a> {
@@ -430,8 +443,8 @@ async fn run_cli(
                     references: elem.references.iter().map(StorePath::to_owned).collect(),
                     nar_size: elem.nar_size,
                     nar_sha256: elem.nar_sha256,
-                    signatures: vec![],
-                    deriver: None,
+                    signatures: elem.signatures.iter().map(|s| s.to_owned()).collect(),
+                    deriver: elem.deriver.map(|p| p.to_owned()),
                     ca: None,
                 };
 

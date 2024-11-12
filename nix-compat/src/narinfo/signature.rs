@@ -92,6 +92,12 @@ where
             bytes: self.bytes,
         }
     }
+    pub fn to_owned(&self) -> Signature<String> {
+        Signature {
+            name: self.name.to_string(),
+            bytes: self.bytes,
+        }
+    }
 }
 
 impl<'a, 'de, S> Deserialize<'de> for Signature<S>
@@ -130,6 +136,16 @@ where
 {
     fn fmt(&self, w: &mut fmt::Formatter) -> fmt::Result {
         write!(w, "{}:{}", self.name, BASE64.encode(&self.bytes))
+    }
+}
+
+impl<S> std::hash::Hash for Signature<S>
+where
+    S: AsRef<str>,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write(self.name.as_ref().as_bytes());
+        state.write(&self.bytes);
     }
 }
 

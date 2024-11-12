@@ -1,4 +1,4 @@
-use crate::{nixbase32, nixhash::NixHash, store_path::StorePathRef};
+use crate::{narinfo::SignatureRef, nixbase32, nixhash::NixHash, store_path::StorePathRef};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
@@ -15,7 +15,7 @@ pub struct ExportedPathInfo<'a> {
     #[serde(
         rename = "narHash",
         serialize_with = "to_nix_nixbase32_string",
-        deserialize_with = "from_nix_nixbase32_string"
+        deserialize_with = "from_nix_hash_string"
     )]
     pub nar_sha256: [u8; 32],
 
@@ -25,11 +25,17 @@ pub struct ExportedPathInfo<'a> {
     #[serde(borrow)]
     pub path: StorePathRef<'a>,
 
+    #[serde(borrow)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deriver: Option<StorePathRef<'a>>,
+
     /// The list of other Store Paths this Store Path refers to.
     /// StorePathRef does Ord by the nixbase32-encoded string repr, so this is correct.
     pub references: BTreeSet<StorePathRef<'a>>,
     // more recent versions of Nix also have a `valid: true` field here, Nix 2.3 doesn't,
     // and nothing seems to use it.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub signatures: Vec<SignatureRef<'a>>,
 }
 
 /// ExportedPathInfo are ordered by their `path` field.
@@ -56,18 +62,49 @@ where
 /// The length of a sha256 digest, nixbase32-encoded.
 const NIXBASE32_SHA256_ENCODE_LEN: usize = nixbase32::encode_len(32);
 
-fn from_nix_nixbase32_string<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
+fn from_nix_hash_string<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let str: &'de str = Deserialize::deserialize(deserializer)?;
+    if let Some(digest_str) = str.strip_prefix("sha256:") {
+        return from_nix_nixbase32_string::<D>(digest_str);
+    }
+    if let Some(digest_str) = str.strip_prefix("sha256-") {
+        return from_sri_string::<D>(digest_str);
+    }
+    Err(serde::de::Error::invalid_value(
+        serde::de::Unexpected::Str(str),
+        &"extected a valid nixbase32 or sri narHash",
+    ))
+}
 
-    let digest_str = str.strip_prefix("sha256:").ok_or_else(|| {
-        serde::de::Error::invalid_value(serde::de::Unexpected::Str(str), &"sha256:…")
-    })?;
+fn from_sri_string<'de, D>(str: &str) -> Result<[u8; 32], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let digest: [u8; 32] = data_encoding::BASE64
+        .decode(str.as_bytes())
+        .map_err(|_| {
+            serde::de::Error::invalid_value(
+                serde::de::Unexpected::Str(str),
+                &"valid base64 encoded string",
+            )
+        })?
+        .try_into()
+        .map_err(|_| {
+            serde::de::Error::invalid_value(serde::de::Unexpected::Str(str), &"valid digest len")
+        })?;
 
+    Ok(digest)
+}
+
+fn from_nix_nixbase32_string<'de, D>(str: &str) -> Result<[u8; 32], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
     let digest_str: [u8; NIXBASE32_SHA256_ENCODE_LEN] =
-        digest_str.as_bytes().try_into().map_err(|_| {
+        str.as_bytes().try_into().map_err(|_| {
             serde::de::Error::invalid_value(serde::de::Unexpected::Str(str), &"valid digest len")
         })?;
 
@@ -110,10 +147,49 @@ mod tests {
                     b"7n0mbqydcipkpbxm24fab066lxk68aqk-libunistring-1.1"
                 )
                 .expect("must parse"),
+                deriver: None,
                 references: BTreeSet::from_iter([StorePathRef::from_bytes(
                     b"7n0mbqydcipkpbxm24fab066lxk68aqk-libunistring-1.1"
                 )
                 .unwrap()]),
+                signatures: vec![],
+            },
+            deserialized.first().unwrap()
+        );
+    }
+
+    /// Ensure we can parse output from `nix path-info --json``
+    #[test]
+    fn serialize_deserialize_from_path_info() {
+        // JSON extracted from
+        // nix path-info /nix/store/z6r3bn5l51679pwkvh9nalp6c317z34m-libcxx-16.0.6-dev --json --closure-size
+        let pathinfos_str_json = r#"[{"closureSize":10756176,"deriver":"/nix/store/vs9976cyyxpykvdnlv7x85fpp3shn6ij-libcxx-16.0.6.drv","narHash":"sha256-E73Nt0NAKGxCnsyBFDUaCAbA+wiF5qjq1O9J7WrnT0E=","narSize":7020664,"path":"/nix/store/z6r3bn5l51679pwkvh9nalp6c317z34m-libcxx-16.0.6-dev","references":["/nix/store/lzzd5jgybnpfj86xkcpnd54xgwc4m457-libcxx-16.0.6"],"registrationTime":1730048276,"signatures":["cache.nixos.org-1:cTdhK6hnpPwtMXFX43CYb7v+CbpAusVI/MORZ3v5aHvpBYNg1MfBHVVeoexMBpNtHA8uFAn0aEsJaLXYIDhJDg=="],"valid":true}]"#;
+
+        let deserialized: BTreeSet<ExportedPathInfo> =
+            serde_json::from_str(pathinfos_str_json).expect("must serialize");
+
+        assert_eq!(
+            &ExportedPathInfo {
+                closure_size: 10756176,
+                nar_sha256: hex!(
+                    "13bdcdb74340286c429ecc8114351a0806c0fb0885e6a8ead4ef49ed6ae74f41"
+                ),
+                nar_size: 7020664,
+                path: StorePathRef::from_bytes(
+                    b"z6r3bn5l51679pwkvh9nalp6c317z34m-libcxx-16.0.6-dev"
+                )
+                .expect("must parse"),
+                deriver: Some(
+                    StorePathRef::from_bytes(
+                        b"vs9976cyyxpykvdnlv7x85fpp3shn6ij-libcxx-16.0.6.drv"
+                    )
+                    .expect("must parse")
+                ),
+                references: BTreeSet::from_iter([StorePathRef::from_bytes(
+                    b"lzzd5jgybnpfj86xkcpnd54xgwc4m457-libcxx-16.0.6"
+                )
+                .unwrap()]),
+                signatures: vec![SignatureRef::parse("cache.nixos.org-1:cTdhK6hnpPwtMXFX43CYb7v+CbpAusVI/MORZ3v5aHvpBYNg1MfBHVVeoexMBpNtHA8uFAn0aEsJaLXYIDhJDg==").expect("must parse")],
             },
             deserialized.first().unwrap()
         );
