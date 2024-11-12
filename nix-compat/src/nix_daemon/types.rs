@@ -1,5 +1,3 @@
-use nix_compat_derive::{NixDeserialize, NixSerialize};
-
 use crate::{
     narinfo::Signature,
     nixhash::CAHash,
@@ -9,6 +7,8 @@ use crate::{
         ser::{NixSerialize, NixWrite},
     },
 };
+use nix_compat_derive::{NixDeserialize, NixSerialize};
+use std::future::Future;
 
 /// Marker type that consumes/sends and ignores a u64.
 #[derive(Clone, Debug, NixDeserialize, NixSerialize)]
@@ -128,13 +128,14 @@ impl NixDeserialize for StorePath<String> {
 // Custom implementation since Display does not use absolute paths.
 impl<S> NixSerialize for StorePath<S>
 where
-    S: AsRef<str> + Sync,
+    S: AsRef<str>,
 {
-    async fn serialize<W>(&self, writer: &mut W) -> Result<(), W::Error>
+    fn serialize<W>(&self, writer: &mut W) -> impl Future<Output = Result<(), W::Error>> + Send
     where
         W: NixWrite,
     {
-        writer.write_value(&self.to_absolute_path()).await
+        let sp = self.to_absolute_path();
+        async move { writer.write_value(&sp).await }
     }
 }
 
