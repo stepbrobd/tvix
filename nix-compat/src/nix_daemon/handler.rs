@@ -1,5 +1,6 @@
 use std::{future::Future, sync::Arc};
 
+use bytes::Bytes;
 use tokio::{
     io::{split, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf},
     sync::Mutex,
@@ -7,6 +8,7 @@ use tokio::{
 use tracing::debug;
 
 use super::{
+    types::QueryValidPaths,
     worker_protocol::{server_handshake_client, ClientSettings, Operation, Trust, STDERR_LAST},
     NixDaemonIO,
 };
@@ -114,7 +116,16 @@ where
         loop {
             let op_code = self.reader.read_number().await?;
             match TryInto::<Operation>::try_into(op_code) {
+                // Note: please keep operations sorted in ascending order of their numerical op number.
                 Ok(operation) => match operation {
+                    Operation::IsValidPath => {
+                        let path: StorePath<String> = self.reader.read_value().await?;
+                        self.handle(io.is_valid_path(&path)).await?
+                    }
+                    // Note this operation does not currently delegate to NixDaemonIO,
+                    // The general idea is that we will pass relevant ClientSettings
+                    // into individual NixDaemonIO method calls if the need arises.
+                    // For now we just store the settings in the NixDaemon for future use.
                     Operation::SetOptions => {
                         self.client_settings = self.reader.read_value().await?;
                         self.handle(async { Ok(()) }).await?
@@ -123,10 +134,17 @@ where
                         let path: StorePath<String> = self.reader.read_value().await?;
                         self.handle(io.query_path_info(&path)).await?
                     }
-                    Operation::IsValidPath => {
+                    Operation::QueryPathFromHashPart => {
+                        let hash: Bytes = self.reader.read_value().await?;
+                        self.handle(io.query_path_from_hash_part(&hash)).await?
+                    }
+                    Operation::QueryValidPaths => {
+                        let query: QueryValidPaths = self.reader.read_value().await?;
+                        self.handle(io.query_valid_paths(&query)).await?
+                    }
+                    Operation::QueryValidDerivers => {
                         let path: StorePath<String> = self.reader.read_value().await?;
-                        self.handle(async { Ok(io.query_path_info(&path).await?.is_some()) })
-                            .await?
+                        self.handle(io.query_valid_derivers(&path)).await?
                     }
                     _ => {
                         return Err(std::io::Error::other(format!(
@@ -199,6 +217,13 @@ mod tests {
         async fn query_path_info(
             &self,
             _path: &crate::store_path::StorePath<String>,
+        ) -> Result<Option<UnkeyedValidPathInfo>> {
+            Ok(None)
+        }
+
+        async fn query_path_from_hash_part(
+            &self,
+            _hash: &[u8],
         ) -> Result<Option<UnkeyedValidPathInfo>> {
             Ok(None)
         }

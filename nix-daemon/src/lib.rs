@@ -1,4 +1,7 @@
-use std::{io::Result, sync::Arc};
+use std::{
+    io::{Error, Result},
+    sync::Arc,
+};
 
 use nix_compat::{
     nix_daemon::{types::UnkeyedValidPathInfo, NixDaemonIO},
@@ -25,6 +28,22 @@ impl NixDaemonIO for TvixDaemon {
         path: &StorePath<String>,
     ) -> Result<Option<UnkeyedValidPathInfo>> {
         match self.path_info_service.get(*path.digest()).await? {
+            Some(path_info) => {
+                if path_info.store_path.name() == path.name() {
+                    Ok(Some(into_unkeyed_path_info(path_info)))
+                } else {
+                    Ok(None)
+                }
+            }
+            None => Ok(None),
+        }
+    }
+
+    async fn query_path_from_hash_part(&self, hash: &[u8]) -> Result<Option<UnkeyedValidPathInfo>> {
+        let digest = hash
+            .try_into()
+            .map_err(|_| Error::other("invalid digest length"))?;
+        match self.path_info_service.get(digest).await? {
             Some(path_info) => Ok(Some(into_unkeyed_path_info(path_info))),
             None => Ok(None),
         }

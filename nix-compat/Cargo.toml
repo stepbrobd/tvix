@@ -10,7 +10,7 @@ async = ["tokio"]
 wire = ["tokio", "pin-project-lite", "bytes"]
 
 # nix-daemon protocol handling
-daemon = ["tokio", "nix-compat-derive"]
+daemon = ["tokio", "nix-compat-derive", "futures"]
 test = []
 
 # Enable all features by default.
@@ -23,6 +23,7 @@ data-encoding = { workspace = true }
 ed25519 = { workspace = true }
 ed25519-dalek = { workspace = true }
 enum-primitive-derive = { workspace = true }
+futures = { workspace = true, optional = true }
 glob = { workspace = true }
 mimalloc = { workspace = true }
 nom = { workspace = true }
