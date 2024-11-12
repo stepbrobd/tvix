@@ -5,7 +5,7 @@ use tokio::{
     io::{split, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf},
     sync::Mutex,
 };
-use tracing::debug;
+use tracing::{debug, warn};
 
 use super::{
     types::QueryValidPaths,
@@ -145,6 +145,23 @@ where
                     Operation::QueryValidDerivers => {
                         let path: StorePath<String> = self.reader.read_value().await?;
                         self.handle(io.query_valid_derivers(&path)).await?
+                    }
+                    // FUTUREWORK: These are just stubs that return an empty list.
+                    // It's important not to return an error for the local-overlay:// store
+                    // to work properly. While it will not see certain referrers and realizations
+                    // it will not fail on various operations like gc and optimize store. At the
+                    // same time, returning an empty list here shouldn't break any of local-overlay store's
+                    // invariants.
+                    Operation::QueryReferrers | Operation::QueryRealisation => {
+                        let _: String = self.reader.read_value().await?;
+                        self.handle(async move {
+                            warn!(
+                                ?operation,
+                                "This operation is not implemented. Returning empty result..."
+                            );
+                            Ok(Vec::<StorePath<String>>::new())
+                        })
+                        .await?
                     }
                     _ => {
                         return Err(std::io::Error::other(format!(
