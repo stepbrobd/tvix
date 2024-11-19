@@ -173,14 +173,18 @@ pub async fn put(
     }));
 
     // ingest the NAR
-    let (root_node, nar_hash_actual, nar_size) =
-        ingest_nar_and_hash(blob_service.clone(), directory_service.clone(), &mut r)
-            .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-            .map_err(|e| {
-                warn!(err=%e, "failed to ingest nar");
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?;
+    let (root_node, nar_hash_actual, nar_size) = ingest_nar_and_hash(
+        blob_service.clone(),
+        directory_service.clone(),
+        &mut r,
+        &None,
+    )
+    .await
+    .map_err(io::Error::other)
+    .map_err(|e| {
+        warn!(err=%e, "failed to ingest nar");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     let s = Span::current();
     s.record("nar_hash.expected", nixbase32::encode(&nar_hash_expected));

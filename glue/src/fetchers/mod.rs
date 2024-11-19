@@ -12,7 +12,7 @@ use tracing::{instrument, warn, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService, Node};
 use tvix_store::{
-    nar::NarCalculationService,
+    nar::{NarCalculationService, NarIngestionError},
     pathinfoservice::{PathInfo, PathInfoService},
 };
 use url::Url;
@@ -396,18 +396,7 @@ where
                 let r = self.download(url.clone()).await?;
 
                 // Pop compression.
-                let r = DecompressedReader::new(r);
-
-                // Wrap the reader, calculating our own hash.
-                let mut hasher: Box<dyn DynDigest + Send> = match exp_hash.algo() {
-                    HashAlgo::Md5 => Box::new(Md5::new()),
-                    HashAlgo::Sha1 => Box::new(Sha1::new()),
-                    HashAlgo::Sha256 => Box::new(Sha256::new()),
-                    HashAlgo::Sha512 => Box::new(Sha512::new()),
-                };
-                let mut r = tokio_util::io::InspectReader::new(r, |b| {
-                    hasher.update(b);
-                });
+                let mut r = DecompressedReader::new(r);
 
                 // Ingest the NAR, get the root node.
                 let (root_node, _actual_nar_sha256, actual_nar_size) =
@@ -415,36 +404,19 @@ where
                         self.blob_service.clone(),
                         self.directory_service.clone(),
                         &mut r,
+                        &Some(CAHash::Nar(exp_hash.clone())),
                     )
                     .await
-                    .map_err(|e| FetcherError::Io(std::io::Error::other(e.to_string())))?;
-
-                // finalize the hasher.
-                let actual_hash = {
-                    match exp_hash.algo() {
-                        HashAlgo::Md5 => {
-                            NixHash::Md5(hasher.finalize().to_vec().try_into().unwrap())
+                    .map_err(|e| match e {
+                        NarIngestionError::HashMismatch { expected, actual } => {
+                            FetcherError::HashMismatch {
+                                url,
+                                wanted: expected,
+                                got: actual,
+                            }
                         }
-                        HashAlgo::Sha1 => {
-                            NixHash::Sha1(hasher.finalize().to_vec().try_into().unwrap())
-                        }
-                        HashAlgo::Sha256 => {
-                            NixHash::Sha256(hasher.finalize().to_vec().try_into().unwrap())
-                        }
-                        HashAlgo::Sha512 => {
-                            NixHash::Sha512(hasher.finalize().to_vec().try_into().unwrap())
-                        }
-                    }
-                };
-
-                // Ensure the hash matches.
-                if exp_hash != actual_hash {
-                    return Err(FetcherError::HashMismatch {
-                        url,
-                        wanted: exp_hash,
-                        got: actual_hash,
-                    });
-                }
+                        _ => FetcherError::Io(std::io::Error::other(e.to_string())),
+                    })?;
                 Ok((
                     root_node,
                     // use a CAHash::Nar with the algo from the input.

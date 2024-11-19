@@ -16032,6 +16032,10 @@ rec {
             packageId = "lru";
           }
           {
+            name = "md-5";
+            packageId = "md-5";
+          }
+          {
             name = "mimalloc";
             packageId = "mimalloc";
           }
@@ -16084,6 +16088,10 @@ rec {
           {
             name = "serde_with";
             packageId = "serde_with";
+          }
+          {
+            name = "sha1";
+            packageId = "sha1";
           }
           {
             name = "sha2";
@@ -16182,6 +16190,10 @@ rec {
           {
             name = "async-process";
             packageId = "async-process";
+          }
+          {
+            name = "hex-literal";
+            packageId = "hex-literal";
           }
           {
             name = "rstest";

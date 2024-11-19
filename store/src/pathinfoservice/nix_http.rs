@@ -204,6 +204,7 @@ where
             self.blob_service.clone(),
             self.directory_service.clone(),
             &mut r,
+            &narinfo.ca,
         )
         .await
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;

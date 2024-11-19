@@ -1,11 +1,11 @@
 use tonic::async_trait;
 use tvix_castore::B3Digest;
 
+mod hashing_reader;
 mod import;
 mod renderer;
 pub mod seekable;
-pub use import::ingest_nar;
-pub use import::ingest_nar_and_hash;
+pub use import::{ingest_nar, ingest_nar_and_hash, NarIngestionError};
 pub use renderer::calculate_size_and_sha256;
 pub use renderer::write_nar;
 pub use renderer::SimpleRenderer;
