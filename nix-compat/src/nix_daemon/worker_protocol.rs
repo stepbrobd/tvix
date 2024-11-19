@@ -16,6 +16,7 @@ pub(crate) static WORKER_MAGIC_1: u64 = 0x6e697863; // "nixc"
 pub(crate) static WORKER_MAGIC_2: u64 = 0x6478696f; // "dxio"
 pub static STDERR_LAST: u64 = 0x616c7473; // "alts"
 pub(crate) static STDERR_ERROR: u64 = 0x63787470; // "cxtp"
+pub(crate) static STDERR_READ: u64 = 0x64617461; // "data"
 
 /// | Nix version     | Protocol |
 /// |-----------------|----------|

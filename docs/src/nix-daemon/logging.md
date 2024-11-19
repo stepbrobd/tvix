@@ -53,9 +53,9 @@ Normal string log message.
 
 ### `STDERR_READ`
 Reader interface used by ImportsPaths and AddToStoreNar (between 1.21 and 1.23).
-It works by sending a desired buffer length and then on the receiver stream it
-reads bytes buffer of that length. If it receives 0 bytes it sees this as an
-unexpected EOF.
+It works by sending a *desired* buffer length and then on the receiver stream it
+reads the *actual* buffer length followed by a bytes buffer of that length padded to
+8 bytes. If it receives 0 bytes it sees this as an unexpected EOF.
 
 - 0x64617461 :: [UInt64][se-UInt64] (hardcoded, 'data' in ASCII)
 - desiredLen :: [Size][se-Size]

@@ -8,6 +8,7 @@ use types::{QueryValidPaths, UnkeyedValidPathInfo};
 
 use crate::store_path::StorePath;
 
+pub mod framing;
 pub mod handler;
 pub mod types;
 
