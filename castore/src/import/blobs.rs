@@ -9,6 +9,7 @@ use tokio::{
     task::{JoinError, JoinSet},
 };
 use tokio_util::io::InspectReader;
+use tracing::{info_span, Instrument};
 
 use crate::{blobservice::BlobService, B3Digest, Path, PathBuf};
 
@@ -140,6 +141,7 @@ where
                     drop(permit);
                     Ok(())
                 }
+                .instrument(info_span!("upload_task"))
             });
 
             return Ok(digest);
