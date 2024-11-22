@@ -17,6 +17,7 @@ opentelemetry-otlp = { workspace = true, optional = true }
 opentelemetry_sdk = { workspace = true, features = ["rt-tokio"], optional = true }
 tracing-tracy = { workspace = true, features = ["flush-on-exit"], optional = true }
 opentelemetry-http = { workspace = true, optional = true }
+opentelemetry-semantic-conventions = { workspace = true, optional = true }
 
 tonic = { workspace = true, optional = true }
 http  = { workspace = true, optional = true }
@@ -33,7 +34,8 @@ otlp = [
   "dep:opentelemetry-otlp",
   "dep:opentelemetry_sdk",
   "dep:opentelemetry-http",
-  "reqwest-tracing?/opentelemetry_0_22",
+  "dep:opentelemetry-semantic-conventions",
+  "reqwest-tracing?/opentelemetry_0_27",
 ]
 tracy = [
   "dep:tracing-tracy"
