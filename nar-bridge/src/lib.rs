@@ -64,6 +64,8 @@ pub fn gen_router(priority: u64) -> Router<AppState> {
         .route("/:narinfo_str", put(narinfo::put))
         .route("/nix-cache-info", get(move || nix_cache_info(priority)));
 
+    let router = router.layer(tower_http::compression::CompressionLayer::new());
+
     #[cfg(feature = "otlp")]
     return router.layer(metrics_layer);
     #[cfg(not(feature = "otlp"))]

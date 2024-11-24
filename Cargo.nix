@@ -1860,9 +1860,9 @@ rec {
       };
       "bytes" = rec {
         crateName = "bytes";
-        version = "1.7.2";
+        version = "1.8.0";
         edition = "2018";
-        sha256 = "1wzs7l57iwqmrszdpr2mmqf1b1hgvpxafc30imxhnry0zfl9m3a2";
+        sha256 = "1nnhpb7jlpj393qnjr1n9n6sgpl3w5ymrwl3pnjmrriam861bh4s";
         authors = [
           "Carl Lerche <me@carllerche.com>"
           "Sean McArthur <sean@seanmonstar.com>"
@@ -5170,9 +5170,9 @@ rec {
       };
       "hyper" = rec {
         crateName = "hyper";
-        version = "1.4.1";
+        version = "1.5.1";
         edition = "2021";
-        sha256 = "01ds8i3q6hw5kw56mavy544m11gkr87zi999siigdl3n1qpd5psh";
+        sha256 = "07s87id0566m2p5dc5q6nqmxz5r8drqd81b7w4q44djgxwkqi0cp";
         authors = [
           "Sean McArthur <sean@seanmonstar.com>"
         ];
@@ -5262,7 +5262,7 @@ rec {
         ];
         features = {
           "client" = [ "dep:want" "dep:pin-project-lite" "dep:smallvec" ];
-          "ffi" = [ "dep:libc" "dep:http-body-util" "futures-util?/alloc" ];
+          "ffi" = [ "dep:http-body-util" "futures-util?/alloc" ];
           "full" = [ "client" "http1" "http2" "server" ];
           "http1" = [ "dep:futures-channel" "dep:futures-util" "dep:httparse" "dep:itoa" ];
           "http2" = [ "dep:futures-channel" "dep:futures-util" "dep:h2" ];
@@ -6916,7 +6916,7 @@ rec {
           {
             name = "tower-http";
             packageId = "tower-http";
-            features = [ "trace" ];
+            features = [ "compression-zstd" "trace" ];
           }
           {
             name = "tower-otel-http-metrics";
@@ -12954,9 +12954,9 @@ rec {
       };
       "tokio" = rec {
         crateName = "tokio";
-        version = "1.40.0";
+        version = "1.41.1";
         edition = "2021";
-        sha256 = "166rllhfkyqp0fs7sxn6crv74iizi4wzd3cvxkcpmlk52qip1c72";
+        sha256 = "0csdvrlpz2b0amrsinkq809nkdkvi6ndc94jr8wjk9d6wyzbbkr2";
         authors = [
           "Tokio Contributors <team@tokio.rs>"
         ];
@@ -14253,12 +14253,24 @@ rec {
         ];
         dependencies = [
           {
+            name = "async-compression";
+            packageId = "async-compression";
+            optional = true;
+            features = [ "tokio" ];
+          }
+          {
             name = "bitflags";
             packageId = "bitflags 2.6.0";
           }
           {
             name = "bytes";
             packageId = "bytes";
+          }
+          {
+            name = "futures-core";
+            packageId = "futures-core";
+            optional = true;
+            usesDefaultFeatures = false;
           }
           {
             name = "http";
@@ -14275,6 +14287,19 @@ rec {
           {
             name = "pin-project-lite";
             packageId = "pin-project-lite";
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "tokio-util";
+            packageId = "tokio-util";
+            optional = true;
+            usesDefaultFeatures = false;
+            features = [ "io" ];
           }
           {
             name = "tower-layer";
@@ -14295,6 +14320,11 @@ rec {
           {
             name = "bytes";
             packageId = "bytes";
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "full" ];
           }
         ];
         features = {
@@ -14334,7 +14364,7 @@ rec {
           "uuid" = [ "dep:uuid" ];
           "validate-request" = [ "mime" ];
         };
-        resolvedDefaultFeatures = [ "default" "trace" "tracing" ];
+        resolvedDefaultFeatures = [ "async-compression" "compression-zstd" "default" "futures-core" "tokio" "tokio-util" "trace" "tracing" ];
       };
       "tower-layer" = rec {
         crateName = "tower-layer";
