@@ -1,3 +1,4 @@
+use crate::wire::de::Error;
 use crate::{
     narinfo::Signature,
     nixhash::CAHash,
@@ -73,6 +74,21 @@ impl NixError {
 
 nix_compat_derive::nix_serialize_remote!(#[nix(display)] Signature<String>);
 
+impl NixDeserialize for Signature<String> {
+    async fn try_deserialize<R>(reader: &mut R) -> Result<Option<Self>, R::Error>
+    where
+        R: ?Sized + NixRead + Send,
+    {
+        let value: Option<String> = reader.try_read_value().await?;
+        match value {
+            Some(value) => Ok(Some(
+                Signature::<String>::parse(&value).map_err(R::Error::invalid_data)?,
+            )),
+            None => Ok(None),
+        }
+    }
+}
+
 impl NixSerialize for CAHash {
     async fn serialize<W>(&self, writer: &mut W) -> Result<(), W::Error>
     where
@@ -90,6 +106,42 @@ impl NixSerialize for Option<CAHash> {
         match self {
             Some(value) => writer.write_value(value).await,
             None => writer.write_value("").await,
+        }
+    }
+}
+
+impl NixDeserialize for CAHash {
+    async fn try_deserialize<R>(reader: &mut R) -> Result<Option<Self>, R::Error>
+    where
+        R: ?Sized + NixRead + Send,
+    {
+        let value: Option<String> = reader.try_read_value().await?;
+        match value {
+            Some(value) => Ok(Some(CAHash::from_nix_hex_str(&value).ok_or_else(|| {
+                R::Error::invalid_data(format!("Invalid cahash {}", value))
+            })?)),
+            None => Ok(None),
+        }
+    }
+}
+
+impl NixDeserialize for Option<CAHash> {
+    async fn try_deserialize<R>(reader: &mut R) -> Result<Option<Self>, R::Error>
+    where
+        R: ?Sized + NixRead + Send,
+    {
+        let value: Option<String> = reader.try_read_value().await?;
+        match value {
+            Some(value) => {
+                if value.is_empty() {
+                    Ok(None)
+                } else {
+                    Ok(Some(Some(CAHash::from_nix_hex_str(&value).ok_or_else(
+                        || R::Error::invalid_data(format!("Invalid cahash {}", value)),
+                    )?)))
+                }
+            }
+            None => Ok(None),
         }
     }
 }
@@ -121,6 +173,27 @@ impl NixDeserialize for StorePath<String> {
             result.map(Some).map_err(R::Error::invalid_data)
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl NixDeserialize for Option<StorePath<String>> {
+    async fn try_deserialize<R>(reader: &mut R) -> Result<Option<Self>, R::Error>
+    where
+        R: ?Sized + NixRead + Send,
+    {
+        use crate::wire::de::Error;
+        if let Some(buf) = reader.try_read_bytes().await? {
+            if buf.is_empty() {
+                Ok(Some(None))
+            } else {
+                let result = StorePath::<String>::from_absolute_path(&buf);
+                result
+                    .map(|r| Some(Some(r)))
+                    .map_err(R::Error::invalid_data)
+            }
+        } else {
+            Ok(Some(None))
         }
     }
 }
@@ -173,4 +246,61 @@ pub struct QueryValidPaths {
     // Whether to try and substitute the paths.
     #[nix(version = "27..")]
     pub substitute: bool,
+}
+
+/// newtype wrapper for the byte array that correctly implements NixSerialize, NixDeserialize.
+#[derive(Debug)]
+pub struct NarHash([u8; 32]);
+
+impl std::ops::Deref for NarHash {
+    type Target = [u8; 32];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl NixDeserialize for NarHash {
+    async fn try_deserialize<R>(reader: &mut R) -> Result<Option<Self>, R::Error>
+    where
+        R: ?Sized + NixRead + Send,
+    {
+        if let Some(bytes) = reader.try_read_bytes().await? {
+            let result = data_encoding::HEXLOWER
+                .decode(bytes.as_ref())
+                .map_err(R::Error::invalid_data)?;
+            Ok(Some(NarHash(result.try_into().map_err(|_| {
+                R::Error::invalid_data("incorrect length")
+            })?)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+/// Request type for [super::worker_protocol::Operation::AddToStoreNar]
+#[derive(NixDeserialize, Debug)]
+pub struct AddToStoreNarRequest {
+    // - path :: [StorePath][se-StorePath]
+    pub path: StorePath<String>,
+    // - deriver :: [OptStorePath][se-OptStorePath]
+    pub deriver: Option<StorePath<String>>,
+    // - narHash :: [NARHash][se-NARHash] - always sha256
+    pub nar_hash: NarHash,
+    // - references :: [Set][se-Set] of [StorePath][se-StorePath]
+    pub references: Vec<StorePath<String>>,
+    // - registrationTime :: [Time][se-Time]
+    pub registration_time: u64,
+    // - narSize :: [UInt64][se-UInt64]
+    pub nar_size: u64,
+    // - ultimate :: [Bool64][se-Bool64]
+    pub ultimate: bool,
+    // - signatures :: [Set][se-Set] of [Signature][se-Signature]
+    pub signatures: Vec<Signature<String>>,
+    // - ca :: [OptContentAddress][se-OptContentAddress]
+    pub ca: Option<CAHash>,
+    // - repair :: [Bool64][se-Bool64]
+    pub repair: bool,
+    // - dontCheckSigs :: [Bool64][se-Bool64]
+    pub dont_check_sigs: bool,
 }

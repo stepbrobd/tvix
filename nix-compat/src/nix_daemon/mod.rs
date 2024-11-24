@@ -3,8 +3,9 @@ pub mod worker_protocol;
 use std::io::Result;
 
 use futures::future::try_join_all;
+use tokio::io::AsyncRead;
 use tracing::warn;
-use types::{QueryValidPaths, UnkeyedValidPathInfo};
+use types::{AddToStoreNarRequest, QueryValidPaths, UnkeyedValidPathInfo};
 
 use crate::store_path::StorePath;
 
@@ -60,6 +61,14 @@ pub trait NixDaemonIO: Sync {
             Ok(result)
         }
     }
+
+    fn add_to_store_nar<R>(
+        &self,
+        request: AddToStoreNarRequest,
+        reader: &mut R,
+    ) -> impl std::future::Future<Output = Result<()>> + Send
+    where
+        R: AsyncRead + Send + Unpin;
 }
 
 #[cfg(test)]
@@ -88,6 +97,17 @@ mod tests {
             _hash: &[u8],
         ) -> std::io::Result<Option<UnkeyedValidPathInfo>> {
             Ok(None)
+        }
+
+        async fn add_to_store_nar<R>(
+            &self,
+            _request: super::types::AddToStoreNarRequest,
+            _reader: &mut R,
+        ) -> std::io::Result<()>
+        where
+            R: tokio::io::AsyncRead + Send + Unpin,
+        {
+            Ok(())
         }
     }
 

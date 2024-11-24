@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 }
 
 async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let (_blob_service, _directory_service, path_info_service, _nar_calculation_service) =
+    let (blob_service, directory_service, path_info_service, _nar_calculation_service) =
         construct_services(cli.service_addrs).await?;
 
     let listen_address = cli.listen_args.listen_address.unwrap_or_else(|| {
@@ -76,7 +76,11 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     )
     .await?;
 
-    let io = Arc::new(TvixDaemon::new(path_info_service));
+    let io = Arc::new(TvixDaemon::new(
+        blob_service,
+        directory_service,
+        path_info_service,
+    ));
 
     while let Ok((connection, _)) = listener.accept().await {
         let io = io.clone();

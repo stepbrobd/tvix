@@ -4,20 +4,35 @@ use std::{
 };
 
 use nix_compat::{
-    nix_daemon::{types::UnkeyedValidPathInfo, NixDaemonIO},
+    nix_daemon::{
+        types::{AddToStoreNarRequest, UnkeyedValidPathInfo},
+        NixDaemonIO,
+    },
     nixbase32,
-    store_path::StorePath,
+    store_path::{build_ca_path, StorePath},
 };
-use tvix_store::{path_info::PathInfo, pathinfoservice::PathInfoService};
+use tracing::warn;
+use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
+use tvix_store::{nar::ingest_nar_and_hash, path_info::PathInfo, pathinfoservice::PathInfoService};
 
 #[allow(dead_code)]
 pub struct TvixDaemon {
+    blob_service: Arc<dyn BlobService>,
+    directory_service: Arc<dyn DirectoryService>,
     path_info_service: Arc<dyn PathInfoService>,
 }
 
 impl TvixDaemon {
-    pub fn new(path_info_service: Arc<dyn PathInfoService>) -> Self {
-        Self { path_info_service }
+    pub fn new(
+        blob_service: Arc<dyn BlobService>,
+        directory_service: Arc<dyn DirectoryService>,
+        path_info_service: Arc<dyn PathInfoService>,
+    ) -> Self {
+        Self {
+            blob_service,
+            directory_service,
+            path_info_service,
+        }
     }
 }
 
@@ -47,6 +62,60 @@ impl NixDaemonIO for TvixDaemon {
             Some(path_info) => Ok(Some(into_unkeyed_path_info(path_info))),
             None => Ok(None),
         }
+    }
+
+    async fn add_to_store_nar<R>(&self, request: AddToStoreNarRequest, reader: &mut R) -> Result<()>
+    where
+        R: tokio::io::AsyncRead + Send + Unpin,
+    {
+        let (root_node, nar_sha256, nar_size) = ingest_nar_and_hash(
+            self.blob_service.clone(),
+            self.directory_service.clone(),
+            reader,
+            &request.ca,
+        )
+        .await
+        .map_err(|e| Error::other(e.to_string()))?;
+
+        if nar_size != request.nar_size || nar_sha256 != *request.nar_hash {
+            warn!(
+                nar_hash.expected = nixbase32::encode(&*request.nar_hash),
+                nar_hash.actual = nixbase32::encode(&nar_sha256),
+                "nar hash mismatch"
+            );
+            return Err(Error::other(
+                "ingested nar ended up different from what was specified in the request",
+            ));
+        }
+
+        if let Some(cahash) = &request.ca {
+            let actual_path: StorePath<String> = build_ca_path(
+                request.path.name(),
+                cahash,
+                request.references.iter().map(|p| p.to_absolute_path()),
+                false,
+            )
+            .map_err(Error::other)?;
+            if actual_path != request.path {
+                return Err(Error::other("path mismatch"));
+            }
+        }
+
+        let path_info = PathInfo {
+            store_path: request.path,
+            node: root_node,
+            references: request.references,
+            nar_size,
+            nar_sha256,
+            signatures: request.signatures,
+            deriver: request.deriver,
+            ca: request.ca,
+        };
+        self.path_info_service
+            .put(path_info)
+            .await
+            .map_err(|e| Error::other(e.to_string()))?;
+        Ok(())
     }
 }
 
