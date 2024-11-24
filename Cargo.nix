@@ -492,6 +492,34 @@ rec {
           "zeroize" = [ "dep:zeroize" ];
         };
       };
+      "assert-json-diff" = rec {
+        crateName = "assert-json-diff";
+        version = "2.0.2";
+        edition = "2018";
+        sha256 = "04mg3w0rh3schpla51l18362hsirl23q93aisws2irrj32wg5r27";
+        libName = "assert_json_diff";
+        authors = [
+          "David Pedersen <david.pdrsn@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+        ];
+
+      };
       "async-channel" = rec {
         crateName = "async-channel";
         version = "2.3.1";
@@ -1002,6 +1030,17 @@ rec {
           "portable-atomic" = [ "dep:portable-atomic" ];
         };
       };
+      "auto-future" = rec {
+        crateName = "auto-future";
+        version = "1.0.0";
+        edition = "2021";
+        sha256 = "0wykbakzh227vz6frx9p48zsq0wpswgmb7v3917m53m7gr2pw7iw";
+        libName = "auto_future";
+        authors = [
+          "Joseph Lenton <josephlenton@gmail.com>"
+        ];
+
+      };
       "auto_impl" = rec {
         crateName = "auto_impl";
         version = "1.2.0";
@@ -1070,7 +1109,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -1243,7 +1282,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -1331,7 +1370,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -1500,6 +1539,135 @@ rec {
         ];
         features = { };
       };
+      "axum-test" = rec {
+        crateName = "axum-test";
+        version = "16.4.0";
+        edition = "2021";
+        sha256 = "00rshs1qscm8pvjvjk7wlv7aqnygbw34xr5y1q8afab2fyibqz01";
+        libName = "axum_test";
+        authors = [
+          "Joseph Lenton <josephlenton@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "anyhow";
+            packageId = "anyhow";
+          }
+          {
+            name = "assert-json-diff";
+            packageId = "assert-json-diff";
+          }
+          {
+            name = "auto-future";
+            packageId = "auto-future";
+          }
+          {
+            name = "axum";
+            packageId = "axum";
+          }
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "bytesize";
+            packageId = "bytesize";
+          }
+          {
+            name = "cookie";
+            packageId = "cookie";
+          }
+          {
+            name = "http";
+            packageId = "http 1.1.0";
+          }
+          {
+            name = "http-body-util";
+            packageId = "http-body-util";
+          }
+          {
+            name = "hyper";
+            packageId = "hyper";
+            features = [ "http1" ];
+          }
+          {
+            name = "hyper-util";
+            packageId = "hyper-util";
+            features = [ "client" "http1" "client-legacy" ];
+          }
+          {
+            name = "mime";
+            packageId = "mime";
+          }
+          {
+            name = "pretty_assertions";
+            packageId = "pretty_assertions";
+            optional = true;
+          }
+          {
+            name = "reserve-port";
+            packageId = "reserve-port";
+          }
+          {
+            name = "rust-multipart-rfc7578_2";
+            packageId = "rust-multipart-rfc7578_2";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+          {
+            name = "serde_json";
+            packageId = "serde_json";
+          }
+          {
+            name = "serde_urlencoded";
+            packageId = "serde_urlencoded";
+          }
+          {
+            name = "smallvec";
+            packageId = "smallvec";
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "rt" ];
+          }
+          {
+            name = "tower";
+            packageId = "tower 0.5.1";
+            features = [ "util" "make" ];
+          }
+          {
+            name = "url";
+            packageId = "url";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "axum";
+            packageId = "axum";
+            features = [ "multipart" "tokio" "ws" ];
+          }
+          {
+            name = "tokio";
+            packageId = "tokio";
+            features = [ "rt" "rt-multi-thread" "sync" "time" "macros" ];
+          }
+        ];
+        features = {
+          "all" = [ "pretty-assertions" "yaml" "msgpack" "reqwest" "shuttle" "typed-routing" "ws" ];
+          "default" = [ "pretty-assertions" ];
+          "msgpack" = [ "dep:rmp-serde" ];
+          "pretty-assertions" = [ "dep:pretty_assertions" ];
+          "reqwest" = [ "dep:reqwest" ];
+          "shuttle" = [ "dep:shuttle-axum" ];
+          "typed-routing" = [ "dep:axum-extra" ];
+          "ws" = [ "axum/ws" "tokio/time" "dep:uuid" "dep:base64" "dep:tokio-tungstenite" "dep:futures-util" ];
+          "yaml" = [ "dep:serde_yaml" ];
+        };
+        resolvedDefaultFeatures = [ "default" "pretty-assertions" ];
+      };
       "backtrace" = rec {
         crateName = "backtrace";
         version = "0.3.74";
@@ -1618,7 +1786,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "hyper-util";
@@ -1916,6 +2084,19 @@ rec {
           "serde" = [ "dep:serde" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "bytesize" = rec {
+        crateName = "bytesize";
+        version = "1.3.0";
+        edition = "2015";
+        sha256 = "1k3aak70iwz4s2gsjbxf0ws4xnixqbdz6p2ha96s06748fpniqx3";
+        authors = [
+          "Hyunsik Choi <hyunsik.choi@gmail.com>"
+        ];
+        features = {
+          "serde" = [ "dep:serde" ];
+        };
+        resolvedDefaultFeatures = [ "default" ];
       };
       "bzip2" = rec {
         crateName = "bzip2";
@@ -2470,6 +2651,45 @@ rec {
           "Cesar Eduardo Barros <cesarb@cesarb.eti.br>"
         ];
         features = { };
+      };
+      "cookie" = rec {
+        crateName = "cookie";
+        version = "0.18.1";
+        edition = "2018";
+        sha256 = "0iy749flficrlvgr3hjmf3igr738lk81n5akzf4ym4cs6cxg7pjd";
+        authors = [
+          "Sergio Benitez <sb@sergio.bz>"
+          "Alex Crichton <alex@alexcrichton.com>"
+        ];
+        dependencies = [
+          {
+            name = "time";
+            packageId = "time";
+            usesDefaultFeatures = false;
+            features = [ "std" "parsing" "formatting" "macros" ];
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "version_check";
+            packageId = "version_check";
+          }
+        ];
+        features = {
+          "aes-gcm" = [ "dep:aes-gcm" ];
+          "base64" = [ "dep:base64" ];
+          "hkdf" = [ "dep:hkdf" ];
+          "hmac" = [ "dep:hmac" ];
+          "key-expansion" = [ "sha2" "hkdf" ];
+          "percent-encode" = [ "percent-encoding" ];
+          "percent-encoding" = [ "dep:percent-encoding" ];
+          "private" = [ "aes-gcm" "base64" "rand" "subtle" ];
+          "rand" = [ "dep:rand" ];
+          "secure" = [ "private" "signed" "key-expansion" ];
+          "sha2" = [ "dep:sha2" ];
+          "signed" = [ "hmac" "sha2" "base64" "rand" "subtle" ];
+          "subtle" = [ "dep:subtle" ];
+        };
       };
       "core-foundation" = rec {
         crateName = "core-foundation";
@@ -4481,7 +4701,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body-util";
@@ -4796,7 +5016,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "indexmap";
@@ -4983,7 +5203,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "httpdate";
@@ -5012,7 +5232,7 @@ rec {
         dependencies = [
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
         ];
 
@@ -5116,7 +5336,33 @@ rec {
         ];
 
       };
-      "http" = rec {
+      "http 0.2.12" = rec {
+        crateName = "http";
+        version = "0.2.12";
+        edition = "2018";
+        sha256 = "1w81s4bcbmcj9bjp7mllm8jlz6b31wzvirz8bgpzbqkpwmbvn730";
+        authors = [
+          "Alex Crichton <alex@alexcrichton.com>"
+          "Carl Lerche <me@carllerche.com>"
+          "Sean McArthur <sean@seanmonstar.com>"
+        ];
+        dependencies = [
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "fnv";
+            packageId = "fnv";
+          }
+          {
+            name = "itoa";
+            packageId = "itoa";
+          }
+        ];
+
+      };
+      "http 1.1.0" = rec {
         crateName = "http";
         version = "1.1.0";
         edition = "2018";
@@ -5163,7 +5409,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
         ];
 
@@ -5191,7 +5437,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -5268,7 +5514,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -5354,7 +5600,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "hyper";
@@ -5505,7 +5751,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -6731,6 +6977,35 @@ rec {
         ];
 
       };
+      "mime_guess" = rec {
+        crateName = "mime_guess";
+        version = "2.0.5";
+        edition = "2015";
+        sha256 = "03jmg3yx6j39mg0kayf7w4a886dl3j15y8zs119zw01ccy74zi7p";
+        authors = [
+          "Austin Bonander <austin.bonander@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "mime";
+            packageId = "mime";
+          }
+          {
+            name = "unicase";
+            packageId = "unicase";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "unicase";
+            packageId = "unicase";
+          }
+        ];
+        features = {
+          "default" = [ "rev-mappings" ];
+        };
+        resolvedDefaultFeatures = [ "default" "rev-mappings" ];
+      };
       "minimal-lexical" = rec {
         crateName = "minimal-lexical";
         version = "0.2.1";
@@ -7073,6 +7348,10 @@ rec {
             packageId = "tracing-subscriber";
           }
           {
+            name = "tracing-test";
+            packageId = "tracing-test";
+          }
+          {
             name = "tvix-castore";
             packageId = "tvix-castore";
           }
@@ -7102,12 +7381,20 @@ rec {
         ];
         devDependencies = [
           {
+            name = "axum-test";
+            packageId = "axum-test";
+          }
+          {
             name = "hex-literal";
             packageId = "hex-literal";
           }
           {
             name = "rstest";
             packageId = "rstest";
+          }
+          {
+            name = "sha2";
+            packageId = "sha2";
           }
         ];
         features = {
@@ -8243,7 +8530,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -8277,7 +8564,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
             optional = true;
             usesDefaultFeatures = false;
             features = [ "std" ];
@@ -10480,7 +10767,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -10771,7 +11058,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "reqwest";
@@ -10837,7 +11124,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "matchit";
@@ -10903,6 +11190,27 @@ rec {
           "tracing-opentelemetry_0_28_pkg" = [ "dep:tracing-opentelemetry_0_28_pkg" ];
         };
         resolvedDefaultFeatures = [ "opentelemetry_0_27" "opentelemetry_0_27_pkg" "tracing-opentelemetry_0_28_pkg" ];
+      };
+      "reserve-port" = rec {
+        crateName = "reserve-port";
+        version = "2.0.1";
+        edition = "2021";
+        sha256 = "10x21rdb1hjzp6n5flbbw3hfd7brmirckz1q0zsf3a7s5d516f4q";
+        libName = "reserve_port";
+        authors = [
+          "Joseph Lenton <josephlenton@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "lazy_static";
+            packageId = "lazy_static";
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror";
+          }
+        ];
+
       };
       "ring" = rec {
         crateName = "ring";
@@ -11138,6 +11446,63 @@ rec {
           {
             name = "rustc_version";
             packageId = "rustc_version";
+          }
+        ];
+
+      };
+      "rust-multipart-rfc7578_2" = rec {
+        crateName = "rust-multipart-rfc7578_2";
+        version = "0.6.1";
+        edition = "2021";
+        sha256 = "0mwd3i2mk91n6diaxnkw28vyjbifhrm5ls73pcpfzz8a1i0lidq3";
+        libName = "rust_multipart_rfc7578_2";
+        authors = [
+          "Joseph Lenton <josephlenton@gmail.com>"
+          "Ferris Tseng <ferristseng@fastmail.fm>"
+        ];
+        dependencies = [
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "futures-core";
+            packageId = "futures-core";
+          }
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "io" ];
+          }
+          {
+            name = "http";
+            packageId = "http 0.2.12";
+          }
+          {
+            name = "mime";
+            packageId = "mime";
+          }
+          {
+            name = "mime_guess";
+            packageId = "mime_guess";
+          }
+          {
+            name = "rand";
+            packageId = "rand";
+            features = [ "small_rng" ];
+          }
+          {
+            name = "thiserror";
+            packageId = "thiserror";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+            usesDefaultFeatures = false;
+            features = [ "std" ];
           }
         ];
 
@@ -13068,7 +13433,7 @@ rec {
           "std" = [ "alloc" "deranged/std" ];
           "wasm-bindgen" = [ "dep:js-sys" ];
         };
-        resolvedDefaultFeatures = [ "alloc" "formatting" "parsing" "serde" "serde-well-known" "std" ];
+        resolvedDefaultFeatures = [ "alloc" "formatting" "macros" "parsing" "serde" "serde-well-known" "std" ];
       };
       "time-core" = rec {
         crateName = "time-core";
@@ -13956,7 +14321,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -14484,7 +14849,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
           }
           {
             name = "http-body";
@@ -14608,7 +14973,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
             usesDefaultFeatures = false;
             features = [ "std" ];
           }
@@ -15071,6 +15436,57 @@ rec {
           "valuable_crate" = [ "dep:valuable_crate" ];
         };
         resolvedDefaultFeatures = [ "alloc" "ansi" "default" "env-filter" "fmt" "matchers" "nu-ansi-term" "once_cell" "regex" "registry" "sharded-slab" "smallvec" "std" "thread_local" "tracing" "tracing-log" ];
+      };
+      "tracing-test" = rec {
+        crateName = "tracing-test";
+        version = "0.2.5";
+        edition = "2018";
+        sha256 = "0s0x076wpga7k1a3cl8da76rrgvs45zzq9rl6q75w3gy6qa8jysm";
+        libName = "tracing_test";
+        authors = [
+          "Danilo Bargen <mail@dbrgn.ch>"
+        ];
+        dependencies = [
+          {
+            name = "tracing-core";
+            packageId = "tracing-core";
+          }
+          {
+            name = "tracing-subscriber";
+            packageId = "tracing-subscriber";
+            features = [ "env-filter" ];
+          }
+          {
+            name = "tracing-test-macro";
+            packageId = "tracing-test-macro";
+          }
+        ];
+        features = {
+          "no-env-filter" = [ "tracing-test-macro/no-env-filter" ];
+        };
+      };
+      "tracing-test-macro" = rec {
+        crateName = "tracing-test-macro";
+        version = "0.2.5";
+        edition = "2018";
+        sha256 = "0s3m7a3pycn8r4xyql5gv5b85sdrqp4w24k1aqy26zf80vdrsr84";
+        procMacro = true;
+        libName = "tracing_test_macro";
+        authors = [
+          "Danilo Bargen <mail@dbrgn.ch>"
+        ];
+        dependencies = [
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.79";
+            features = [ "full" ];
+          }
+        ];
+        features = { };
       };
       "tracing-tracy" = rec {
         crateName = "tracing-tracy";
@@ -16446,7 +16862,7 @@ rec {
           }
           {
             name = "http";
-            packageId = "http";
+            packageId = "http 1.1.0";
             optional = true;
           }
           {
