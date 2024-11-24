@@ -144,7 +144,7 @@ pub const DUMMY_VERIFYING_KEY: &str = "do.not.use:cuXqnuzlWfGTKmfzBPx2kXShjRryZM
 
 #[cfg(test)]
 mod test {
-    use crate::{pathinfoservice::PathInfoService, tests::fixtures::PATH_INFO};
+    use crate::{fixtures::PATH_INFO, pathinfoservice::PathInfoService};
     use nix_compat::narinfo::VerifyingKey;
 
     #[tokio::test]

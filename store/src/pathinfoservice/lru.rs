@@ -94,8 +94,8 @@ mod test {
     use std::{num::NonZeroUsize, sync::LazyLock};
 
     use crate::{
+        fixtures::PATH_INFO,
         pathinfoservice::{LruPathInfoService, PathInfo, PathInfoService},
-        tests::fixtures::PATH_INFO,
     };
     static PATHINFO_2: LazyLock<PathInfo> = LazyLock::new(|| {
         let mut p = PATH_INFO.clone();

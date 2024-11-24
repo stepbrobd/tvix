@@ -229,6 +229,9 @@ pub enum Error {
 
 #[cfg(test)]
 mod test {
+    use crate::fixtures::{
+        NAR_CONTENTS_COMPLICATED, NAR_CONTENTS_HELLOWORLD, NAR_CONTENTS_SYMLINK,
+    };
     use crate::nar::{ingest_nar, ingest_nar_and_hash, NarIngestionError};
     use std::io::Cursor;
     use std::sync::Arc;
@@ -245,10 +248,7 @@ mod test {
     };
     use tvix_castore::{Directory, Node};
 
-    use crate::tests::fixtures::{
-        blob_service, directory_service, NAR_CONTENTS_COMPLICATED, NAR_CONTENTS_HELLOWORLD,
-        NAR_CONTENTS_SYMLINK,
-    };
+    use crate::tests::fixtures::{blob_service, directory_service};
 
     #[rstest]
     #[tokio::test]
@@ -259,7 +259,7 @@ mod test {
         let root_node = ingest_nar(
             blob_service,
             directory_service,
-            &mut Cursor::new(&NAR_CONTENTS_SYMLINK.clone()),
+            &mut Cursor::new(&NAR_CONTENTS_SYMLINK),
         )
         .await
         .expect("must parse");
@@ -281,7 +281,7 @@ mod test {
         let root_node = ingest_nar(
             blob_service.clone(),
             directory_service,
-            &mut Cursor::new(&NAR_CONTENTS_HELLOWORLD.clone()),
+            &mut Cursor::new(&NAR_CONTENTS_HELLOWORLD),
         )
         .await
         .expect("must parse");
@@ -308,7 +308,7 @@ mod test {
         let root_node = ingest_nar(
             blob_service.clone(),
             directory_service.clone(),
-            &mut Cursor::new(&NAR_CONTENTS_COMPLICATED.clone()),
+            &mut Cursor::new(&NAR_CONTENTS_COMPLICATED),
         )
         .await
         .expect("must parse");
@@ -338,16 +338,16 @@ mod test {
     }
 
     #[rstest]
-    #[case::nar_sha256(Some(CAHash::Nar(NixHash::Sha256(hex!("fbd52279a8df024c9fd5718de4103bf5e760dc7f2cf49044ee7dea87ab16911a")))), &NAR_CONTENTS_COMPLICATED.clone())]
-    #[case::nar_sha512(Some(CAHash::Nar(NixHash::Sha512(Box::new(hex!("ff5d43941411f35f09211f8596b426ee6e4dd3af1639e0ed2273cbe44b818fc4a59e3af02a057c5b18fbfcf435497de5f1994206c137f469b3df674966a922f0"))))), &NAR_CONTENTS_COMPLICATED.clone())]
-    #[case::flat_md5(Some(CAHash::Flat(NixHash::Md5(hex!("fd076287532e86365e841e92bfc50d8c")))), &NAR_CONTENTS_HELLOWORLD.clone(), )]
-    #[case::nar_symlink_sha1(Some(CAHash::Nar(NixHash::Sha1(hex!("f24eeaaa9cc016bab030bf007cb1be6483e7ba9e")))), &NAR_CONTENTS_SYMLINK.clone())]
+    #[case::nar_sha256(Some(CAHash::Nar(NixHash::Sha256(hex!("fbd52279a8df024c9fd5718de4103bf5e760dc7f2cf49044ee7dea87ab16911a")))), NAR_CONTENTS_COMPLICATED.as_slice())]
+    #[case::nar_sha512(Some(CAHash::Nar(NixHash::Sha512(Box::new(hex!("ff5d43941411f35f09211f8596b426ee6e4dd3af1639e0ed2273cbe44b818fc4a59e3af02a057c5b18fbfcf435497de5f1994206c137f469b3df674966a922f0"))))), NAR_CONTENTS_COMPLICATED.as_slice())]
+    #[case::flat_md5(Some(CAHash::Flat(NixHash::Md5(hex!("fd076287532e86365e841e92bfc50d8c")))), NAR_CONTENTS_HELLOWORLD.as_slice() )]
+    #[case::nar_symlink_sha1(Some(CAHash::Nar(NixHash::Sha1(hex!("f24eeaaa9cc016bab030bf007cb1be6483e7ba9e")))), NAR_CONTENTS_SYMLINK.as_slice())]
     #[tokio::test]
     async fn ingest_with_cahash_mismatch(
         blob_service: Arc<dyn BlobService>,
         directory_service: Arc<dyn DirectoryService>,
         #[case] ca_hash: Option<CAHash>,
-        #[case] nar_content: &Vec<u8>,
+        #[case] nar_content: &[u8],
     ) {
         let err = ingest_nar_and_hash(
             blob_service.clone(),
@@ -373,7 +373,7 @@ mod test {
         blob_service: Arc<dyn BlobService>,
         directory_service: Arc<dyn DirectoryService>,
         #[case] ca_hash: Option<CAHash>,
-        #[case] nar_content: &Vec<u8>,
+        #[case] nar_content: &[u8],
     ) {
         let _ = ingest_nar_and_hash(
             blob_service.clone(),
@@ -393,7 +393,7 @@ mod test {
         blob_service: Arc<dyn BlobService>,
         directory_service: Arc<dyn DirectoryService>,
         #[case] ca_hash: Option<CAHash>,
-        #[case] nar_content: &Vec<u8>,
+        #[case] nar_content: &[u8],
     ) {
         let err = ingest_nar_and_hash(
             blob_service,

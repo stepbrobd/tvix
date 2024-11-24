@@ -1,8 +1,8 @@
 use std::sync::LazyLock;
 
+use crate::fixtures::{DUMMY_PATH, DUMMY_PATH_DIGEST, DUMMY_PATH_STR};
 use crate::pathinfoservice::PathInfo;
 use crate::proto::{self, ValidatePathInfoError};
-use crate::tests::fixtures::{DUMMY_PATH, DUMMY_PATH_DIGEST, DUMMY_PATH_STR};
 use bytes::Bytes;
 use nix_compat::store_path;
 use rstest::rstest;

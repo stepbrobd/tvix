@@ -1,3 +1,4 @@
+use crate::fixtures::CASTORE_NODE_HELLOWORLD;
 use crate::nar::write_nar;
 use crate::tests::fixtures::*;
 use rstest::*;
@@ -40,7 +41,7 @@ async fn seekable(
     #[future] blob_service_with_contents: Arc<dyn BlobService>,
     #[future] directory_service_with_contents: Arc<dyn DirectoryService>,
     #[case] test_input: &Node,
-    #[case] test_output: Result<Result<&Vec<u8>, io::ErrorKind>, crate::nar::RenderError>,
+    #[case] test_output: Result<Result<&[u8], io::ErrorKind>, crate::nar::RenderError>,
 ) {
     let blob_service = blob_service_with_contents.await;
     let directory_service = directory_service_with_contents.await;

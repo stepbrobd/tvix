@@ -187,7 +187,6 @@ impl ServiceBuilder for GRPCPathInfoServiceConfig {
 mod tests {
     use crate::pathinfoservice::tests::make_grpc_path_info_service_client;
     use crate::pathinfoservice::PathInfoService;
-    use crate::tests::fixtures;
 
     /// This ensures connecting via gRPC works as expected.
     #[tokio::test]
@@ -196,7 +195,7 @@ mod tests {
             make_grpc_path_info_service_client().await;
 
         let path_info = path_info_service
-            .get(fixtures::DUMMY_PATH_DIGEST)
+            .get(crate::fixtures::DUMMY_PATH_DIGEST)
             .await
             .expect("must not be error");
 

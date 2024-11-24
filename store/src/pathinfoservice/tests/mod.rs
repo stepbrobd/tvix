@@ -7,11 +7,10 @@ use rstest::*;
 use rstest_reuse::{self, *};
 
 use super::{PathInfo, PathInfoService};
+use crate::fixtures::{DUMMY_PATH_DIGEST, PATH_INFO};
 use crate::pathinfoservice::redb::RedbPathInfoService;
-use crate::pathinfoservice::MemoryPathInfoService;
-use crate::tests::fixtures::{DUMMY_PATH_DIGEST, PATH_INFO};
-
 use crate::pathinfoservice::test_signing_service;
+use crate::pathinfoservice::MemoryPathInfoService;
 
 mod utils;
 pub use self::utils::make_grpc_path_info_service_client;

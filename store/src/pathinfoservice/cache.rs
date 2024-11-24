@@ -109,8 +109,8 @@ mod test {
     use std::num::NonZeroUsize;
 
     use crate::{
+        fixtures::PATH_INFO,
         pathinfoservice::{LruPathInfoService, MemoryPathInfoService, PathInfoService},
-        tests::fixtures::PATH_INFO,
     };
 
     /// Helper function setting up an instance of a "far" and "near"

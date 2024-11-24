@@ -18,7 +18,7 @@ async fn read_to_end(
     #[future] blob_service: Arc<dyn BlobService>,
     #[future] directory_service: Arc<dyn DirectoryService>,
     #[case] test_input: &Node,
-    #[case] test_output: Result<Result<&Vec<u8>, io::ErrorKind>, crate::nar::RenderError>,
+    #[case] test_output: Result<Result<&[u8], io::ErrorKind>, crate::nar::RenderError>,
 ) {
     let reader_result = Reader::new(
         test_input.clone(),
@@ -63,7 +63,7 @@ async fn seek_twice(
     #[future] directory_service: Arc<dyn DirectoryService>,
 ) {
     let mut reader = Reader::new(
-        CASTORE_NODE_COMPLICATED.clone(),
+        crate::fixtures::CASTORE_NODE_COMPLICATED.clone(),
         // don't put anything in the stores, as we don't actually do any requests.
         blob_service.await,
         directory_service.await,
@@ -89,7 +89,7 @@ async fn seek(
     #[future] directory_service: Arc<dyn DirectoryService>,
 ) {
     let mut reader = Reader::new(
-        CASTORE_NODE_HELLOWORLD.clone(),
+        crate::fixtures::CASTORE_NODE_HELLOWORLD.clone(),
         // don't put anything in the stores, as we don't actually do any requests.
         blob_service.await,
         directory_service.await,
@@ -106,6 +106,6 @@ async fn seek(
     ] {
         let n = reader.seek(position).await.expect("seek") as usize;
         reader.read_exact(&mut buf).await.expect("read_exact");
-        assert_eq!(NAR_CONTENTS_HELLOWORLD[n..n + 10], buf);
+        assert_eq!(crate::fixtures::NAR_CONTENTS_HELLOWORLD[n..n + 10], buf);
     }
 }

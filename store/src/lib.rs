@@ -1,4 +1,5 @@
 pub mod composition;
+pub mod fixtures;
 pub mod import;
 pub mod nar;
 pub mod path_info;
