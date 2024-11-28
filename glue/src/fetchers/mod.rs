@@ -178,6 +178,8 @@ pub struct Fetcher<BS, DS, PS, NS> {
     nar_calculation_service: NS,
 }
 
+const USER_AGENT: &str = concat!("Tvix/", env!("CARGO_PKG_VERSION"));
+
 impl<BS, DS, PS, NS> Fetcher<BS, DS, PS, NS> {
     pub fn new(
         blob_service: BS,
@@ -186,7 +188,10 @@ impl<BS, DS, PS, NS> Fetcher<BS, DS, PS, NS> {
         nar_calculation_service: NS,
     ) -> Self {
         Self {
-            http_client: reqwest::Client::new(),
+            http_client: reqwest::Client::builder()
+                .user_agent(USER_AGENT)
+                .build()
+                .expect("Client::new()"),
             blob_service,
             directory_service,
             path_info_service,
