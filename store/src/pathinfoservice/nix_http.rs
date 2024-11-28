@@ -54,9 +54,14 @@ impl<BS, DS> NixHTTPPathInfoService<BS, DS> {
         Self {
             instance_name,
             base_url,
-            http_client: reqwest_middleware::ClientBuilder::new(reqwest::Client::new())
-                .with(tvix_tracing::propagate::reqwest::tracing_middleware())
-                .build(),
+            http_client: reqwest_middleware::ClientBuilder::new(
+                reqwest::Client::builder()
+                    .user_agent(crate::USER_AGENT)
+                    .build()
+                    .expect("Client::new()"),
+            )
+            .with(tvix_tracing::propagate::reqwest::tracing_middleware())
+            .build(),
             blob_service,
             directory_service,
 
