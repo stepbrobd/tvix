@@ -7,6 +7,9 @@ pub mod tvix_store_io;
 
 mod fetchurl;
 
+// Used as user agent in various HTTP Clients
+const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
 #[cfg(test)]
 mod tests;
 
