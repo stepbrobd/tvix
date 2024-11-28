@@ -1,3 +1,4 @@
+use std::collections::hash_map;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -232,10 +233,24 @@ impl ServiceBuilder for ObjectStoreDirectoryServiceConfig {
         instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (object_store, path) = object_store::parse_url_opts(
-            &self.object_store_url.parse()?,
-            &self.object_store_options,
-        )?;
+        let opts = {
+            let mut opts: HashMap<&str, _> = self
+                .object_store_options
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.as_str()))
+                .collect();
+
+            if let hash_map::Entry::Vacant(e) =
+                opts.entry(object_store::ClientConfigKey::UserAgent.as_ref())
+            {
+                e.insert(crate::USER_AGENT);
+            }
+
+            opts
+        };
+
+        let (object_store, path) =
+            object_store::parse_url_opts(&self.object_store_url.parse()?, opts)?;
         Ok(Arc::new(ObjectStoreDirectoryService::new(
             instance_name.to_string(),
             Arc::new(object_store),

@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{hash_map, HashMap},
     io::{self, Cursor},
     pin::pin,
     sync::Arc,
@@ -298,10 +298,24 @@ impl ServiceBuilder for ObjectStoreBlobServiceConfig {
         instance_name: &str,
         _context: &CompositionContext,
     ) -> Result<Arc<dyn BlobService>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (object_store, path) = object_store::parse_url_opts(
-            &self.object_store_url.parse()?,
-            &self.object_store_options,
-        )?;
+        let opts = {
+            let mut opts: HashMap<&str, _> = self
+                .object_store_options
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.as_str()))
+                .collect();
+
+            if let hash_map::Entry::Vacant(e) =
+                opts.entry(object_store::ClientConfigKey::UserAgent.as_ref())
+            {
+                e.insert(crate::USER_AGENT);
+            }
+
+            opts
+        };
+
+        let (object_store, path) =
+            object_store::parse_url_opts(&self.object_store_url.parse()?, opts)?;
         Ok(Arc::new(ObjectStoreBlobService {
             instance_name: instance_name.to_string(),
             object_store: Arc::new(object_store),
