@@ -13,7 +13,11 @@ pub mod framing;
 pub mod handler;
 pub mod types;
 
+#[cfg(test)]
+use mockall::automock;
+
 /// Represents all possible operations over the nix-daemon protocol.
+#[cfg_attr(test, automock)]
 pub trait NixDaemonIO: Sync {
     fn is_valid_path(
         &self,
@@ -62,6 +66,7 @@ pub trait NixDaemonIO: Sync {
         }
     }
 
+    #[cfg_attr(test, mockall::concretize)]
     fn add_to_store_nar<R>(
         &self,
         request: AddToStoreNarRequest,

@@ -3332,6 +3332,19 @@ rec {
         features = { };
         resolvedDefaultFeatures = [ "default" ];
       };
+      "downcast" = rec {
+        crateName = "downcast";
+        version = "0.11.0";
+        edition = "2018";
+        sha256 = "1wa78ahlc57wmqyq2ncr80l7plrkgz57xsg7kfzgpcnqac8gld8l";
+        authors = [
+          "Felix Köpge <fkoep@mailbox.org>"
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
       "ed25519" = rec {
         crateName = "ed25519";
         version = "2.2.3";
@@ -3929,6 +3942,18 @@ rec {
           "std" = [ "alloc" "percent-encoding/std" ];
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
+      };
+      "fragile" = rec {
+        crateName = "fragile";
+        version = "2.0.0";
+        edition = "2018";
+        sha256 = "1ajfdnwdn921bhjlzyvsqvdgci8ab40ln6w9ly422lf8svb428bc";
+        authors = [
+          "Armin Ronacher <armin.ronacher@active-4.com>"
+        ];
+        features = {
+          "slab" = [ "dep:slab" ];
+        };
       };
       "fuse-backend-rs" = rec {
         crateName = "fuse-backend-rs";
@@ -6794,6 +6819,77 @@ rec {
         };
         resolvedDefaultFeatures = [ "net" "os-ext" "os-poll" ];
       };
+      "mockall" = rec {
+        crateName = "mockall";
+        version = "0.13.1";
+        edition = "2021";
+        sha256 = "1lir70dd9cnsjlf20gi3i51ha9n7mlrkx74bx5gfszlcdk6bz9ir";
+        authors = [
+          "Alan Somers <asomers@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "downcast";
+            packageId = "downcast";
+          }
+          {
+            name = "fragile";
+            packageId = "fragile";
+          }
+          {
+            name = "mockall_derive";
+            packageId = "mockall_derive";
+          }
+          {
+            name = "predicates";
+            packageId = "predicates";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "predicates-tree";
+            packageId = "predicates-tree";
+          }
+        ];
+        features = {
+          "nightly" = [ "mockall_derive/nightly_derive" "downcast/nightly" ];
+        };
+      };
+      "mockall_derive" = rec {
+        crateName = "mockall_derive";
+        version = "0.13.1";
+        edition = "2021";
+        sha256 = "1608qajqrz23xbvv81alc6wm4l24as1bsqg4shdh3sggq8231ji5";
+        procMacro = true;
+        authors = [
+          "Alan Somers <asomers@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "cfg-if";
+            packageId = "cfg-if";
+          }
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.79";
+            features = [ "extra-traits" "full" ];
+          }
+        ];
+        features = {
+          "nightly_derive" = [ "proc-macro2/nightly" ];
+        };
+      };
       "multimap" = rec {
         crateName = "multimap";
         version = "0.10.0";
@@ -7294,6 +7390,10 @@ rec {
           {
             name = "mimalloc";
             packageId = "mimalloc";
+          }
+          {
+            name = "mockall";
+            packageId = "mockall";
           }
           {
             name = "pretty_assertions";
@@ -8890,6 +8990,64 @@ rec {
           "default" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "simd" "std" ];
+      };
+      "predicates" = rec {
+        crateName = "predicates";
+        version = "3.1.2";
+        edition = "2021";
+        sha256 = "15rcyjax4ykflw5425wsyzcfkgl08c9zsa8sdlsrmhj0fv68d43y";
+        authors = [
+          "Nick Stevens <nick@bitcurry.com>"
+        ];
+        dependencies = [
+          {
+            name = "anstyle";
+            packageId = "anstyle";
+          }
+          {
+            name = "predicates-core";
+            packageId = "predicates-core";
+          }
+        ];
+        features = {
+          "default" = [ "diff" "regex" "float-cmp" "normalize-line-endings" "color" ];
+          "diff" = [ "dep:difflib" ];
+          "float-cmp" = [ "dep:float-cmp" ];
+          "normalize-line-endings" = [ "dep:normalize-line-endings" ];
+          "regex" = [ "dep:regex" ];
+        };
+      };
+      "predicates-core" = rec {
+        crateName = "predicates-core";
+        version = "1.0.8";
+        edition = "2021";
+        sha256 = "0c8rl6d7qkcl773fw539h61fhlgdg7v9yswwb536hpg7x2z7g0df";
+        libName = "predicates_core";
+        authors = [
+          "Nick Stevens <nick@bitcurry.com>"
+        ];
+
+      };
+      "predicates-tree" = rec {
+        crateName = "predicates-tree";
+        version = "1.0.11";
+        edition = "2021";
+        sha256 = "04zv0i9pjfrldnvyxf4y07n243nvk3n4g03w2k6nccgdjp8l1ds1";
+        libName = "predicates_tree";
+        authors = [
+          "Nick Stevens <nick@bitcurry.com>"
+        ];
+        dependencies = [
+          {
+            name = "predicates-core";
+            packageId = "predicates-core";
+          }
+          {
+            name = "termtree";
+            packageId = "termtree";
+          }
+        ];
+
       };
       "pretty_assertions" = rec {
         crateName = "pretty_assertions";
@@ -12653,6 +12811,13 @@ rec {
             target = { target, features }: (target."windows" or false);
           }
         ];
+
+      };
+      "termtree" = rec {
+        crateName = "termtree";
+        version = "0.4.1";
+        edition = "2018";
+        sha256 = "0xkal5l2r3r9p9j90x35qy4npbdwxz4gskvbijs6msymaangas9k";
 
       };
       "test-strategy" = rec {

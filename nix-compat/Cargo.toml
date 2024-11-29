@@ -47,6 +47,7 @@ criterion = { workspace = true, features = ["html_reports"] }
 futures = { workspace = true }
 hex-literal = { workspace = true }
 mimalloc = { workspace = true }
+mockall = "0.13.1"
 pretty_assertions = { workspace = true }
 proptest = { workspace = true, features = ["std", "alloc", "tempfile"] }
 rstest = { workspace = true }
