@@ -11,7 +11,7 @@ use nix_compat::{
     nixbase32,
     store_path::{build_ca_path, StorePath},
 };
-use tracing::warn;
+use tracing::{instrument, warn};
 use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
 use tvix_store::{nar::ingest_nar_and_hash, path_info::PathInfo, pathinfoservice::PathInfoService};
 
@@ -38,6 +38,7 @@ impl TvixDaemon {
 
 /// Implements [NixDaemonIO] backed by tvix services.
 impl NixDaemonIO for TvixDaemon {
+    #[instrument(skip_all, fields(path), level = "debug", ret(Debug))]
     async fn query_path_info(
         &self,
         path: &StorePath<String>,
@@ -50,6 +51,7 @@ impl NixDaemonIO for TvixDaemon {
         Ok(None)
     }
 
+    #[instrument(skip_all, fields(hash=nix_compat::nixbase32::encode(hash)), level = "debug", ret(Debug))]
     async fn query_path_from_hash_part(&self, hash: &[u8]) -> Result<Option<UnkeyedValidPathInfo>> {
         let digest = hash
             .try_into()
@@ -60,6 +62,7 @@ impl NixDaemonIO for TvixDaemon {
         }
     }
 
+    #[instrument(skip_all, fields(request), level = "debug", ret(Debug))]
     async fn add_to_store_nar<R>(&self, request: AddToStoreNarRequest, reader: &mut R) -> Result<()>
     where
         R: tokio::io::AsyncRead + Send + Unpin,
