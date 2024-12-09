@@ -48,10 +48,10 @@ pub trait NixDaemonIO: Sync {
             // The only reason query_path_info can fail is due to transient IO errors,
             // so we return such errors to the client as opposed to only returning paths
             // that succeeded.
-            let result =
+            let results =
                 try_join_all(request.paths.iter().map(|path| self.query_path_info(path))).await?;
-            let result: Vec<UnkeyedValidPathInfo> = result.into_iter().flatten().collect();
-            Ok(result)
+
+            Ok(results.into_iter().flatten().collect())
         }
     }
 
