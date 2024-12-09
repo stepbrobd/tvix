@@ -42,16 +42,12 @@ impl NixDaemonIO for TvixDaemon {
         &self,
         path: &StorePath<String>,
     ) -> Result<Option<UnkeyedValidPathInfo>> {
-        match self.path_info_service.get(*path.digest()).await? {
-            Some(path_info) => {
-                if path_info.store_path.name() == path.name() {
-                    Ok(Some(into_unkeyed_path_info(path_info)))
-                } else {
-                    Ok(None)
-                }
+        if let Some(path_info) = self.path_info_service.get(*path.digest()).await? {
+            if path_info.store_path.name() == path.name() {
+                return Ok(Some(into_unkeyed_path_info(path_info)));
             }
-            None => Ok(None),
         }
+        Ok(None)
     }
 
     async fn query_path_from_hash_part(&self, hash: &[u8]) -> Result<Option<UnkeyedValidPathInfo>> {
