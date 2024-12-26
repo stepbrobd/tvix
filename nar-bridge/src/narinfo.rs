@@ -153,6 +153,10 @@ fn gen_narinfo_str(path_info: &PathInfo) -> String {
         path_info.nar_size,
     );
     narinfo.url = &url;
+
+    // Set FileSize to NarSize, as otherwise progress reporting in Nix looks very broken
+    narinfo.file_size = Some(narinfo.nar_size);
+
     narinfo.to_string()
 }
 
