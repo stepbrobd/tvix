@@ -155,3 +155,163 @@ fn gen_narinfo_str(path_info: &PathInfo) -> String {
     narinfo.url = &url;
     narinfo.to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{num::NonZero, sync::Arc};
+
+    use axum::http::Method;
+    use nix_compat::nixbase32;
+    use tracing_test::traced_test;
+    use tvix_castore::{
+        blobservice::{BlobService, MemoryBlobService},
+        directoryservice::{DirectoryService, MemoryDirectoryService},
+    };
+    use tvix_store::{
+        fixtures::{DUMMY_PATH_DIGEST, NAR_CONTENTS_SYMLINK, PATH_INFO, PATH_INFO_SYMLINK},
+        path_info::PathInfo,
+        pathinfoservice::{MemoryPathInfoService, PathInfoService},
+    };
+
+    use crate::AppState;
+
+    /// Accepts a router without state, and returns a [axum_test::TestServer].
+    fn gen_server(
+        router: axum::Router<AppState>,
+    ) -> (
+        axum_test::TestServer,
+        impl BlobService,
+        impl DirectoryService,
+        impl PathInfoService,
+    ) {
+        let blob_service = Arc::new(MemoryBlobService::default());
+        let directory_service = Arc::new(MemoryDirectoryService::default());
+        let path_info_service = Arc::new(MemoryPathInfoService::default());
+
+        let app = router.with_state(AppState::new(
+            blob_service.clone(),
+            directory_service.clone(),
+            path_info_service.clone(),
+            NonZero::new(100).unwrap(),
+        ));
+
+        (
+            axum_test::TestServer::new(app).unwrap(),
+            blob_service,
+            directory_service,
+            path_info_service,
+        )
+    }
+
+    fn gen_nix_like_narinfo(path_info: &PathInfo) -> String {
+        let mut narinfo = path_info.to_narinfo();
+
+        let url = format!("nar/{}.nar", nixbase32::encode(&path_info.nar_sha256));
+        narinfo.url = &url;
+        narinfo.to_string()
+    }
+
+    /// HEAD and GET for a NARInfo for which there's no PathInfo should fail.
+    #[traced_test]
+    #[tokio::test]
+    async fn test_get_head_not_found() {
+        let (server, _blob_service, _directory_service, _path_info_service) =
+            gen_server(crate::gen_router(100));
+
+        let url = &format!("{}.narinfo", nixbase32::encode(&DUMMY_PATH_DIGEST));
+
+        // HEAD
+        server
+            .method(Method::HEAD, url)
+            .expect_failure()
+            .await
+            .assert_status_not_found();
+
+        // GET
+        server
+            .get(url)
+            .expect_failure()
+            .await
+            .assert_status_not_found();
+    }
+
+    /// HEAD and GET for a NARInfo for which there's a PathInfo stored succeeds.
+    #[traced_test]
+    #[tokio::test]
+    async fn test_get_head_found() {
+        let (server, _blob_service, _directory_service, path_info_service) =
+            gen_server(crate::gen_router(100));
+
+        let url = &format!("{}.narinfo", nixbase32::encode(&DUMMY_PATH_DIGEST));
+
+        path_info_service
+            .put(PATH_INFO.clone())
+            .await
+            .expect("put pathinfo");
+
+        server
+            .method(Method::HEAD, url)
+            .expect_success()
+            .await
+            .assert_status_ok();
+
+        // GET
+        let narinfo_bytes = server.get(url).expect_success().await.into_bytes();
+
+        assert_eq!(crate::narinfo::gen_narinfo_str(&PATH_INFO), narinfo_bytes);
+    }
+
+    /// Uploading a NARInfo without the NAR previously uploaded should fail.
+    #[traced_test]
+    #[tokio::test]
+    async fn test_put_without_prev_nar_fail() {
+        let (server, _blob_service, _directory_service, _path_info_service) =
+            gen_server(crate::gen_router(100));
+
+        // Produce a NARInfo the same way nix does.
+        // FUTUREWORK: add tests for NARInfo with unsupported formats
+        // (again referring with compression for example)
+        let narinfo_str = gen_nix_like_narinfo(&PATH_INFO_SYMLINK);
+
+        server
+            .put(&format!(
+                "{}.narinfo",
+                nixbase32::encode(&PATH_INFO_SYMLINK.nar_sha256)
+            ))
+            .text(narinfo_str)
+            .content_type(nix_compat::nix_http::MIME_TYPE_NARINFO)
+            .expect_failure()
+            .await;
+    }
+
+    // Upload a NAR, then a PathInfo referring to that upload.
+    #[traced_test]
+    #[tokio::test]
+    async fn test_upload_nar_then_narinfo() {
+        let (server, _blob_service, _directory_service, _path_info_service) =
+            gen_server(crate::gen_router(100));
+
+        // upload NAR
+        server
+            .put(&format!(
+                "/nar/{}.nar",
+                nixbase32::encode(&PATH_INFO_SYMLINK.nar_sha256)
+            ))
+            .bytes(NAR_CONTENTS_SYMLINK[..].into())
+            .expect_success()
+            .await;
+
+        let narinfo_str = gen_nix_like_narinfo(&PATH_INFO_SYMLINK);
+
+        // upload NARInfo
+        server
+            .put(&format!(
+                "/{}.narinfo",
+                nixbase32::encode(PATH_INFO_SYMLINK.store_path.digest())
+            ))
+            .text(narinfo_str)
+            .content_type(nix_compat::nix_http::MIME_TYPE_NARINFO)
+            .expect_success()
+            .await;
+    }
+}
