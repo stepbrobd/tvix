@@ -5,20 +5,20 @@ edition = "2021"
 
 [dependencies]
 axum = { workspace = true, features = ["http2"] }
-axum-extra = { workspace = true }
-axum-range = { workspace = true }
-tower = { workspace = true }
+axum-extra.workspace = true
+axum-range.workspace = true
+tower.workspace = true
 tower-http = { workspace = true, features = ["compression-zstd", "trace"] }
-bytes = { workspace = true }
+bytes.workspace = true
 clap = { workspace = true, features = ["derive", "env"] }
-data-encoding = { workspace = true }
-futures = { workspace = true }
-itertools = { workspace = true }
-prost = { workspace = true }
+data-encoding.workspace = true
+futures.workspace = true
+itertools.workspace = true
+prost.workspace = true
 nix-compat = { path = "../nix-compat", features = ["async"] }
-opentelemetry = { workspace = true }
-thiserror = { workspace = true }
-tokio = { workspace = true }
+opentelemetry.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
 tokio-listener = { workspace = true, features = ["axum07", "clap", "multi-listener", "sd_listen"] }
 tokio-util = { workspace = true, features = ["io", "io-util", "compat"] }
 tonic = { workspace = true, features = ["tls", "tls-roots"] }
@@ -26,18 +26,18 @@ tower-otel-http-metrics = { workspace = true, features = ["axum"], optional = tr
 tvix-castore = { path = "../castore" }
 tvix-store = { path = "../store" }
 tvix-tracing = { path = "../tracing", features = ["tonic", "axum"] }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-tracing-test = { workspace = true }
-url = { workspace = true }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-test.workspace = true
+url.workspace = true
 serde = { workspace = true, features = ["derive"] }
-lru = { workspace = true }
-parking_lot = { workspace = true }
-mimalloc = { workspace = true }
+lru.workspace = true
+parking_lot.workspace = true
+mimalloc.workspace = true
 
 [build-dependencies]
-prost-build = { workspace = true }
-tonic-build = { workspace = true }
+prost-build.workspace = true
+tonic-build.workspace = true
 
 [features]
 default = ["otlp"]
@@ -46,8 +46,8 @@ xp-store-composition-cli = ["tvix-store/xp-composition-cli"]
 
 [dev-dependencies]
 axum-test = "16.4.0"
-hex-literal = { workspace = true }
-rstest = { workspace = true }
+hex-literal.workspace = true
+rstest.workspace = true
 sha2.workspace = true
 
 [lints]

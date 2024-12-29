@@ -5,42 +5,42 @@ edition = "2021"
 
 [dependencies]
 async-compression = { workspace = true, features = ["tokio", "gzip", "bzip2", "xz"] }
-bstr = { workspace = true }
-bytes = { workspace = true }
-data-encoding = { workspace = true }
-futures = { workspace = true }
-magic = { workspace = true }
+bstr.workspace = true
+bytes.workspace = true
+data-encoding.workspace = true
+futures.workspace = true
+magic.workspace = true
 nix-compat = { path = "../nix-compat" }
-pin-project = { workspace = true }
+pin-project.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
 tvix-build = { path = "../build", default-features = false, features = []}
 tvix-eval = { path = "../eval" }
 tvix-castore = { path = "../castore" }
 tvix-store = { path = "../store", default-features = false, features = []}
 tvix-tracing = { path = "../tracing" }
-tracing = { workspace = true }
-tracing-indicatif = { workspace = true }
-tokio = { workspace = true }
-tokio-tar = { workspace = true }
+tracing.workspace = true
+tracing-indicatif.workspace = true
+tokio.workspace = true
+tokio-tar.workspace = true
 tokio-util = { workspace = true, features = ["io", "io-util", "compat"] }
-thiserror = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-sha2 = { workspace = true }
-sha1 = { workspace = true }
-md-5 = { workspace = true }
-url = { workspace = true }
-walkdir = { workspace = true }
-clap = { workspace = true }
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sha1.workspace = true
+md-5.workspace = true
+url.workspace = true
+walkdir.workspace = true
+clap.workspace = true
 
 [dev-dependencies]
 criterion = { workspace = true, features = ["html_reports"] }
-hex-literal = { workspace = true }
-mimalloc = { workspace = true }
+hex-literal.workspace = true
+mimalloc.workspace = true
 nix = { workspace = true, features = ["fs"] }
-pretty_assertions = { workspace = true }
-rstest = { workspace = true }
-tempfile = { workspace = true }
+pretty_assertions.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
 
 [features]
 default = ["nix_tests"]

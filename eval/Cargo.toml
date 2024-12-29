@@ -8,42 +8,42 @@ name = "tvix_eval"
 
 [dependencies]
 builtin-macros = { path = "./builtin-macros", package = "tvix-eval-builtin-macros" }
-bytes = { workspace = true }
+bytes.workspace = true
 bstr = { workspace = true, features = ["serde"] }
-codemap = { workspace = true }
-codemap-diagnostic = { workspace = true }
-dirs = { workspace = true }
-genawaiter = { workspace = true }
-itertools = { workspace = true }
+codemap.workspace = true
+codemap-diagnostic.workspace = true
+dirs.workspace = true
+genawaiter.workspace = true
+itertools.workspace = true
 lexical-core = { workspace = true, features = ["format", "parse-floats"] }
 os_str_bytes = { workspace = true, features = ["conversions"] }
-path-clean = { workspace = true }
+path-clean.workspace = true
 proptest = { workspace = true, features = ["std", "alloc", "tempfile"], optional = true }
-regex = { workspace = true }
-rnix = { workspace = true }
-rowan = { workspace = true } # pinned by rnix
+regex.workspace = true
+rnix.workspace = true
+rowan.workspace = true # pinned by rnix
 serde = { workspace = true, features = ["rc", "derive"] }
-serde_json = { workspace = true }
-smol_str = { workspace = true }
-tabwriter = { workspace = true }
+serde_json.workspace = true
+smol_str.workspace = true
+tabwriter.workspace = true
 test-strategy = { workspace = true, optional = true }
 toml = "0.6.0"
-sha2 = { workspace = true }
-sha1 = { workspace = true }
-md-5 = { workspace = true }
-data-encoding = { workspace = true }
-rustc-hash = { workspace = true }
-nohash-hasher = { workspace = true }
-vu128 = { workspace = true }
+sha2.workspace = true
+sha1.workspace = true
+md-5.workspace = true
+data-encoding.workspace = true
+rustc-hash.workspace = true
+nohash-hasher.workspace = true
+vu128.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-criterion = { workspace = true }
-itertools = { workspace = true }
-mimalloc = { workspace = true }
-pretty_assertions = { workspace = true }
-rstest = { workspace = true }
-tempfile = { workspace = true }
+criterion.workspace = true
+itertools.workspace = true
+mimalloc.workspace = true
+pretty_assertions.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
 
 [features]
 default = ["impure", "arbitrary", "nix_tests"]

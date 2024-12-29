@@ -17,22 +17,22 @@ test = []
 default = ["async", "daemon", "wire", "nix-compat-derive"]
 
 [dependencies]
-bitflags = { workspace = true }
+bitflags.workspace = true
 bstr = { workspace = true, features = ["alloc", "unicode", "serde"] }
-data-encoding = { workspace = true }
-ed25519 = { workspace = true }
-ed25519-dalek = { workspace = true }
-enum-primitive-derive = { workspace = true }
+data-encoding.workspace = true
+ed25519.workspace = true
+ed25519-dalek.workspace = true
+enum-primitive-derive.workspace = true
 futures = { workspace = true, optional = true }
-glob = { workspace = true }
-mimalloc = { workspace = true }
-nom = { workspace = true }
-num-traits = { workspace = true }
+glob.workspace = true
+mimalloc.workspace = true
+nom.workspace = true
+num-traits.workspace = true
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-sha2 = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
 bytes = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["io-util", "macros", "sync"], optional = true }
 pin-project-lite = { workspace = true, optional = true }
@@ -44,17 +44,17 @@ optional = true
 
 [dev-dependencies]
 criterion = { workspace = true, features = ["html_reports"] }
-futures = { workspace = true }
-hex-literal = { workspace = true }
-mimalloc = { workspace = true }
+futures.workspace = true
+hex-literal.workspace = true
+mimalloc.workspace = true
 mockall = "0.13.1"
-pretty_assertions = { workspace = true }
+pretty_assertions.workspace = true
 proptest = { workspace = true, features = ["std", "alloc", "tempfile"] }
-rstest = { workspace = true }
-serde_json = { workspace = true }
-smol_str = { workspace = true }
-tokio-test = { workspace = true }
-zstd = { workspace = true }
+rstest.workspace = true
+serde_json.workspace = true
+smol_str.workspace = true
+tokio-test.workspace = true
+zstd.workspace = true
 
 [[bench]]
 name = "derivation_parse_aterm"
