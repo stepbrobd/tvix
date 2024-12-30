@@ -932,7 +932,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "visit-mut" ];
           }
         ];
@@ -1009,7 +1009,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "full" "parsing" "printing" "proc-macro" "visit-mut" ];
           }
@@ -1062,7 +1062,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "visit" "visit-mut" ];
           }
         ];
@@ -1468,14 +1468,14 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "parsing" "extra-traits" ];
           }
         ];
         devDependencies = [
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -1768,18 +1768,17 @@ rec {
       };
       "bigtable_rs" = rec {
         crateName = "bigtable_rs";
-        version = "0.2.10";
+        version = "0.2.16";
         edition = "2021";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/liufuyang/bigtable_rs";
-          rev = "1818355a5373a5bc2c84287e3a4e3807154ac8ef";
-          sha256 = "0mn6iw1z7gdxbarsqiwscbdr25nplwlvzs0rs51vgnnjfsnbgl6q";
-        };
+        sha256 = "0n2j8zq6p3rl2g46v2hnmwq0azzjs4nkx72hxpqcmsb6yi4a769l";
         authors = [
           "Fuyang Liu <liufuyang@users.noreply.github.com>"
         ];
         dependencies = [
+          {
+            name = "futures-util";
+            packageId = "futures-util";
+          }
           {
             name = "gcp_auth";
             packageId = "gcp_auth";
@@ -1825,7 +1824,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -1839,7 +1838,8 @@ rec {
           }
           {
             name = "tower";
-            packageId = "tower 0.4.13";
+            packageId = "tower 0.5.1";
+            features = [ "util" ];
           }
         ];
         buildDependencies = [
@@ -1848,8 +1848,8 @@ rec {
             packageId = "prost-build";
           }
           {
-            name = "prost-wkt-types";
-            packageId = "prost-wkt-types";
+            name = "prost-wkt-build";
+            packageId = "prost-wkt-build";
           }
           {
             name = "tonic-build";
@@ -2167,7 +2167,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
         features = {
@@ -2475,7 +2475,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -3138,7 +3138,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -3201,7 +3201,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -3231,7 +3231,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
           }
         ];
 
@@ -3370,7 +3370,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -3396,7 +3396,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -3781,7 +3781,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
           }
         ];
 
@@ -4541,7 +4541,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -4743,7 +4743,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -4950,7 +4950,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
           }
         ];
 
@@ -6783,7 +6783,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
 
@@ -7201,7 +7201,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "extra-traits" "full" ];
           }
         ];
@@ -7303,7 +7303,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -7692,7 +7692,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -7791,7 +7791,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -8143,14 +8143,14 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "parsing" ];
           }
         ];
         devDependencies = [
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "extra-traits" "parsing" ];
           }
         ];
@@ -8411,7 +8411,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
         devDependencies = [
@@ -8498,7 +8498,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
             usesDefaultFeatures = false;
           }
         ];
@@ -8591,7 +8591,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
             usesDefaultFeatures = false;
           }
           {
@@ -8772,7 +8772,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
             usesDefaultFeatures = false;
           }
           {
@@ -9028,7 +9028,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "parsing" "printing" "clone-impls" "proc-macro" "full" "visit-mut" ];
           }
@@ -9423,7 +9423,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "full" ];
           }
@@ -9436,7 +9436,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "parsing" ];
           }
@@ -9510,7 +9510,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             optional = true;
             usesDefaultFeatures = false;
           }
@@ -9518,7 +9518,7 @@ rec {
         devDependencies = [
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -9731,7 +9731,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             optional = true;
             features = [ "full" ];
           }
@@ -9779,7 +9779,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "extra-traits" ];
           }
         ];
@@ -10084,7 +10084,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -10158,7 +10158,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tinyvec";
@@ -10532,7 +10532,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
         features = {
@@ -11071,7 +11071,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tower-service";
@@ -11207,7 +11207,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
 
@@ -11399,7 +11399,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "parsing" "extra-traits" "visit" "visit-mut" ];
           }
           {
@@ -11438,7 +11438,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" "extra-traits" ];
           }
         ];
@@ -11494,7 +11494,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
         devDependencies = [
@@ -12179,7 +12179,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "clone-impls" "derive" "parsing" "printing" "proc-macro" ];
           }
@@ -12271,7 +12271,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
         ];
         features = {
@@ -12499,7 +12499,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "extra-traits" "full" "parsing" ];
           }
         ];
@@ -13027,7 +13027,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "parsing" "extra-traits" ];
           }
         ];
@@ -13080,11 +13080,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "extra-traits" "full" "parsing" "printing" "proc-macro" "quote" "visit" "visit-mut" ];
       };
-      "syn 2.0.79" = rec {
+      "syn 2.0.87" = rec {
         crateName = "syn";
-        version = "2.0.79";
+        version = "2.0.87";
         edition = "2021";
-        sha256 = "147mk4sgigmvsb9l8qzj199ygf0fgb0bphwdsghn8205pz82q4w9";
+        sha256 = "0bd3mfcswvn4jkrp7ich5kk58kmpph8412yxd36nsfnh8vilrai5";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -13275,7 +13275,7 @@ rec {
           "serde" = [ "dep:serde" ];
         };
       };
-      "thiserror" = rec {
+      "thiserror 1.0.64" = rec {
         crateName = "thiserror";
         version = "1.0.64";
         edition = "2021";
@@ -13286,12 +13286,31 @@ rec {
         dependencies = [
           {
             name = "thiserror-impl";
-            packageId = "thiserror-impl";
+            packageId = "thiserror-impl 1.0.64";
           }
         ];
 
       };
-      "thiserror-impl" = rec {
+      "thiserror 2.0.9" = rec {
+        crateName = "thiserror";
+        version = "2.0.9";
+        edition = "2021";
+        sha256 = "1k5j0ri0kjrnlblv5ikaglbkg1sxxwh0qrxbidxgc38rs0zn8wph";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "thiserror-impl";
+            packageId = "thiserror-impl 2.0.9";
+          }
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "thiserror-impl 1.0.64" = rec {
         crateName = "thiserror-impl";
         version = "1.0.64";
         edition = "2021";
@@ -13312,7 +13331,33 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
+          }
+        ];
+
+      };
+      "thiserror-impl 2.0.9" = rec {
+        crateName = "thiserror-impl";
+        version = "2.0.9";
+        edition = "2021";
+        sha256 = "1m77z5vb4w7xn7y12zxnbwncva4bwbi45y45xvkf5aki20kzll3v";
+        procMacro = true;
+        libName = "thiserror_impl";
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn 2.0.87";
           }
         ];
 
@@ -13778,7 +13823,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -14479,7 +14524,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
           }
         ];
         features = {
@@ -15090,7 +15135,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "full" "parsing" "printing" "visit-mut" "clone-impls" "extra-traits" "proc-macro" ];
           }
@@ -15482,7 +15527,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -15726,7 +15771,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -15922,7 +15967,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "threadpool";
@@ -16132,7 +16177,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -16302,7 +16347,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "toml";
@@ -16457,7 +16502,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -16722,7 +16767,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -16903,7 +16948,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror";
+            packageId = "thiserror 1.0.64";
           }
           {
             name = "tokio";
@@ -17034,7 +17079,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
         ];
@@ -17705,7 +17750,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "full" ];
           }
           {
@@ -17798,7 +17843,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             features = [ "visit" "visit-mut" "full" ];
           }
           {
@@ -19221,7 +19266,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "parsing" "proc-macro" "printing" "full" "derive" ];
           }
@@ -19249,7 +19294,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
             usesDefaultFeatures = false;
             features = [ "parsing" "proc-macro" "printing" "full" "derive" "clone-impls" ];
           }
@@ -20559,7 +20604,7 @@ rec {
           }
           {
             name = "syn";
-            packageId = "syn 2.0.79";
+            packageId = "syn 2.0.87";
           }
         ];
 

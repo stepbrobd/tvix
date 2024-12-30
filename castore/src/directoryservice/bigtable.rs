@@ -276,6 +276,7 @@ impl DirectoryService for BigtableDirectoryService {
             .check_and_mutate_row(bigtable_v2::CheckAndMutateRowRequest {
                 table_name: client.get_full_table_name(&self.params.table_name),
                 app_profile_id: self.params.app_profile_id.to_string(),
+                authorized_view_name: "".to_string(),
                 row_key: directory_key.clone().into(),
                 predicate_filter: Some(bigtable_v2::RowFilter {
                     filter: Some(bigtable_v2::row_filter::Filter::ColumnQualifierRegexFilter(
