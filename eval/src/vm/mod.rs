@@ -49,7 +49,7 @@ trait GetSpan {
     fn get_span(self) -> Span;
 }
 
-impl<'o, IO> GetSpan for &VM<'o, IO> {
+impl<IO> GetSpan for &VM<'_, IO> {
     fn get_span(self) -> Span {
         self.reasonable_span
     }
@@ -983,7 +983,7 @@ where
 }
 
 /// Implementation of helper functions for the runtime logic above.
-impl<'o, IO> VM<'o, IO>
+impl<IO> VM<'_, IO>
 where
     IO: AsRef<dyn EvalIO> + 'static,
 {

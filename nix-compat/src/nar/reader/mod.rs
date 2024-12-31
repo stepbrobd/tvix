@@ -431,7 +431,7 @@ impl ArchiveReaderStatus<'_> {
     }
 }
 
-impl<'a, 'r> ArchiveReader<'a, 'r> {
+impl<'r> ArchiveReader<'_, 'r> {
     /// Create a new child reader from this one.
     /// In debug mode, this reader will panic if called before the new child is exhausted / calls `ready_parent`
     fn child(&mut self) -> ArchiveReader<'_, 'r> {

@@ -81,7 +81,7 @@ impl<'a> VersionPartsIter<'a> {
     /// like `2.3 < 2.3.0pre` ensues. Luckily for us, this means that we can
     /// lexicographically compare two version strings, _if_ we append an extra
     /// component to both versions.
-    pub fn new_for_cmp(version: &'a BStr) -> Chain<Self, Once<VersionPart>> {
+    pub fn new_for_cmp(version: &'a BStr) -> Chain<Self, Once<VersionPart<'a>>> {
         Self::new(version).chain(once(VersionPart::Word("".into())))
     }
 }

@@ -75,7 +75,7 @@ pub struct FileReader<'a, 'r> {
     inner: BytesReader<&'a mut Reader<'r>, PadPar>,
 }
 
-impl<'a, 'r> FileReader<'a, 'r> {
+impl FileReader<'_, '_> {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -85,7 +85,7 @@ impl<'a, 'r> FileReader<'a, 'r> {
     }
 }
 
-impl<'a, 'r> AsyncRead for FileReader<'a, 'r> {
+impl AsyncRead for FileReader<'_, '_> {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut task::Context,
@@ -95,7 +95,7 @@ impl<'a, 'r> AsyncRead for FileReader<'a, 'r> {
     }
 }
 
-impl<'a, 'r> AsyncBufRead for FileReader<'a, 'r> {
+impl AsyncBufRead for FileReader<'_, '_> {
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut task::Context) -> Poll<io::Result<&[u8]>> {
         Pin::new(&mut self.get_mut().inner).poll_fill_buf(cx)
     }

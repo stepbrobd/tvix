@@ -506,7 +506,7 @@ impl<'a> Iterator for Iter<KeyValue<'a>> {
     }
 }
 
-impl<'a> ExactSizeIterator for Iter<KeyValue<'a>> {
+impl ExactSizeIterator for Iter<KeyValue<'_>> {
     fn len(&self) -> usize {
         match &self.0 {
             KeyValue::Empty => 0,
@@ -554,7 +554,7 @@ impl<'a> IntoIterator for &'a NixAttrs {
     }
 }
 
-impl<'a> ExactSizeIterator for Keys<'a> {
+impl ExactSizeIterator for Keys<'_> {
     fn len(&self) -> usize {
         match &self.0 {
             KeysInner::Empty => 0,

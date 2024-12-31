@@ -293,13 +293,13 @@ impl<'co, 'ro, 'env, IO> EvaluationBuilder<'co, 'ro, 'env, IO> {
     }
 }
 
-impl<'co, 'ro, 'env, IO> EvaluationBuilder<'co, 'ro, 'env, IO> {
+impl<IO> EvaluationBuilder<'_, '_, '_, IO> {
     pub fn source_map(&mut self) -> &SourceCode {
         self.source_map.get_or_insert_with(SourceCode::default)
     }
 }
 
-impl<'co, 'ro, 'env> EvaluationBuilder<'co, 'ro, 'env, Box<dyn EvalIO>> {
+impl EvaluationBuilder<'_, '_, '_, Box<dyn EvalIO>> {
     /// Initialize an `Evaluation`, without the import statement available, and
     /// all IO operations stubbed out.
     pub fn new_pure() -> Self {
@@ -427,7 +427,7 @@ impl<'co, 'ro, 'env> Evaluation<'co, 'ro, 'env, Box<dyn EvalIO>> {
     }
 }
 
-impl<'co, 'ro, 'env, IO> Evaluation<'co, 'ro, 'env, IO>
+impl<IO> Evaluation<'_, '_, '_, IO>
 where
     IO: AsRef<dyn EvalIO> + 'static,
 {

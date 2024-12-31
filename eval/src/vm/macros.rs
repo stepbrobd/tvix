@@ -1,6 +1,6 @@
 /// This module provides macros which are used in the implementation
 /// of the VM for the implementation of repetitive operations.
-
+///
 /// This macro simplifies the implementation of arithmetic operations,
 /// correctly handling the behaviour on different pairings of number
 /// types.

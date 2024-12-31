@@ -74,7 +74,7 @@ impl VerifyingKey {
             return false;
         }
 
-        return signature.verify(fingerprint.as_bytes(), &self.verifying_key);
+        signature.verify(fingerprint.as_bytes(), &self.verifying_key)
     }
 }
 

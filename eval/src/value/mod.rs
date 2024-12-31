@@ -121,7 +121,7 @@ static WRITE_FLOAT_OPTIONS: LazyLock<lexical_core::WriteFloatOptions> = LazyLock
 /// type, or a type error. This only works for types that implement
 /// `Copy`, as returning a reference to an inner thunk value is not
 /// possible.
-
+///
 /// Generate an `as_*/to_*` accessor method that returns either the
 /// expected type, or a type error.
 macro_rules! gen_cast {

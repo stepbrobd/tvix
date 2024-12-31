@@ -29,7 +29,7 @@ pub fn accept_trace<B>(request: axum::http::Request<B>) -> axum::http::Request<B
 struct HeaderExtractor<'a>(&'a axum::http::HeaderMap);
 
 #[cfg(feature = "otlp")]
-impl<'a> Extractor for HeaderExtractor<'a> {
+impl Extractor for HeaderExtractor<'_> {
     /// Get a value for a key from the HeaderMap.  If the value is not valid ASCII, returns None.
     fn get(&self, key: &str) -> Option<&str> {
         self.0.get(key).and_then(|v| {

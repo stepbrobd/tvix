@@ -230,7 +230,7 @@ pub fn pin_generator(
     Box::pin(f)
 }
 
-impl<'o, IO> VM<'o, IO>
+impl<IO> VM<'_, IO>
 where
     IO: AsRef<dyn EvalIO> + 'static,
 {

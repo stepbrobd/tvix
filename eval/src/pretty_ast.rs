@@ -14,7 +14,7 @@ pub fn pretty_print_expr(expr: &ast::Expr) -> String {
 #[repr(transparent)]
 struct SerializeAST<S>(S);
 
-impl<'a> Serialize for SerializeAST<&'a ast::Apply> {
+impl Serialize for SerializeAST<&ast::Apply> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "apply")?;
@@ -24,7 +24,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Apply> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Assert> {
+impl Serialize for SerializeAST<&ast::Assert> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "assert")?;
@@ -34,7 +34,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Assert> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Error> {
+impl Serialize for SerializeAST<&ast::Error> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "error")?;
@@ -43,7 +43,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Error> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::IfElse> {
+impl Serialize for SerializeAST<&ast::IfElse> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(4))?;
         map.serialize_entry("kind", "if_else")?;
@@ -54,7 +54,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::IfElse> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Select> {
+impl Serialize for SerializeAST<&ast::Select> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let size = match self.0.default_expr() {
             Some(_) => 4,
@@ -85,7 +85,7 @@ impl Serialize for SerializeAST<ast::InterpolPart<String>> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Str> {
+impl Serialize for SerializeAST<&ast::Str> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "string")?;
@@ -115,7 +115,7 @@ impl Serialize for SerializeAST<ast::InterpolPart<ast::PathContent>> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Path> {
+impl Serialize for SerializeAST<&ast::Path> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "path")?;
@@ -129,7 +129,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Path> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Literal> {
+impl Serialize for SerializeAST<&ast::Literal> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "literal")?;
@@ -185,7 +185,7 @@ impl Serialize for SerializeAST<ast::Param> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Lambda> {
+impl Serialize for SerializeAST<&ast::Lambda> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "lambda")?;
@@ -195,7 +195,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Lambda> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::LegacyLet> {
+impl Serialize for SerializeAST<&ast::LegacyLet> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "legacy_let")?;
@@ -218,7 +218,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::LegacyLet> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::LetIn> {
+impl Serialize for SerializeAST<&ast::LetIn> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "let")?;
@@ -242,7 +242,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::LetIn> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::List> {
+impl Serialize for SerializeAST<&ast::List> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let list = self.0.items().map(SerializeAST).collect::<Vec<_>>();
 
@@ -254,7 +254,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::List> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::BinOp> {
+impl Serialize for SerializeAST<&ast::BinOp> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(4))?;
         map.serialize_entry("kind", "binary_op")?;
@@ -286,7 +286,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::BinOp> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Paren> {
+impl Serialize for SerializeAST<&ast::Paren> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "paren")?;
@@ -295,7 +295,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Paren> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Root> {
+impl Serialize for SerializeAST<&ast::Root> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "root")?;
@@ -330,7 +330,7 @@ impl Serialize for SerializeAST<ast::Inherit> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::AttrSet> {
+impl Serialize for SerializeAST<&ast::AttrSet> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(None)?;
         map.serialize_entry("kind", "attrset")?;
@@ -354,7 +354,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::AttrSet> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::UnaryOp> {
+impl Serialize for SerializeAST<&ast::UnaryOp> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "unary_op")?;
@@ -372,7 +372,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::UnaryOp> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Ident> {
+impl Serialize for SerializeAST<&ast::Ident> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "ident")?;
@@ -381,7 +381,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::Ident> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::With> {
+impl Serialize for SerializeAST<&ast::With> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "with")?;
@@ -391,7 +391,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::With> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Dynamic> {
+impl Serialize for SerializeAST<&ast::Dynamic> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(2))?;
         map.serialize_entry("kind", "dynamic")?;
@@ -424,7 +424,7 @@ impl Serialize for SerializeAST<ast::Attrpath> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::HasAttr> {
+impl Serialize for SerializeAST<&ast::HasAttr> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut map = serializer.serialize_map(Some(3))?;
         map.serialize_entry("kind", "has_attr")?;
@@ -434,7 +434,7 @@ impl<'a> Serialize for SerializeAST<&'a ast::HasAttr> {
     }
 }
 
-impl<'a> Serialize for SerializeAST<&'a ast::Expr> {
+impl Serialize for SerializeAST<&ast::Expr> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self.0 {
             ast::Expr::Apply(node) => Serialize::serialize(&SerializeAST(node), serializer),

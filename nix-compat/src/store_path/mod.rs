@@ -226,7 +226,7 @@ where
     }
 }
 
-impl<'a, 'b: 'a> FromStr for StorePath<String> {
+impl FromStr for StorePath<String> {
     type Err = Error;
 
     /// Construct a [StorePath] by passing the `$digest-$name` string

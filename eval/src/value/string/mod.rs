@@ -307,7 +307,7 @@ thread_local! {
 /// represented as a single *thin* pointer to a packed data structure containing the
 /// [context][NixContext] and the string data itself (which is a raw byte array, to match the Nix
 /// string semantics that allow any array of bytes to be represented by a string).
-
+///
 /// This memory representation is documented in [`NixStringInner`], but since Rust prefers to deal
 /// with slices via *fat pointers* (pointers that include the length in the *pointer*, not in the
 /// heap allocation), we have to do mostly manual layout management and allocation for this
@@ -506,7 +506,7 @@ impl<'de> Deserialize<'de> for NixString {
     {
         struct StringVisitor;
 
-        impl<'de> Visitor<'de> for StringVisitor {
+        impl Visitor<'_> for StringVisitor {
             type Value = NixString;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -729,9 +729,8 @@ impl NixString {
     /// referring to their `drvPath`, i.e. their full sources and binary closure.
     /// It yields derivation paths.
     pub fn iter_ctx_derivation(&self) -> impl Iterator<Item = &str> {
-        return self
-            .iter_context()
-            .flat_map(|context| context.iter_derivation());
+        self.iter_context()
+            .flat_map(|context| context.iter_derivation())
     }
 
     /// Iterates over "single" context elements, e.g. single derived paths,
@@ -739,9 +738,8 @@ impl NixString {
     /// The first element of the tuple is the output name
     /// and the second element is the derivation path.
     pub fn iter_ctx_single_outputs(&self) -> impl Iterator<Item = (&str, &str)> {
-        return self
-            .iter_context()
-            .flat_map(|context| context.iter_single_outputs());
+        self.iter_context()
+            .flat_map(|context| context.iter_single_outputs())
     }
 
     /// Returns whether this Nix string possess a context or not.

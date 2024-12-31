@@ -165,7 +165,7 @@ where
     }
 }
 
-impl<'a, P, R> AsyncRead for ReferenceReader<'a, P, R>
+impl<P, R> AsyncRead for ReferenceReader<'_, P, R>
 where
     R: AsyncRead,
     P: AsRef<[u8]>,
@@ -183,7 +183,7 @@ where
     }
 }
 
-impl<'a, P, R> AsyncBufRead for ReferenceReader<'a, P, R>
+impl<P, R> AsyncBufRead for ReferenceReader<'_, P, R>
 where
     R: AsyncRead,
     P: AsRef<[u8]>,
