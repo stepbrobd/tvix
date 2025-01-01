@@ -90,6 +90,19 @@ bitflags! {
     }
 }
 
+const TAG_STOREPATH: &str = "StorePath";
+const TAG_URL: &str = "URL";
+const TAG_COMPRESSION: &str = "Compression";
+const TAG_FILEHASH: &str = "FileHash";
+const TAG_FILESIZE: &str = "FileSize";
+const TAG_NARHASH: &str = "NarHash";
+const TAG_NARSIZE: &str = "NarSize";
+const TAG_REFERENCES: &str = "References";
+const TAG_SYSTEM: &str = "System";
+const TAG_DERIVER: &str = "Deriver";
+const TAG_SIG: &str = "Sig";
+const TAG_CA: &str = "CA";
+
 impl<'a> NarInfo<'a> {
     pub fn parse(input: &'a str) -> Result<Self, Error> {
         let mut flags = Flags::empty();
@@ -116,7 +129,7 @@ impl<'a> NarInfo<'a> {
                 .ok_or_else(|| Error::InvalidLine(line.to_string()))?;
 
             match tag {
-                "StorePath" => {
+                TAG_STOREPATH => {
                     let val = val
                         .strip_prefix("/nix/store/")
                         .ok_or(Error::InvalidStorePath(
@@ -126,51 +139,51 @@ impl<'a> NarInfo<'a> {
                         .map_err(Error::InvalidStorePath)?;
 
                     if store_path.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_STOREPATH));
                     }
                 }
-                "URL" => {
+                TAG_URL => {
                     if val.is_empty() {
-                        return Err(Error::EmptyField(tag.to_string()));
+                        return Err(Error::EmptyField(TAG_URL));
                     }
 
                     if url.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_URL));
                     }
                 }
-                "Compression" => {
+                TAG_COMPRESSION => {
                     if val.is_empty() {
-                        return Err(Error::EmptyField(tag.to_string()));
+                        return Err(Error::EmptyField(TAG_COMPRESSION));
                     }
 
                     if compression.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_COMPRESSION));
                     }
                 }
-                "FileHash" => {
+                TAG_FILEHASH => {
                     let val = val
                         .strip_prefix("sha256:")
-                        .ok_or_else(|| Error::MissingPrefixForHash(tag.to_string()))?;
+                        .ok_or(Error::MissingPrefixForHash(TAG_FILEHASH))?;
                     let val = nixbase32::decode_fixed::<32>(val)
-                        .map_err(|e| Error::UnableToDecodeHash(tag.to_string(), e))?;
+                        .map_err(|e| Error::UnableToDecodeHash(TAG_FILEHASH, e))?;
 
                     if file_hash.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_FILEHASH));
                     }
                 }
-                "FileSize" => {
+                TAG_FILESIZE => {
                     let val = val
                         .parse::<u64>()
-                        .map_err(|_| Error::UnableToParseSize(tag.to_string(), val.to_string()))?;
+                        .map_err(|_| Error::UnableToParseSize(TAG_FILESIZE, val.to_string()))?;
 
                     if file_size.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_FILESIZE));
                     }
                 }
-                "NarHash" => {
+                TAG_NARHASH => {
                     let val = val
                         .strip_prefix("sha256:")
-                        .ok_or_else(|| Error::MissingPrefixForHash(tag.to_string()))?;
+                        .ok_or(Error::MissingPrefixForHash(TAG_NARHASH))?;
 
                     let val = if val.len() != HEXLOWER.encode_len(32) {
                         nixbase32::decode_fixed::<32>(val)
@@ -186,22 +199,22 @@ impl<'a> NarInfo<'a> {
                             .map(|_| buf)
                     };
 
-                    let val = val.map_err(|e| Error::UnableToDecodeHash(tag.to_string(), e))?;
+                    let val = val.map_err(|e| Error::UnableToDecodeHash(TAG_NARHASH, e))?;
 
                     if nar_hash.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_NARHASH));
                     }
                 }
-                "NarSize" => {
+                TAG_NARSIZE => {
                     let val = val
                         .parse::<u64>()
-                        .map_err(|_| Error::UnableToParseSize(tag.to_string(), val.to_string()))?;
+                        .map_err(|_| Error::UnableToParseSize(TAG_NARSIZE, val.to_string()))?;
 
                     if nar_size.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_NARSIZE));
                     }
                 }
-                "References" => {
+                TAG_REFERENCES => {
                     let val: Vec<StorePathRef> = if !val.is_empty() {
                         let mut prev = "";
                         val.split(' ')
@@ -221,26 +234,26 @@ impl<'a> NarInfo<'a> {
                     };
 
                     if references.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_REFERENCES));
                     }
                 }
-                "System" => {
+                TAG_SYSTEM => {
                     if val.is_empty() {
-                        return Err(Error::EmptyField(tag.to_string()));
+                        return Err(Error::EmptyField(TAG_SYSTEM));
                     }
 
                     if system.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_SYSTEM));
                     }
                 }
-                "Deriver" => {
+                TAG_DERIVER => {
                     match val.strip_suffix(".drv") {
                         Some(val) => {
                             let val = StorePathRef::from_bytes(val.as_bytes())
                                 .map_err(Error::InvalidDeriverStorePath)?;
 
                             if deriver.replace(val).is_some() {
-                                return Err(Error::DuplicateField(tag.to_string()));
+                                return Err(Error::DuplicateField(TAG_DERIVER));
                             }
                         }
                         None => {
@@ -252,18 +265,18 @@ impl<'a> NarInfo<'a> {
                         }
                     };
                 }
-                "Sig" => {
+                TAG_SIG => {
                     let val = SignatureRef::parse(val)
                         .map_err(|e| Error::UnableToParseSignature(signatures.len(), e))?;
 
                     signatures.push(val);
                 }
-                "CA" => {
+                TAG_CA => {
                     let val = CAHash::from_nix_hex_str(val)
                         .ok_or_else(|| Error::UnableToParseCA(val.to_string()))?;
 
                     if ca.replace(val).is_some() {
-                        return Err(Error::DuplicateField(tag.to_string()));
+                        return Err(Error::DuplicateField(TAG_CA));
                     }
                 }
                 _ => {
@@ -376,7 +389,7 @@ impl Display for NarInfo<'_> {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("duplicate field: {0}")]
-    DuplicateField(String),
+    DuplicateField(&'static str),
 
     #[error("missing field: {0}")]
     MissingField(&'static str),
@@ -388,10 +401,10 @@ pub enum Error {
     InvalidStorePath(crate::store_path::Error),
 
     #[error("field {0} may not be empty string")]
-    EmptyField(String),
+    EmptyField(&'static str),
 
     #[error("invalid {0}: {1}")]
-    UnableToParseSize(String, String),
+    UnableToParseSize(&'static str, String),
 
     #[error("unable to parse #{0} reference: {1}")]
     InvalidReference(usize, crate::store_path::Error),
@@ -403,10 +416,10 @@ pub enum Error {
     InvalidDeriverStorePathMissingSuffix,
 
     #[error("missing prefix for {0}")]
-    MissingPrefixForHash(String),
+    MissingPrefixForHash(&'static str),
 
     #[error("unable to decode {0}: {1}")]
-    UnableToDecodeHash(String, data_encoding::DecodeError),
+    UnableToDecodeHash(&'static str, data_encoding::DecodeError),
 
     #[error("unable to parse signature #{0}: {1}")]
     UnableToParseSignature(usize, SignatureError),
