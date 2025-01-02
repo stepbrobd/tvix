@@ -86,6 +86,9 @@ bitflags! {
         const NAR_HASH_HEX = 1 << 3;
 
         /// Deriver: unknown-deriver, produced by a legacy tool
+        ///
+        /// Only relevant if [NarInfo::deriver] is [None],
+        /// but valid to have set either way.
         const EXPLICIT_UNKNOWN_DERIVER = 1 << 4;
     }
 }
@@ -368,6 +371,8 @@ impl Display for NarInfo<'_> {
 
         if let Some(deriver) = &self.deriver {
             writeln!(w, "Deriver: {deriver}.drv")?;
+        } else if self.flags.contains(Flags::EXPLICIT_UNKNOWN_DERIVER) {
+            writeln!(w, "Deriver: unknown-deriver")?;
         }
 
         if let Some(system) = self.system {
@@ -549,7 +554,7 @@ Sig: cache.nixos.org-1:92fl0i5q7EyegCj5Yf4L0bENkWuVAtgveiRcTEEUH0P6HvCE1xFcPbz/0
     fn explicit_unknown_deriver() {
         // This is a NARInfo "produced by a legacy tool" according to Nix commit
         // c60715e937e3773bbb8a114fc9b9c6577f8c5cb5
-        let parsed = NarInfo::parse(r#"StorePath: /nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432
+        let input = r#"StorePath: /nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432
 URL: nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz
 Compression: xz
 FileHash: sha256:1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d
@@ -560,10 +565,12 @@ References: 7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27
 Deriver: unknown-deriver
 Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg==
 Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
-"#).expect("should parse");
+"#;
+        let parsed = NarInfo::parse(input).expect("should parse");
 
         assert!(parsed.flags.contains(Flags::EXPLICIT_UNKNOWN_DERIVER));
         assert!(parsed.deriver.is_none());
+        assert_eq!(parsed.to_string(), input);
     }
 
     #[test]
