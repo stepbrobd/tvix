@@ -155,6 +155,16 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
+    "tvix-simstore" = rec {
+      packageId = "tvix-simstore";
+      build = internal.buildRustCrateWithFeatures {
+        packageId = "tvix-simstore";
+      };
+
+      # Debug support which might change between releases.
+      # File a bug if you depend on any for non-debug work!
+      debug = internal.debugCrate { inherit packageId; };
+    };
     "tvix-store" = rec {
       packageId = "tvix-store";
       build = internal.buildRustCrateWithFeatures {
@@ -14819,6 +14829,33 @@ rec {
             name = "serde";
             packageId = "serde";
             features = [ "derive" ];
+          }
+          {
+            name = "tvix-eval";
+            packageId = "tvix-eval";
+          }
+        ];
+
+      };
+      "tvix-simstore" = rec {
+        crateName = "tvix-simstore";
+        version = "0.1.0";
+        edition = "2021";
+        src = lib.cleanSourceWith { filter = sourceFilter; src = ./simstore; };
+        libName = "tvix_simstore";
+        dependencies = [
+          {
+            name = "bytes";
+            packageId = "bytes";
+          }
+          {
+            name = "nix-compat";
+            packageId = "nix-compat";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "sha2";
+            packageId = "sha2";
           }
           {
             name = "tvix-eval";

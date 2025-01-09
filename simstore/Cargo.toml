@@ -1,0 +1,16 @@
+[package]
+name = "tvix-simstore"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "tvix_simstore"
+
+[dependencies]
+tvix-eval = { path = "../eval" }
+nix-compat = { path = "../nix-compat", default-features = false, features = [ ] }
+sha2.workspace = true
+bytes.workspace = true
+
+[lints]
+workspace = true

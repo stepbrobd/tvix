@@ -4541,6 +4541,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tvix-simstore"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "nix-compat",
+ "sha2",
+ "tvix-eval",
+]
+
+[[package]]
 name = "tvix-store"
 version = "0.1.0"
 dependencies = [
