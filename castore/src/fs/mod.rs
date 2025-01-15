@@ -322,7 +322,20 @@ where
     type Inode = u64;
 
     fn init(&self, _capable: FsOptions) -> io::Result<FsOptions> {
-        Ok(FsOptions::empty())
+        let mut opts = FsOptions::empty();
+
+        // the filesystem supports readdirplus
+        opts |= FsOptions::DO_READDIRPLUS;
+        // issue both readdir and readdirplus depending on the information expected to be required
+        opts |= FsOptions::READDIRPLUS_AUTO;
+        // allow more than one pending read request per file-handle at any time
+        opts |= FsOptions::ASYNC_READ;
+        // allow concurrent lookup() and readdir() requests for the same directory
+        opts |= FsOptions::PARALLEL_DIROPS;
+        // have the kernel cache symlink contents
+        opts |= FsOptions::CACHE_SYMLINKS;
+
+        Ok(opts)
     }
 
     #[tracing::instrument(skip_all, fields(rq.inode = inode))]
@@ -436,13 +449,11 @@ where
                 .write()
                 .insert(dh, (Span::current(), Arc::new(Mutex::new(rx))));
 
-            return Ok((
-                Some(dh),
-                fuse_backend_rs::api::filesystem::OpenOptions::empty(), // TODO: non-seekable
-            ));
+            return Ok((Some(dh), OpenOptions::NONSEEKABLE));
         }
 
-        Ok((None, OpenOptions::empty()))
+        // allow caching this directory contents, don't invalidate on open
+        Ok((None, OpenOptions::CACHE_DIR | OpenOptions::KEEP_CACHE))
     }
 
     #[tracing::instrument(skip_all, fields(rq.inode = inode, rq.handle = handle, rq.offset = offset), parent = self.dir_handles.read().get(&handle).and_then(|x| x.0.id()))]
@@ -653,11 +664,7 @@ where
         inode: Self::Inode,
         _flags: u32,
         _fuse_flags: u32,
-    ) -> io::Result<(
-        Option<Self::Handle>,
-        fuse_backend_rs::api::filesystem::OpenOptions,
-        Option<u32>,
-    )> {
+    ) -> io::Result<(Option<Self::Handle>, OpenOptions, Option<u32>)> {
         if inode == ROOT_ID {
             return Err(io::Error::from_raw_os_error(libc::ENOSYS));
         }
@@ -699,7 +706,8 @@ where
 
                         Ok((
                             Some(fh),
-                            fuse_backend_rs::api::filesystem::OpenOptions::empty(),
+                            // Don't invalidate the data cache on open.
+                            OpenOptions::KEEP_CACHE,
                             None,
                         ))
                     }
