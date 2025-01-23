@@ -30,7 +30,7 @@ Developer documentation for some parts of Tvix is [available online][docs].
 Benchmarks are run nightly on new commits by [windtunnel][wt].
 
 [TVL]: https://tvl.fyi
-[TVL monorepo]: https://cs.tvl.fyi/depot/-/tree/tvix
+[TVL monorepo]: https://code.tvl.fyi/tree/tvix
 [Tvixbolt]: https://bolt.tvix.dev
 [Tvix README]: https://code.tvl.fyi/about/tvix
 [gh]: https://github.com/tvlfyi/tvix/

@@ -243,8 +243,8 @@ generator loop after setting up the frame stack.
 Most of this logic is implemented in cl/8148.
 
 [`Gen::resume`]: https://docs.rs/genawaiter/0.99.1/genawaiter/rc/struct.Gen.html#method.resume_with
-[`VMRequest`]: https://cs.tvl.fyi/depot@2696839770c1ccb62929ff2575a633c07f5c9593/-/blob/tvix/eval/src/vm/generators.rs?L44
-[`VMResponse`]: https://cs.tvl.fyi/depot@2696839770c1ccb62929ff2575a633c07f5c9593/-/blob/tvix/eval/src/vm/generators.rs?L169
+[`VMRequest`]: https://code.tvl.fyi/tree/tvix/eval/src/vm/generators.rs?id=2696839770c1ccb62929ff2575a633c07f5c9593#n44
+[`VMResponse`]: https://code.tvl.fyi/tree/tvix/eval/src/vm/generators.rs?id=2696839770c1ccb62929ff2575a633c07f5c9593#n169
 
 ## Advantages & Disadvantages of the approach
 

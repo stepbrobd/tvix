@@ -34,7 +34,7 @@ Contributions to Tvix follow the TVL [review flow][review-docs] and
 
 [post-1]: https://tvl.fyi/blog/rewriting-nix
 [tvl]: https://tvl.fyi
-[tvix-src]: https://cs.tvl.fyi/depot/-/tree/tvix/
+[tvix-src]: https://code.tvl.fyi/tree/tvix/
 [tvix-gerrit]: https://cl.tvl.fyi/q/path:%255Etvix.*
 [b]: https://b.tvl.fyi
 [tvl-getting-in-touch]: https://tvl.fyi/#getting-in-touch
