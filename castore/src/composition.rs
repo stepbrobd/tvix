@@ -288,7 +288,7 @@ pub struct CompositionContext<'a> {
     composition: Option<&'a Composition>,
 }
 
-impl<'a> CompositionContext<'a> {
+impl CompositionContext<'_> {
     /// Get a composition context for one-off store creation.
     pub fn blank(registry: &'static Registry) -> Self {
         Self {
