@@ -16629,6 +16629,11 @@ rec {
             packageId = "bytes";
           }
           {
+            name = "clap";
+            packageId = "clap";
+            features = [ "derive" "env" ];
+          }
+          {
             name = "data-encoding";
             packageId = "data-encoding";
           }
@@ -16737,6 +16742,11 @@ rec {
             name = "tokio-util";
             packageId = "tokio-util";
             features = [ "io" "io-util" "codec" ];
+          }
+          {
+            name = "toml";
+            packageId = "toml 0.8.19";
+            optional = true;
           }
           {
             name = "tonic";
@@ -16864,10 +16874,12 @@ rec {
           "default" = [ "cloud" ];
           "fs" = [ "dep:fuse-backend-rs" "dep:threadpool" "dep:libc" ];
           "fuse" = [ "fs" ];
+          "toml" = [ "dep:toml" ];
           "tonic-reflection" = [ "dep:tonic-reflection" ];
           "virtiofs" = [ "fs" "dep:vhost" "dep:vhost-user-backend" "dep:virtio-queue" "dep:vm-memory" "dep:vmm-sys-util" "dep:virtio-bindings" "fuse-backend-rs?/vhost-user-fs" "fuse-backend-rs?/virtiofs" ];
+          "xp-composition-cli" = [ "toml" "xp-composition-url-refs" ];
         };
-        resolvedDefaultFeatures = [ "cloud" "default" "fs" "fuse" "integration" "tonic-reflection" "virtiofs" "xp-composition-url-refs" ];
+        resolvedDefaultFeatures = [ "cloud" "default" "fs" "fuse" "integration" "toml" "tonic-reflection" "virtiofs" "xp-composition-cli" "xp-composition-url-refs" ];
       };
       "tvix-cli" = rec {
         crateName = "tvix-cli";

@@ -10,6 +10,7 @@ async-tempfile.workspace = true
 blake3 = { workspace = true, features = ["rayon", "std", "traits-preview"] }
 bstr.workspace = true
 bytes.workspace = true
+clap = { workspace = true, features = ["derive", "env"] }
 data-encoding.workspace = true
 digest.workspace = true
 fastcdc = { workspace = true, features = ["tokio"] }
@@ -23,6 +24,7 @@ tokio-stream = { workspace = true, features = ["fs", "net"] }
 tokio-util = { workspace = true, features = ["io", "io-util", "codec"] }
 tokio-tar.workspace = true
 tokio = { workspace = true, features = ["fs", "macros", "net", "rt", "rt-multi-thread", "signal"] }
+toml = { version = "0.8.19", optional = true }
 tonic.workspace = true
 tower.workspace = true
 tracing.workspace = true
@@ -91,6 +93,7 @@ virtiofs = [
 ]
 fuse = ["fs"]
 tonic-reflection = ["dep:tonic-reflection"]
+xp-composition-cli = ["toml", "xp-composition-url-refs"]
 # This feature enables anonymous url syntax which might inherently expose
 # arbitrary composition possibilities to the user.
 xp-composition-url-refs = []
