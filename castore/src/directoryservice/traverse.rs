@@ -10,7 +10,7 @@ pub async fn descend_to<DS>(
     path: impl AsRef<Path> + std::fmt::Display,
 ) -> Result<Option<Node>, Error>
 where
-    DS: AsRef<dyn DirectoryService>,
+    DS: DirectoryService,
 {
     let mut parent_node = root_node;
     for component in path.as_ref().components_bytes() {
@@ -22,17 +22,12 @@ where
             }
             Node::Directory { digest, .. } => {
                 // fetch the linked node from the directory_service.
-                let directory =
-                    directory_service
-                        .as_ref()
-                        .get(&digest)
-                        .await?
-                        .ok_or_else(|| {
-                            // If we didn't get the directory node that's linked, that's a store inconsistency, bail out!
-                            warn!("directory {} does not exist", digest);
+                let directory = directory_service.get(&digest).await?.ok_or_else(|| {
+                    // If we didn't get the directory node that's linked, that's a store inconsistency, bail out!
+                    warn!("directory {} does not exist", digest);
 
-                            Error::StorageError(format!("directory {} does not exist", digest))
-                        })?;
+                    Error::StorageError(format!("directory {} does not exist", digest))
+                })?;
 
                 // look for the component in the [Directory].
                 if let Some((_child_name, child_node)) = directory
