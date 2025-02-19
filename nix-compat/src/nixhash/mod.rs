@@ -46,7 +46,7 @@ impl Display for NixHash {
             f,
             "{}-{}",
             self.algo(),
-            nixbase32::encode(self.digest_as_bytes())
+            BASE64.encode(self.digest_as_bytes())
         )
     }
 }
