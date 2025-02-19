@@ -1,6 +1,5 @@
-use crate::blobservice::BlobService;
+use crate::{blobservice::BlobService, B3Digest};
 use core::pin::pin;
-use data_encoding::BASE64;
 use futures::{stream::BoxStream, TryFutureExt};
 use std::{
     collections::VecDeque,
@@ -9,7 +8,7 @@ use std::{
 use tokio_stream::StreamExt;
 use tokio_util::io::ReaderStream;
 use tonic::{async_trait, Request, Response, Status, Streaming};
-use tracing::{instrument, warn};
+use tracing::{instrument, warn, Span};
 
 pub struct GRPCBlobServiceWrapper<T> {
     blob_service: T,
@@ -87,16 +86,19 @@ where
     // https://github.com/tokio-rs/tokio/issues/2723#issuecomment-1534723933
     type ReadStream = BoxStream<'static, Result<super::BlobChunk, Status>>;
 
-    #[instrument(skip_all, fields(blob.digest=format!("b3:{}", BASE64.encode(&request.get_ref().digest))))]
+    #[instrument(skip_all)]
     async fn stat(
         &self,
         request: Request<super::StatBlobRequest>,
     ) -> Result<Response<super::StatBlobResponse>, Status> {
         let rq = request.into_inner();
-        let req_digest = rq
+        let req_digest: B3Digest = rq
             .digest
             .try_into()
             .map_err(|_e| Status::invalid_argument("invalid digest length"))?;
+
+        let span = Span::current();
+        span.record("blob.digest", req_digest.to_string());
 
         match self.blob_service.chunks(&req_digest).await {
             Ok(None) => Err(Status::not_found(format!("blob {} not found", &req_digest))),
@@ -111,17 +113,20 @@ where
         }
     }
 
-    #[instrument(skip_all, fields(blob.digest=format!("b3:{}", BASE64.encode(&request.get_ref().digest))))]
+    #[instrument(skip_all)]
     async fn read(
         &self,
         request: Request<super::ReadBlobRequest>,
     ) -> Result<Response<Self::ReadStream>, Status> {
         let rq = request.into_inner();
 
-        let req_digest = rq
+        let req_digest: B3Digest = rq
             .digest
             .try_into()
             .map_err(|_e| Status::invalid_argument("invalid digest length"))?;
+
+        let span = Span::current();
+        span.record("blob.digest", req_digest.to_string());
 
         match self.blob_service.open_read(&req_digest).await {
             Ok(Some(r)) => {

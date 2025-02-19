@@ -87,12 +87,14 @@ impl Clone for B3Digest {
 
 impl std::fmt::Display for B3Digest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "b3:{}", BASE64.encode(&self.0))
+        f.write_str("blake3-").unwrap();
+        BASE64.encode_write(&self.0, f)
     }
 }
 
 impl std::fmt::Debug for B3Digest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "b3:{}", BASE64.encode(&self.0))
+        f.write_str("blake3-").unwrap();
+        BASE64.encode_write(&self.0, f)
     }
 }
