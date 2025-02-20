@@ -8285,6 +8285,7 @@ rec {
           {
             name = "pretty_assertions";
             packageId = "pretty_assertions";
+            features = [ "unstable" ];
           }
           {
             name = "proptest";
@@ -8295,10 +8296,6 @@ rec {
           {
             name = "rstest";
             packageId = "rstest";
-          }
-          {
-            name = "serde_json";
-            packageId = "serde_json";
           }
           {
             name = "smol_str";
@@ -9984,7 +9981,7 @@ rec {
         features = {
           "default" = [ "std" ];
         };
-        resolvedDefaultFeatures = [ "default" "std" ];
+        resolvedDefaultFeatures = [ "default" "std" "unstable" ];
       };
       "prettyplease" = rec {
         crateName = "prettyplease";

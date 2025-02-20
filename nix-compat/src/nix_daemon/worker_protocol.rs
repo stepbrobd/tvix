@@ -5,10 +5,10 @@ use std::{
 };
 
 use nix_compat_derive::{NixDeserialize, NixSerialize};
-use num_enum::{FromPrimitive, IntoPrimitive, TryFromPrimitive};
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::wire;
+use crate::{log::VerbosityLevel, wire};
 
 use crate::wire::ProtocolVersion;
 
@@ -109,26 +109,6 @@ pub enum Operation {
     AddPermRoot = 47,
 }
 
-/// Log verbosity. In the Nix wire protocol, the client requests a
-/// verbosity level to the daemon, which in turns does not produce any
-/// log below this verbosity.
-#[derive(
-    Debug, PartialEq, FromPrimitive, IntoPrimitive, NixDeserialize, NixSerialize, Default, Clone,
-)]
-#[nix(from = "u64", into = "u64")]
-#[repr(u64)]
-pub enum Verbosity {
-    #[default]
-    LvlError = 0,
-    LvlWarn = 1,
-    LvlNotice = 2,
-    LvlInfo = 3,
-    LvlTalkative = 4,
-    LvlChatty = 5,
-    LvlDebug = 6,
-    LvlVomit = 7,
-}
-
 /// Settings requested by the client. These settings are applied to a
 /// connection to between the daemon and a client.
 #[derive(Debug, PartialEq, NixDeserialize, NixSerialize, Default)]
@@ -136,7 +116,10 @@ pub struct ClientSettings {
     pub keep_failed: bool,
     pub keep_going: bool,
     pub try_fallback: bool,
-    pub verbosity: Verbosity,
+    // In the Nix wire protocol, the client requests a verbosity level
+    // to the daemon, which in turn does not produce any log below this
+    // verbosity.
+    pub verbosity: VerbosityLevel,
     pub max_build_jobs: u64,
     pub max_silent_time: u64,
     pub use_build_hook: bool,

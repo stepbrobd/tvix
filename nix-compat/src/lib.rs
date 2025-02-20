@@ -2,6 +2,7 @@ extern crate self as nix_compat;
 
 pub(crate) mod aterm;
 pub mod derivation;
+pub mod log;
 pub mod nar;
 pub mod narinfo;
 pub mod nix_http;
