@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DurationSeconds};
 use std::sync::Arc;
 use tonic::async_trait;
-use tracing::{instrument, trace};
+use tracing::{instrument, trace, warn, Span};
 use tvix_castore::composition::{CompositionContext, ServiceBuilder};
 use tvix_castore::Error;
 
@@ -318,21 +318,21 @@ impl PathInfoService for BigtablePathInfoService {
         };
 
         let stream = try_stream! {
-            // TODO: add pagination, we don't want to hold all of this in memory.
-            let response = client
-                .read_rows(request)
+            let mut rows = client
+                .stream_rows(request)
                 .await
-                .map_err(|e| Error::StorageError(format!("unable to read rows: {}", e)))?;
+                .map_err(|e| Error::StorageError(format!("unable to read rows: {}", e)))?.enumerate();
 
-            for (row_key, mut cells) in response {
+            use futures::stream::StreamExt;
+
+            while let Some((i, elem)) = rows.next().await {
+                let (row_key, mut cells) = elem.map_err(|e| Error::StorageError(format!("unable to stream row {}: {}", i, e)))?;
+                let span = Span::current();
+                span.record("row.key", bstr::BStr::new(&row_key).to_string());
+
                 let cell = cells
                     .pop()
                     .ok_or_else(|| Error::StorageError("found no cells".into()))?;
-
-                // The cell must have the same qualifier as the row key
-                if row_key != cell.qualifier {
-                    Err(Error::StorageError("unexpected cell qualifier".into()))?;
-                }
 
                 // Ensure there's only one cell (so no more left after the pop())
                 // This shouldn't happen, We filter out other cells in our query.
@@ -341,6 +341,12 @@ impl PathInfoService for BigtablePathInfoService {
                     Err(Error::StorageError(
                         "more than one cell returned from bigtable".into(),
                     ))?
+                }
+
+                // The cell must have the same qualifier as the row key
+                if row_key != cell.qualifier {
+                    warn!("unexpected cell qualifier");
+                    Err(Error::StorageError("unexpected cell qualifier".into()))?;
                 }
 
                 // Try to parse the value into a PathInfo message.
