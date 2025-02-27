@@ -108,9 +108,8 @@ quote = "1.0.37"
 redb = "2.1.2"
 regex = "1.10.6"
 reqwest = { version = "0.12.7", default-features = false }
-# https://github.com/TrueLayer/reqwest-middleware/issues/220
-reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "9fdba406c124c567e2302f1aec63483ed7db63b1", default-features = false }
-reqwest-tracing = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "9fdba406c124c567e2302f1aec63483ed7db63b1", default-features = false }
+reqwest-middleware = { version = "0.4.1", default-features = false }
+reqwest-tracing = { version = "0.5.6", default-features = false }
 rnix = "0.11.0"
 rowan = "0.15" # keep in sync with rnix
 rstest = "0.19.0"

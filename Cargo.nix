@@ -11693,14 +11693,9 @@ rec {
       };
       "reqwest-middleware" = rec {
         crateName = "reqwest-middleware";
-        version = "0.4.0";
+        version = "0.4.1";
         edition = "2018";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/TrueLayer/reqwest-middleware";
-          rev = "9fdba406c124c567e2302f1aec63483ed7db63b1";
-          sha256 = "0jn14w0pbixscp4vgcanpi36d7b9k5c2hvksa00l5xgsmkmxni7l";
-        };
+        sha256 = "1i64p3wqqgj8yrfr97afn5fy161lkgkk046hm91pm6mx2dargs34";
         libName = "reqwest_middleware";
         authors = [
           "Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"
@@ -11753,14 +11748,9 @@ rec {
       };
       "reqwest-tracing" = rec {
         crateName = "reqwest-tracing";
-        version = "0.5.5";
+        version = "0.5.6";
         edition = "2018";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/TrueLayer/reqwest-middleware";
-          rev = "9fdba406c124c567e2302f1aec63483ed7db63b1";
-          sha256 = "0jn14w0pbixscp4vgcanpi36d7b9k5c2hvksa00l5xgsmkmxni7l";
-        };
+        sha256 = "0i177cgkdxk9h9zqa7vshd376p5p7py3y3y1mnsijczykj6qmj6r";
         libName = "reqwest_tracing";
         authors = [
           "Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"

@@ -3602,8 +3602,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-middleware"
-version = "0.4.0"
-source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=9fdba406c124c567e2302f1aec63483ed7db63b1#9fdba406c124c567e2302f1aec63483ed7db63b1"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64e8975513bd9a7a43aad01030e79b3498e05db14e9d945df6483e8cf9b8c4c4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3616,8 +3617,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest-tracing"
-version = "0.5.5"
-source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=9fdba406c124c567e2302f1aec63483ed7db63b1#9fdba406c124c567e2302f1aec63483ed7db63b1"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9c88a8d9cfe3319b5adc10f3ffc3db75c7346837a1f857f8269f6361f3b2744"
 dependencies = [
  "anyhow",
  "async-trait",
