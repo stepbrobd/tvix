@@ -66,7 +66,8 @@ pub enum ErrorKind {
     /// Attempted to specify an invalid key type (e.g. integer) in a
     /// dynamic attribute name.
     #[error(
-        "found attribute name '{0}' of type '{}', but attribute names must be strings",
+        "found attribute name '{}' of type '{}', but attribute names must be strings",
+        .0,
         .0.type_of()
     )]
     InvalidAttributeName(Value),

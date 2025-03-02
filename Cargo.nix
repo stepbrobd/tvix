@@ -7872,7 +7872,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -8261,7 +8261,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -16506,7 +16506,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -16707,7 +16707,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "threadpool";
@@ -16924,7 +16924,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -17094,7 +17094,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "toml";
@@ -17249,7 +17249,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -17514,7 +17514,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
@@ -17696,7 +17696,7 @@ rec {
           }
           {
             name = "thiserror";
-            packageId = "thiserror 1.0.69";
+            packageId = "thiserror 2.0.9";
           }
           {
             name = "tokio";
