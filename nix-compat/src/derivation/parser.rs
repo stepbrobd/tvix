@@ -7,7 +7,8 @@ use nom::bytes::complete::tag;
 use nom::character::complete::char as nomchar;
 use nom::combinator::{all_consuming, map_res};
 use nom::multi::{separated_list0, separated_list1};
-use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
+use nom::sequence::{delimited, preceded, separated_pair, terminated};
+use nom::Parser;
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 use thiserror;
 
@@ -27,7 +28,7 @@ pub enum Error<I> {
 }
 
 pub(crate) fn parse(i: &[u8]) -> Result<Derivation, Error<&[u8]>> {
-    match all_consuming(parse_derivation)(i) {
+    match all_consuming(parse_derivation).parse(i) {
         Ok((rest, derivation)) => {
             // this shouldn't happen, as all_consuming shouldn't return.
             debug_assert!(rest.is_empty());
@@ -68,13 +69,14 @@ fn parse_output(i: &[u8]) -> NomResult<&[u8], (String, Output)> {
         nomchar('('),
         map_res(
             |i| {
-                tuple((
+                (
                     terminated(aterm::parse_string_field, nomchar(',')),
                     terminated(aterm::parse_string_field, nomchar(',')),
                     terminated(aterm::parse_string_field, nomchar(',')),
                     aterm::parse_bytes_field,
-                ))(i)
-                .map_err(into_nomerror)
+                )
+                    .parse(i)
+                    .map_err(into_nomerror)
             },
             |(output_name, output_path, algo_and_mode, encoded_digest)| {
                 // convert these 4 fields into an [Output].
@@ -114,7 +116,8 @@ fn parse_output(i: &[u8]) -> NomResult<&[u8], (String, Output)> {
             },
         ),
         nomchar(')'),
-    )(i)
+    )
+    .parse(i)
 }
 
 /// Parse multiple outputs in ATerm. This is a list of things acccepted by
@@ -127,7 +130,8 @@ fn parse_outputs(i: &[u8]) -> NomResult<&[u8], BTreeMap<String, Output>> {
         nomchar('['),
         separated_list1(tag(","), parse_output),
         nomchar(']'),
-    )(i);
+    )
+    .parse(i);
 
     match res {
         Ok((rst, outputs_lst)) => {
@@ -228,7 +232,7 @@ pub fn parse_derivation(i: &[u8]) -> NomResult<&[u8], Derivation> {
             nomchar('('),
             // tuple requires all errors to be of the same type, so we need to be a
             // bit verbose here wrapping generic IResult into [NomATermResult].
-            tuple((
+            (
                 // parse outputs
                 terminated(parse_outputs, nomchar(',')),
                 // // parse input derivations
@@ -236,14 +240,26 @@ pub fn parse_derivation(i: &[u8]) -> NomResult<&[u8], Derivation> {
                 // // parse input sources
                 terminated(parse_input_sources, nomchar(',')),
                 // // parse system
-                |i| terminated(aterm::parse_string_field, nomchar(','))(i).map_err(into_nomerror),
+                |i| {
+                    terminated(aterm::parse_string_field, nomchar(','))
+                        .parse(i)
+                        .map_err(into_nomerror)
+                },
                 // // parse builder
-                |i| terminated(aterm::parse_string_field, nomchar(','))(i).map_err(into_nomerror),
+                |i| {
+                    terminated(aterm::parse_string_field, nomchar(','))
+                        .parse(i)
+                        .map_err(into_nomerror)
+                },
                 // // parse arguments
-                |i| terminated(aterm::parse_string_list, nomchar(','))(i).map_err(into_nomerror),
+                |i| {
+                    terminated(aterm::parse_string_list, nomchar(','))
+                        .parse(i)
+                        .map_err(into_nomerror)
+                },
                 // parse environment
                 parse_kv(aterm::parse_bytes_field),
-            )),
+            ),
             nomchar(')'),
         )
         .map(
@@ -267,7 +283,8 @@ pub fn parse_derivation(i: &[u8]) -> NomResult<&[u8], Derivation> {
                 }
             },
         ),
-    )(i)
+    )
+    .parse(i)
 }
 
 /// Parse a list of key/value pairs into a BTreeMap.
@@ -298,7 +315,7 @@ where
                     ),
                     nomchar(')'),
                 ),
-            )(ii).map_err(into_nomerror);
+            ).parse(ii).map_err(into_nomerror);
 
             match res {
                 Ok((rest, pairs)) => {
@@ -322,7 +339,7 @@ where
             }
         },
         nomchar(']'),
-    )(i)
+    ).parse(i)
 }
 
 #[cfg(test)]

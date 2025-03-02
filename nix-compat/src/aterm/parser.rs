@@ -4,12 +4,12 @@
 //! [ATerm]: http://program-transformation.org/Tools/ATermFormat.html
 use bstr::BString;
 use nom::branch::alt;
-use nom::bytes::complete::{escaped_transform, is_not, tag};
+use nom::bytes::complete::{escaped_transform, is_not};
 use nom::character::complete::char as nomchar;
-use nom::combinator::{map, value};
+use nom::combinator::{map_res, opt, value};
 use nom::multi::separated_list0;
 use nom::sequence::delimited;
-use nom::IResult;
+use nom::{IResult, Parser};
 
 /// Parse a bstr and undo any escaping (which is why this needs to allocate).
 // FUTUREWORK: have a version for fields that are known to not need escaping
@@ -32,48 +32,37 @@ fn parse_escaped_bytes(i: &[u8]) -> IResult<&[u8], BString> {
 /// Parse a field in double quotes, undo any escaping, and return the unquoted
 /// and decoded `Vec<u8>`.
 pub(crate) fn parse_bytes_field(i: &[u8]) -> IResult<&[u8], BString> {
-    // inside double quotes…
     delimited(
         nomchar('\"'),
-        // There is
-        alt((
-            // …either is a bstr after unescaping
-            parse_escaped_bytes,
-            // …or an empty string.
-            map(tag(b""), |_| BString::default()),
-        )),
+        opt(parse_escaped_bytes).map(|opt_bstr| opt_bstr.unwrap_or_default()),
         nomchar('\"'),
-    )(i)
+    )
+    .parse(i)
 }
 
 /// Parse a field in double quotes, undo any escaping, and return the unquoted
 /// and decoded [String], if it's valid UTF-8.
 /// Or fail parsing if the bytes are no valid UTF-8.
 pub(crate) fn parse_string_field(i: &[u8]) -> IResult<&[u8], String> {
-    // inside double quotes…
     delimited(
         nomchar('\"'),
-        // There is
-        alt((
-            // either is a String after unescaping
-            nom::combinator::map_opt(parse_escaped_bytes, |escaped_bytes| {
-                String::from_utf8(escaped_bytes.into()).ok()
-            }),
-            // or an empty string.
-            map(tag(b""), |_| "".to_string()),
-        )),
+        map_res(
+            opt(parse_escaped_bytes).map(|opt_bstr| opt_bstr.unwrap_or_default()),
+            |bstr| String::from_utf8(bstr.to_vec()),
+        ),
         nomchar('\"'),
-    )(i)
+    )
+    .parse(i)
 }
 
 /// Parse a list of string fields (enclosed in brackets)
 pub(crate) fn parse_string_list(i: &[u8]) -> IResult<&[u8], Vec<String>> {
-    // inside brackets
     delimited(
         nomchar('['),
         separated_list0(nomchar(','), parse_string_field),
         nomchar(']'),
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]
