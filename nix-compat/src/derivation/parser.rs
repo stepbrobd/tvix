@@ -27,6 +27,20 @@ pub enum Error<I> {
     Validation(super::DerivationError),
 }
 
+/// Convenience conversion of borring Error to an owned counterpart.
+impl From<Error<&[u8]>> for Error<Vec<u8>> {
+    fn from(value: Error<&[u8]>) -> Self {
+        match value {
+            Error::Parser(nom_error) => Error::Parser(NomError {
+                input: nom_error.input.to_vec(),
+                code: nom_error.code,
+            }),
+            Error::Incomplete => Error::Incomplete,
+            Error::Validation(e) => Error::Validation(e),
+        }
+    }
+}
+
 pub(crate) fn parse(i: &[u8]) -> Result<Derivation, Error<&[u8]>> {
     match all_consuming(parse_derivation).parse(i) {
         Ok((rest, derivation)) => {
