@@ -11,7 +11,7 @@ macro_rules! test_repl {
             let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
             let args = tvix_cli::Args::parse_from(vec![
               OsString::from("tvix"),
-              OsString::from("--nix-search-path"),
+              OsString::from("--extra-nix-path"),
               OsString::from("nixpkgs=/tmp"),
             ]);
             let mut repl = tvix_cli::Repl::new(init_io_handle(&tokio_runtime, &args), &args);

@@ -45,9 +45,13 @@ pub struct Args {
     #[clap(long)]
     pub no_warnings: bool,
 
-    /// A colon-separated list of directories to use to resolve `<...>`-style paths
-    #[clap(long, short = 'I', env = "NIX_PATH")]
-    pub nix_search_path: Option<String>,
+    /// Additional entries to the Nix expression search path, a colon-separated list of directories
+    /// used to resolve `<...>`-style lookup paths.
+    ///
+    /// This option may be given multiple times. Paths added through -I take precedence over
+    /// NIX_PATH.
+    #[clap(long = "extra-nix-path", short = 'I', env = "NIX_PATH", action = clap::ArgAction::Append)]
+    pub extra_nix_paths: Option<Vec<String>>,
 
     /// Print "raw" (unquoted) output.
     #[clap(long)]
@@ -75,4 +79,54 @@ pub struct Args {
     /// Tvix does not read from these.
     #[clap(long)]
     pub drv_dumpdir: Option<PathBuf>,
+}
+
+impl Args {
+    pub fn nix_path(&self) -> Option<String> {
+        resolve_nix_path(std::env::var("NIX_PATH"), &self.extra_nix_paths)
+    }
+}
+
+fn resolve_nix_path(
+    nix_path: Result<String, std::env::VarError>,
+    extra_nix_paths: &Option<Vec<String>>,
+) -> Option<String> {
+    let nix_path_option = nix_path.ok().filter(|string| !string.is_empty());
+    let extra_nix_paths_option = extra_nix_paths.to_owned().map(|vec| vec.join(":"));
+    match (nix_path_option, extra_nix_paths_option) {
+        (Some(nix_path), Some(mut extra_nix_paths)) => {
+            extra_nix_paths.push(':');
+            Some(extra_nix_paths + &nix_path)
+        }
+        (nix_path_option, extra_nix_paths_option) => nix_path_option.or(extra_nix_paths_option),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_nix_path;
+
+    #[test]
+    fn test_resolve_nix_path() {
+        let nix_path = Ok("/nixpath1:nixpath2=/nixpath2".to_owned());
+        let extra_nix_paths = Some(vec!["/extra1".to_owned(), "extra2=/extra2".to_owned()]);
+        let expected = Some("/extra1:extra2=/extra2:/nixpath1:nixpath2=/nixpath2".to_owned());
+        let actual = resolve_nix_path(nix_path, &extra_nix_paths);
+        assert!(actual == expected);
+        let nix_path = Err(std::env::VarError::NotPresent);
+        let extra_nix_paths = Some(vec!["/extra1".to_owned(), "extra2=/extra2".to_owned()]);
+        let expected = Some("/extra1:extra2=/extra2".to_owned());
+        let actual = resolve_nix_path(nix_path, &extra_nix_paths);
+        assert!(actual == expected);
+        let nix_path = Ok("/nixpath1:nixpath2=/nixpath2".to_owned());
+        let extra_nix_paths = None;
+        let expected = Some("/nixpath1:nixpath2=/nixpath2".to_owned());
+        let actual = resolve_nix_path(nix_path, &extra_nix_paths);
+        assert!(actual == expected);
+        let nix_path = Err(std::env::VarError::NotPresent);
+        let extra_nix_paths = None;
+        let expected = None;
+        let actual = resolve_nix_path(nix_path, &extra_nix_paths);
+        assert!(actual == expected);
+    }
 }

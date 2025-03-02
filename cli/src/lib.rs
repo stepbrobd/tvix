@@ -118,7 +118,7 @@ pub fn evaluate(
             eval_builder = add_import_builtins(eval_builder, Rc::clone(&tvix_store_io));
         }
     };
-    eval_builder = configure_nix_path(eval_builder, &args.nix_search_path);
+    eval_builder = configure_nix_path(eval_builder, &args.nix_path());
 
     if let Some(source_map) = source_map {
         eval_builder = eval_builder.with_source_map(source_map);
