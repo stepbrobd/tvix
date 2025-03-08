@@ -27,15 +27,12 @@ project and development workflows.
 
 Developer documentation for some parts of Tvix is [available online][docs].
 
-Benchmarks are run nightly on new commits by [windtunnel][wt].
-
 [TVL]: https://tvl.fyi
 [TVL monorepo]: https://code.tvl.fyi/tree/tvix
 [Tvixbolt]: https://bolt.tvix.dev
 [Tvix README]: https://code.tvl.fyi/about/tvix
 [gh]: https://github.com/tvlfyi/tvix/
 [docs]: https://docs.tvix.dev
-[wt]: https://staging.windtunnel.ci/tvl/tvix
 
 -------------------
 
