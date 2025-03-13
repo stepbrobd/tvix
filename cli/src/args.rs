@@ -5,7 +5,7 @@ use tvix_store::utils::ServiceUrlsMemory;
 
 /// Provides a CLI interface to trigger evaluation using tvix-eval.
 ///
-/// Uses configured tvix-[ca]store and tvix-build components,
+/// Uses configured tvix-{ca,}store and tvix-build components,
 /// and by default a set of builtins similar to these present in Nix.
 ///
 /// None of the stores available add to the local `/nix/store` location.
