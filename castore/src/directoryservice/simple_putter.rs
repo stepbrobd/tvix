@@ -10,14 +10,17 @@ use tracing::warn;
 /// This is an implementation of DirectoryPutter that simply
 /// inserts individual Directory messages one by one, on close, after
 /// they successfully validated.
-pub struct SimplePutter<DS: DirectoryService> {
-    directory_service: DS,
+pub struct SimplePutter<'a, DS> {
+    directory_service: &'a DS,
 
     directory_validator: Option<DirectoryGraph<LeavesToRootValidator>>,
 }
 
-impl<DS: DirectoryService> SimplePutter<DS> {
-    pub fn new(directory_service: DS) -> Self {
+impl<'a, DS> SimplePutter<'a, DS>
+where
+    DS: DirectoryService,
+{
+    pub fn new(directory_service: &'a DS) -> Self {
         Self {
             directory_service,
             directory_validator: Some(Default::default()),
@@ -26,7 +29,7 @@ impl<DS: DirectoryService> SimplePutter<DS> {
 }
 
 #[async_trait]
-impl<DS: DirectoryService + 'static> DirectoryPutter for SimplePutter<DS> {
+impl<DS: DirectoryService + 'static> DirectoryPutter for SimplePutter<'_, DS> {
     #[instrument(level = "trace", skip_all, fields(directory.digest=%directory.digest()), err)]
     async fn put(&mut self, directory: Directory) -> Result<(), Error> {
         match self.directory_validator {

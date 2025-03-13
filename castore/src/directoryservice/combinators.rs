@@ -20,7 +20,6 @@ use crate::Error;
 /// which is useful when far does not support accessing intermediate directories (but near does).
 /// There is no negative cache.
 /// Inserts and listings are not implemented for now.
-#[derive(Clone)]
 pub struct Cache<DS1, DS2> {
     instance_name: String,
     near: DS1,
@@ -143,8 +142,8 @@ where
     }
 
     #[instrument(skip_all)]
-    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)> {
-        Box::new(SimplePutter::new((*self).clone()))
+    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + '_)> {
+        Box::new(SimplePutter::new(self))
     }
 }
 

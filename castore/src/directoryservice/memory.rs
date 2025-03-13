@@ -66,11 +66,8 @@ impl DirectoryService for MemoryDirectoryService {
     }
 
     #[instrument(skip_all, fields(instance_name=%self.instance_name))]
-    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)>
-    where
-        Self: Clone,
-    {
-        Box::new(SimplePutter::new(self.clone()))
+    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + '_)> {
+        Box::new(SimplePutter::new(self))
     }
 }
 
