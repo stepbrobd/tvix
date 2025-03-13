@@ -180,13 +180,13 @@ impl DirectoryService for ObjectStoreDirectoryService {
     }
 
     #[instrument(skip_all)]
-    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + 'static)>
+    fn put_multiple_start(&self) -> Box<(dyn DirectoryPutter + '_)>
     where
         Self: Clone,
     {
         Box::new(ObjectStoreDirectoryPutter::new(
             self.object_store.clone(),
-            self.base_path.clone(),
+            &self.base_path,
         ))
     }
 }
@@ -259,15 +259,15 @@ impl ServiceBuilder for ObjectStoreDirectoryServiceConfig {
     }
 }
 
-struct ObjectStoreDirectoryPutter {
+struct ObjectStoreDirectoryPutter<'a> {
     object_store: Arc<dyn ObjectStore>,
-    base_path: Path,
+    base_path: &'a Path,
 
     directory_validator: Option<DirectoryGraph<LeavesToRootValidator>>,
 }
 
-impl ObjectStoreDirectoryPutter {
-    fn new(object_store: Arc<dyn ObjectStore>, base_path: Path) -> Self {
+impl<'a> ObjectStoreDirectoryPutter<'a> {
+    fn new(object_store: Arc<dyn ObjectStore>, base_path: &'a Path) -> Self {
         Self {
             object_store,
             base_path,
@@ -277,7 +277,7 @@ impl ObjectStoreDirectoryPutter {
 }
 
 #[async_trait]
-impl DirectoryPutter for ObjectStoreDirectoryPutter {
+impl DirectoryPutter for ObjectStoreDirectoryPutter<'_> {
     #[instrument(level = "trace", skip_all, fields(directory.digest=%directory.digest()), err)]
     async fn put(&mut self, directory: Directory) -> Result<(), Error> {
         match self.directory_validator {
@@ -314,7 +314,7 @@ impl DirectoryPutter for ObjectStoreDirectoryPutter {
             .ok_or_else(|| Error::InvalidRequest("got no directories".to_string()))?
             .digest();
 
-        let dir_path = derive_dirs_path(&self.base_path, &root_digest);
+        let dir_path = derive_dirs_path(self.base_path, &root_digest);
 
         match self.object_store.head(&dir_path).await {
             // directory tree already exists, nothing to do
