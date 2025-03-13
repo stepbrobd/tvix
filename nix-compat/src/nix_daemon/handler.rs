@@ -30,8 +30,9 @@ use crate::{nix_daemon::types::NixError, worker_protocol::STDERR_ERROR};
 /// As part of its [`initialization`] it performs the handshake with the client
 /// and determines the [ProtocolVersion] and [ClientSettings] to use for the remainder of the session.
 ///
-/// Once initialized, [`handle_client`] needs to be called to handle the rest of the session,
-/// it delegates all operation handling to an instance of [NixDaemonIO].
+/// Once initialized, [NixDaemon::handle_client] needs to be called to handle
+/// the rest of the session, it delegates all operation handling to an instance
+/// of [NixDaemonIO].
 ///
 /// [`initialization`]: NixDaemon::initialize
 #[allow(dead_code)]

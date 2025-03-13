@@ -3,9 +3,10 @@ static DEFAULT_PROTOCOL_VERSION: ProtocolVersion = ProtocolVersion::from_parts(1
 
 /// Protocol versions are represented as a u16.
 /// The upper 8 bits are the major version, the lower bits the minor.
-/// This is not aware of any endianness, use [crate::wire::read_u64] to get an
-/// u64 first, and the try_from() impl from here if you're receiving over the
-/// Nix Worker protocol.
+/// This is not aware of any endianness.
+/// If you're receiving over the Nix worker protocol, you need to read a
+/// little-endian encoded u64, and then use the try_from() impl to convert to this
+/// type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ProtocolVersion(u16);
 

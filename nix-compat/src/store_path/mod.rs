@@ -172,7 +172,7 @@ where
         }
     }
 
-    /// Decompose a string into a [StorePath] and a [PathBuf] containing the
+    /// Decompose a string into a [StorePath] and a [Path] containing the
     /// rest of the path, or an error.
     #[cfg(target_family = "unix")]
     pub fn from_absolute_path_full<'a, P>(path: &'a P) -> Result<(Self, &'a Path), Error>

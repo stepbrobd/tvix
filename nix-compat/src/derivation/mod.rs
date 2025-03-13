@@ -192,8 +192,8 @@ impl Derivation {
     ///    the A-Term.
     ///
     /// It's up to the caller of this function to provide a (infallible) lookup
-    /// function to query [hash_derivation_modulo] of direct input derivations,
-    /// by their [StorePathRef].
+    /// function to query the [Derivation::hash_derivation_modulo] of direct
+    /// input derivations, by their [StorePathRef].
     /// It will only be called in case the derivation is not a fixed-output
     /// derivation.
     pub fn hash_derivation_modulo<F>(&self, fn_lookup_hash_derivation_modulo: F) -> [u8; 32]
@@ -230,13 +230,13 @@ impl Derivation {
     /// and self.environment[$outputName] needs to be an empty string.
     ///
     /// Output path calculation requires knowledge of the
-    /// [hash_derivation_modulo], which (in case of non-fixed-output
-    /// derivations) also requires knowledge of the [hash_derivation_modulo] of
-    /// input derivations (recursively).
+    /// [Derivation::hash_derivation_modulo], which (in case of non-fixed-output
+    /// derivations) also requires knowledge of the
+    /// [Derivation::hash_derivation_modulo] of input derivations (recursively).
     ///
     /// To avoid recursing and doing unnecessary calculation, we simply
     /// ask the caller of this function to provide the result of the
-    /// [hash_derivation_modulo] call of the current [Derivation],
+    /// [Derivation::hash_derivation_modulo] call of the current [Derivation],
     /// and leave it up to them to calculate it when needed.
     ///
     /// On completion, `self.environment[$outputName]` and
