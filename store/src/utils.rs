@@ -36,6 +36,7 @@ pub struct CompositionConfigs {
 /// This particular variant has defaults tailored for usecases accessing data
 /// directly locally, like the `tvix-store daemon` command.
 #[derive(clap::Parser, Clone)]
+#[group(id = "StoreServiceUrls")]
 pub struct ServiceUrls {
     #[clap(flatten)]
     castore_service_addrs: castore_utils::ServiceUrls,
@@ -56,6 +57,7 @@ pub struct ServiceUrls {
 /// This particular variant has defaults tailored for usecases accessing data
 /// from another running tvix daemon, via gRPC.
 #[derive(clap::Parser, Clone)]
+#[group(id = "StoreServiceUrlsGrpc")]
 pub struct ServiceUrlsGrpc {
     #[clap(flatten)]
     castore_service_addrs: castore_utils::ServiceUrlsGrpc,
@@ -76,6 +78,7 @@ pub struct ServiceUrlsGrpc {
 /// there yet, and using something else here might make some perf output harder
 /// to interpret.
 #[derive(clap::Parser, Clone)]
+#[group(id = "StoreServiceUrlsMemory")]
 pub struct ServiceUrlsMemory {
     #[clap(flatten)]
     castore_service_addrs: castore_utils::ServiceUrlsMemory,

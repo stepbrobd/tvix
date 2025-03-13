@@ -23,6 +23,7 @@ pub struct CompositionConfigs {
 /// This particular variant has defaults tailored for usecases accessing data
 /// directly locally, like the `tvix-store daemon` command.
 #[derive(clap::Parser, Clone)]
+#[group(id = "CastoreServiceUrls")]
 pub struct ServiceUrls {
     #[arg(
         long,
@@ -51,6 +52,7 @@ pub struct ServiceUrls {
 /// This particular variant has defaults tailored for usecases accessing data
 /// from another running tvix daemon, via gRPC.
 #[derive(clap::Parser, Clone)]
+#[group(id = "CastoreServiceUrlsGrpc")]
 pub struct ServiceUrlsGrpc {
     #[arg(long, env, default_value = "grpc+http://[::1]:8000")]
     blob_service_addr: String,
@@ -71,6 +73,7 @@ pub struct ServiceUrlsGrpc {
 /// there yet, and using something else here might make some perf output harder
 /// to interpret.
 #[derive(clap::Parser, Clone)]
+#[group(id = "CastoreServiceUrlsMemory")]
 pub struct ServiceUrlsMemory {
     #[arg(long, env, default_value = "memory://")]
     blob_service_addr: String,
