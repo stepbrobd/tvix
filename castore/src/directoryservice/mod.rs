@@ -79,7 +79,7 @@ pub trait DirectoryService: Send + Sync {
 
     /// Allows persisting a closure of [Directory], which is a graph of
     /// connected Directory messages.
-    fn put_multiple_start(&self) -> Box<dyn DirectoryPutter>;
+    fn put_multiple_start(&self) -> Box<dyn DirectoryPutter + '_>;
 }
 
 /// Provides a handle to put a closure of connected [Directory] elements.
