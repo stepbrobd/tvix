@@ -12,9 +12,11 @@ mod utils;
 
 pub use errors::{DerivationError, FetcherError, ImportError};
 
-/// Adds derivation-related builtins to the passed [tvix_eval::Evaluation].
+/// Adds derivation-related builtins to the passed [tvix_eval::EvaluationBuilder]:
 ///
-/// These are `derivation` and `derivationStrict`.
+/// * `derivation`
+/// * `derivationStrict`
+/// * `toFile`
 ///
 /// As they need to interact with `known_paths`, we also need to pass in
 /// `known_paths`.
@@ -28,7 +30,7 @@ pub fn add_derivation_builtins<'co, 'ro, 'env, IO>(
         .add_src_builtin("derivation", include_str!("derivation.nix"))
 }
 
-/// Adds fetcher builtins to the passed [tvix_eval::Evaluation]:
+/// Adds fetcher builtins to the passed [tvix_eval::EvaluationBuilder]:
 ///
 /// * `fetchurl`
 /// * `fetchTarball`
@@ -40,9 +42,12 @@ pub fn add_fetcher_builtins<'co, 'ro, 'env, IO>(
     eval_builder.add_builtins(fetchers::fetcher_builtins::builtins(Rc::clone(&io)))
 }
 
-/// Adds import-related builtins to the passed [tvix_eval::Evaluation].
+/// Adds import-related builtins to the passed [tvix_eval::EvaluationBuilder]:
 ///
-/// These are `filterSource` and `path`
+///
+/// * `filterSource`
+/// * `path`
+/// * `storePath`
 ///
 /// As they need to interact with the store implementation, we pass [`TvixStoreIO`].
 pub fn add_import_builtins<'co, 'ro, 'env, IO>(
