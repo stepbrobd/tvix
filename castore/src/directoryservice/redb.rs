@@ -165,16 +165,16 @@ impl DirectoryService for RedbDirectoryService {
     }
 
     #[instrument(skip_all)]
-    fn put_multiple_start(&self) -> Box<dyn DirectoryPutter> {
+    fn put_multiple_start(&self) -> Box<dyn DirectoryPutter + '_> {
         Box::new(RedbDirectoryPutter {
-            db: self.db.clone(),
+            db: &self.db,
             directory_validator: Some(Default::default()),
         })
     }
 }
 
-pub struct RedbDirectoryPutter {
-    db: Arc<Database>,
+pub struct RedbDirectoryPutter<'a> {
+    db: &'a Database,
 
     /// The directories (inside the directory validator) that we insert later,
     /// or None, if they were already inserted.
@@ -182,7 +182,7 @@ pub struct RedbDirectoryPutter {
 }
 
 #[async_trait]
-impl DirectoryPutter for RedbDirectoryPutter {
+impl DirectoryPutter for RedbDirectoryPutter<'_> {
     #[instrument(level = "trace", skip_all, fields(directory.digest=%directory.digest()), err)]
     async fn put(&mut self, directory: Directory) -> Result<(), Error> {
         match self.directory_validator {
