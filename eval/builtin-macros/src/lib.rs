@@ -111,7 +111,7 @@ fn parse_module_args(args: TokenStream) -> Option<Type> {
 /// transformation is mostly invisible to users of the macro.
 ///
 /// A function `fn builtins() -> Vec<Builtin>` will be defined within the annotated module,
-/// returning a list of [`tvix_eval::Builtin`] for each function annotated with the `#[builtin]`
+/// returning a list of `tvix_eval::Builtin` for each function annotated with the `#[builtin]`
 /// attribute within the module. If a `state` type is specified, the `builtins` function will take a
 /// value of that type.
 ///
