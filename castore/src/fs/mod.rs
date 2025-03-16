@@ -324,16 +324,21 @@ where
     fn init(&self, _capable: FsOptions) -> io::Result<FsOptions> {
         let mut opts = FsOptions::empty();
 
-        // the filesystem supports readdirplus
-        opts |= FsOptions::DO_READDIRPLUS;
-        // issue both readdir and readdirplus depending on the information expected to be required
-        opts |= FsOptions::READDIRPLUS_AUTO;
         // allow more than one pending read request per file-handle at any time
         opts |= FsOptions::ASYNC_READ;
-        // allow concurrent lookup() and readdir() requests for the same directory
-        opts |= FsOptions::PARALLEL_DIROPS;
-        // have the kernel cache symlink contents
-        opts |= FsOptions::CACHE_SYMLINKS;
+
+        #[cfg(target_os = "linux")]
+        {
+            // the filesystem supports readdirplus
+            opts |= FsOptions::DO_READDIRPLUS;
+            // issue both readdir and readdirplus depending on the information expected to be required
+            opts |= FsOptions::READDIRPLUS_AUTO;
+            // allow concurrent lookup() and readdir() requests for the same directory
+            opts |= FsOptions::PARALLEL_DIROPS;
+            // have the kernel cache symlink contents
+            opts |= FsOptions::CACHE_SYMLINKS;
+        }
+        // TODO: figure out what dawrin options make sense.
 
         Ok(opts)
     }
@@ -452,8 +457,15 @@ where
             return Ok((Some(dh), OpenOptions::NONSEEKABLE));
         }
 
+        let mut opts = OpenOptions::empty();
+
+        opts |= OpenOptions::KEEP_CACHE;
+        #[cfg(target_os = "linux")]
+        {
+            opts |= OpenOptions::CACHE_DIR;
+        }
         // allow caching this directory contents, don't invalidate on open
-        Ok((None, OpenOptions::CACHE_DIR | OpenOptions::KEEP_CACHE))
+        Ok((None, opts))
     }
 
     #[tracing::instrument(skip_all, fields(rq.inode = inode, rq.handle = handle, rq.offset = offset), parent = self.dir_handles.read().get(&handle).and_then(|x| x.0.id()))]
