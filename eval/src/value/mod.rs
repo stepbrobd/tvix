@@ -184,7 +184,7 @@ pub struct CoercionKind {
 
 impl From<CoercionKind> for u8 {
     fn from(k: CoercionKind) -> u8 {
-        k.strong as u8 | (k.import_paths as u8) << 1
+        k.strong as u8 | ((k.import_paths as u8) << 1)
     }
 }
 

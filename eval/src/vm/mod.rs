@@ -893,7 +893,7 @@ where
                     self(b, a) => {
                         match b {
                             Value::Integer(0) => return frame.error(self, ErrorKind::DivisionByZero),
-                            Value::Float(b) if b == 0.0_f64 => {
+                            Value::Float(0.0_f64) => {
                                 return frame.error(self, ErrorKind::DivisionByZero)
                             }
                             _ => {}
