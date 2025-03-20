@@ -23,10 +23,6 @@ available [via XMPP][hackint-xmpp] and [via Matrix][hackint-matrix].
    Tvix-related discussion in this channel is focused on eval, and on (almost)
    1:1 replacements of C++ Nix with Rust components.
 
-2. The separate [`#tvix-dev`][tvix-dev-irc] channel ([on
-   Matrix][tvix-dev-matrix]) focuses on the content-addressed store model,
-   innovating on the plain files approach used in C++ Nix.
-
 There is also a low-traffic [mailing list][] with occasional design discussions.
 
 Contributions to Tvix follow the TVL [review flow][review-docs] and
@@ -41,13 +37,9 @@ Contributions to Tvix follow the TVL [review flow][review-docs] and
 [mailing list]: https://inbox.tvl.su
 [review-docs]: https://code.tvl.fyi/about/docs/REVIEWS.md
 [contributing]: https://code.tvl.fyi/about/docs/CONTRIBUTING.md
-[tvix-dev-irc]: ircs://irc.hackint.org:6697/#tvix-dev
 [hackint]: https://hackint.org/
 [hackint-xmpp]: https://hackint.org/transport/xmpp
-[tvix-dev-xmpp]: xmpp:#tvix-dev@irc.hackint.org?join
 [hackint-matrix]: https://hackint.org/transport/matrix
-[tvix-dev-matrix]: https://matrix.to/#/#tvix-dev:hackint.org
-[tvix-dev-webchat]: https://webirc.hackint.org/#ircs://irc.hackint.org/#tvix-dev
 
 WARNING: Tvix is not ready for use in production. None of our current APIs
 should be considered stable in any way.

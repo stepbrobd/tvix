@@ -15,9 +15,9 @@ Discussions on larger architectural problems and thoughts occasionally happen
 on the [TVL Public Inbox][public inbox] mailing list.
 
 [hackint]: https://hackint.org/
-[IRC]: ircs://irc.hackint.org:6697/#tvix-dev
-[Webchat]: https://webirc.hackint.org/#ircs://irc.hackint.org/#tvix-dev
-[Matrix]: matrix:r/tvix-dev:hackint.org?action=join
-[XMPP]: xmpp:#tvix-dev@irc.hackint.org?join
+[IRC]: ircs://irc.hackint.org:6697/#tvl
+[Webchat]: https://webirc.hackint.org/#ircs://irc.hackint.org/#tvl
+[Matrix]: matrix:r/tvl:hackint.org?action=join
+[XMPP]: xmpp:#tvl@irc.hackint.org?join
 [depot@tvl.su]: mailto:depot@tvl.su
 [public inbox]: https://inbox.tvl.su/depot/
