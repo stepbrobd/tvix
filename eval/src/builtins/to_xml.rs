@@ -67,7 +67,7 @@ fn value_variant_to_xml<W: Write>(w: &mut XmlEmitter<W>, value: &Value) -> Resul
         Value::Attrs(attrs) => {
             w.write_open_tag("attrs", &[])?;
 
-            for elem in attrs.iter() {
+            for elem in attrs.iter_sorted() {
                 w.write_open_tag("attr", &[("name", &elem.0.to_str_lossy())])?;
                 value_variant_to_xml(w, elem.1)?;
                 w.write_closing_tag("attr")?;

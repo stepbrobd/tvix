@@ -150,7 +150,7 @@ mod pure_builtins {
         let xs = set.to_attrs()?;
         let mut output = Vec::with_capacity(xs.len());
 
-        for (key, _val) in xs.iter() {
+        for (key, _val) in xs.iter_sorted() {
             output.push(Value::from(key.clone()));
         }
 
@@ -162,7 +162,7 @@ mod pure_builtins {
         let xs = set.to_attrs()?;
         let mut output = Vec::with_capacity(xs.len());
 
-        for (_key, val) in xs.iter() {
+        for (_key, val) in xs.iter_sorted() {
             output.push(val.clone());
         }
 
@@ -789,13 +789,13 @@ mod pure_builtins {
         if left_set.is_empty() {
             return Ok(Value::attrs(NixAttrs::empty()));
         }
-        let mut left_keys = left_set.keys();
+        let mut left_keys = left_set.keys_sorted();
 
         let right_set = y.to_attrs()?;
         if right_set.is_empty() {
             return Ok(Value::attrs(NixAttrs::empty()));
         }
-        let mut right_keys = right_set.keys();
+        let mut right_keys = right_set.keys_sorted();
 
         let mut out: BTreeMap<NixString, Value> = BTreeMap::new();
 

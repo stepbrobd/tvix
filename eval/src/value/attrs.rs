@@ -318,6 +318,12 @@ impl NixAttrs {
         })
     }
 
+    /// Same as [Self::keys], but marks call sites which rely on the
+    /// iteration being lexicographic.
+    pub fn keys_sorted(&self) -> Keys {
+        self.keys()
+    }
+
     /// Implement construction logic of an attribute set, to encapsulate
     /// logic about attribute set optimisations inside of this module.
     pub fn construct(
