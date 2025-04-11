@@ -6,12 +6,14 @@
 //! Due to this, construction and management of attribute sets has
 //! some peculiarities that are encapsulated within this module.
 use std::borrow::Borrow;
-use std::collections::{btree_map, BTreeMap};
+use std::collections::{hash_map, BTreeMap};
 use std::iter::FromIterator;
 use std::rc::Rc;
 use std::sync::LazyLock;
 
 use bstr::BStr;
+use itertools::Itertools as _;
+use rustc_hash::FxHashMap;
 use serde::de::{Deserializer, Error, Visitor};
 use serde::Deserialize;
 
@@ -33,7 +35,7 @@ pub(super) enum AttrsRep {
     #[default]
     Empty,
 
-    Map(BTreeMap<NixString, Value>),
+    Map(FxHashMap<NixString, Value>),
 
     /// Warning: this represents a **two**-attribute attrset, with
     /// attribute names "name" and "value", like `{name="foo";
@@ -98,6 +100,12 @@ where
 
 impl From<BTreeMap<NixString, Value>> for NixAttrs {
     fn from(map: BTreeMap<NixString, Value>) -> Self {
+        AttrsRep::Map(map.into_iter().collect()).into()
+    }
+}
+
+impl From<FxHashMap<NixString, Value>> for NixAttrs {
+    fn from(map: FxHashMap<NixString, Value>) -> Self {
         AttrsRep::Map(map).into()
     }
 }
@@ -204,28 +212,36 @@ impl NixAttrs {
 
             (AttrsRep::KV { name, value }, AttrsRep::Map(mut m)) => {
                 match m.entry(NAME.clone()) {
-                    btree_map::Entry::Vacant(e) => {
+                    hash_map::Entry::Vacant(e) => {
                         e.insert(name);
                     }
 
-                    btree_map::Entry::Occupied(_) => { /* name from `m` has precedence */ }
+                    hash_map::Entry::Occupied(_) => { /* name from `m` has precedence */ }
                 };
 
                 match m.entry(VALUE.clone()) {
-                    btree_map::Entry::Vacant(e) => {
+                    hash_map::Entry::Vacant(e) => {
                         e.insert(value);
                     }
 
-                    btree_map::Entry::Occupied(_) => { /* value from `m` has precedence */ }
+                    hash_map::Entry::Occupied(_) => { /* value from `m` has precedence */ }
                 };
 
                 AttrsRep::Map(m).into()
             }
 
             // Plain merge of maps.
-            (AttrsRep::Map(mut m1), AttrsRep::Map(m2)) => {
-                m1.extend(m2);
-                AttrsRep::Map(m1).into()
+            (AttrsRep::Map(mut m1), AttrsRep::Map(mut m2)) => {
+                let map = if m1.len() >= m2.len() {
+                    m1.extend(m2);
+                    m1
+                } else {
+                    for (key, val) in m1.into_iter() {
+                        m2.entry(key).or_insert(val);
+                    }
+                    m2
+                };
+                AttrsRep::Map(map).into()
             }
 
             // Cases handled above by the borrowing match:
@@ -298,13 +314,49 @@ impl NixAttrs {
     /// Same as iter(), but marks call sites which rely on the
     /// iteration being lexicographic.
     pub fn iter_sorted(&self) -> Iter<KeyValue<'_>> {
-        self.iter()
+        Iter(match self.0.as_ref() {
+            AttrsRep::Empty => KeyValue::Empty,
+            AttrsRep::Map(map) => {
+                let sorted = map.iter().sorted_by_key(|x| x.0);
+                KeyValue::Sorted(sorted)
+            }
+            AttrsRep::KV {
+                ref name,
+                ref value,
+            } => KeyValue::KV {
+                name,
+                value,
+                at: IterKV::default(),
+            },
+        })
     }
 
     /// Same as [IntoIterator::into_iter], but marks call sites which rely on the
     /// iteration being lexicographic.
     pub fn into_iter_sorted(self) -> OwnedAttrsIterator {
-        self.into_iter()
+        let iter = match Rc::<AttrsRep>::try_unwrap(self.0) {
+            Ok(attrs) => match attrs {
+                AttrsRep::Empty => IntoIterRepr::Empty,
+                AttrsRep::Map(map) => {
+                    IntoIterRepr::Finite(map.into_iter().sorted_by(|(a, _), (b, _)| a.cmp(b)))
+                }
+                AttrsRep::KV { name, value } => IntoIterRepr::Finite(
+                    vec![(NAME.clone(), name), (VALUE.clone(), value)].into_iter(),
+                ),
+            },
+            Err(rc) => match rc.as_ref() {
+                AttrsRep::Empty => IntoIterRepr::Empty,
+                AttrsRep::Map(map) => IntoIterRepr::Finite(
+                    map.iter()
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .sorted_by(|(a, _), (b, _)| a.cmp(b)),
+                ),
+                AttrsRep::KV { name, value } => IntoIterRepr::Finite(
+                    vec![(NAME.clone(), name.clone()), (VALUE.clone(), value.clone())].into_iter(),
+                ),
+            },
+        };
+        OwnedAttrsIterator(iter)
     }
 
     /// Construct an iterator over all the keys of the attribute set
@@ -321,7 +373,11 @@ impl NixAttrs {
     /// Same as [Self::keys], but marks call sites which rely on the
     /// iteration being lexicographic.
     pub fn keys_sorted(&self) -> Keys {
-        self.keys()
+        Keys(match self.0.as_ref() {
+            AttrsRep::Map(map) => KeysInner::Sorted(map.keys().sorted()),
+            AttrsRep::Empty => KeysInner::Empty,
+            AttrsRep::KV { .. } => KeysInner::KV(IterKV::default()),
+        })
     }
 
     /// Implement construction logic of an attribute set, to encapsulate
@@ -349,7 +405,7 @@ impl NixAttrs {
             }
         }
 
-        let mut attrs_map = BTreeMap::new();
+        let mut attrs_map = FxHashMap::with_capacity_and_hasher(count, rustc_hash::FxBuildHasher);
 
         for _ in 0..count {
             let value = stack_slice.pop().unwrap();
@@ -378,6 +434,65 @@ impl NixAttrs {
     /// `"name"` key, and the value for the `"value"` key
     pub(crate) fn from_kv(name: Value, value: Value) -> Self {
         AttrsRep::KV { name, value }.into()
+    }
+
+    /// Calculate the intersection of the attribute sets.
+    /// The right side value is used when the keys match.
+    pub(crate) fn intersect(&self, other: &Self) -> NixAttrs {
+        match (self.0.as_ref(), other.0.as_ref()) {
+            (AttrsRep::Empty, _) | (_, AttrsRep::Empty) => AttrsRep::Empty.into(),
+            (AttrsRep::Map(lhs), AttrsRep::Map(rhs)) => {
+                let mut out = FxHashMap::with_capacity_and_hasher(
+                    std::cmp::min(lhs.len(), rhs.len()),
+                    rustc_hash::FxBuildHasher,
+                );
+                if lhs.len() < rhs.len() {
+                    for key in lhs.keys() {
+                        if let Some(val) = rhs.get(key) {
+                            out.insert(key.clone(), val.clone());
+                        }
+                    }
+                } else {
+                    for (key, val) in rhs.iter() {
+                        if lhs.contains_key(key) {
+                            out.insert(key.clone(), val.clone());
+                        }
+                    }
+                };
+                out.into()
+            }
+            (AttrsRep::Map(map), AttrsRep::KV { name, value }) => {
+                let mut out = FxHashMap::with_capacity_and_hasher(2, rustc_hash::FxBuildHasher);
+                if map.contains_key(NAME.as_bstr()) {
+                    out.insert(NAME.clone(), name.clone());
+                }
+                if map.contains_key(VALUE.as_bstr()) {
+                    out.insert(VALUE.clone(), value.clone());
+                }
+
+                if out.is_empty() {
+                    NixAttrs::empty()
+                } else {
+                    out.into()
+                }
+            }
+            (AttrsRep::KV { .. }, AttrsRep::Map(map)) => {
+                let mut out = FxHashMap::with_capacity_and_hasher(2, rustc_hash::FxBuildHasher);
+                if let Some(name) = map.get(NAME.as_bstr()) {
+                    out.insert(NAME.clone(), name.clone());
+                }
+                if let Some(value) = map.get(VALUE.as_bstr()) {
+                    out.insert(VALUE.clone(), value.clone());
+                }
+
+                if out.is_empty() {
+                    NixAttrs::empty()
+                } else {
+                    out.into()
+                }
+            }
+            (AttrsRep::KV { .. }, AttrsRep::KV { .. }) => other.clone(),
+        }
     }
 }
 
@@ -431,16 +546,16 @@ fn attempt_optimise_kv(slice: &mut [Value]) -> Option<NixAttrs> {
 /// Set an attribute on an in-construction attribute set, while
 /// checking against duplicate keys.
 fn set_attr(
-    map: &mut BTreeMap<NixString, Value>,
+    map: &mut FxHashMap<NixString, Value>,
     key: NixString,
     value: Value,
 ) -> Result<(), ErrorKind> {
     match map.entry(key) {
-        btree_map::Entry::Occupied(entry) => Err(ErrorKind::DuplicateAttrsKey {
+        hash_map::Entry::Occupied(entry) => Err(ErrorKind::DuplicateAttrsKey {
             key: entry.key().to_string(),
         }),
 
-        btree_map::Entry::Vacant(entry) => {
+        hash_map::Entry::Vacant(entry) => {
             entry.insert(value);
             Ok(())
         }
@@ -478,7 +593,9 @@ pub enum KeyValue<'a> {
         at: IterKV,
     },
 
-    Map(btree_map::Iter<'a, NixString, Value>),
+    Map(hash_map::Iter<'a, NixString, Value>),
+
+    Sorted(std::vec::IntoIter<(&'a NixString, &'a Value)>),
 }
 
 /// Iterator over a Nix attribute set.
@@ -494,7 +611,6 @@ impl<'a> Iterator for Iter<KeyValue<'a>> {
         match &mut self.0 {
             KeyValue::Map(inner) => inner.next(),
             KeyValue::Empty => None,
-
             KeyValue::KV { name, value, at } => match at {
                 IterKV::Name => {
                     at.next();
@@ -508,6 +624,7 @@ impl<'a> Iterator for Iter<KeyValue<'a>> {
 
                 IterKV::Done => None,
             },
+            KeyValue::Sorted(inner) => inner.next(),
         }
     }
 }
@@ -518,6 +635,7 @@ impl ExactSizeIterator for Iter<KeyValue<'_>> {
             KeyValue::Empty => 0,
             KeyValue::KV { .. } => 2,
             KeyValue::Map(inner) => inner.len(),
+            KeyValue::Sorted(inner) => inner.len(),
         }
     }
 }
@@ -525,7 +643,8 @@ impl ExactSizeIterator for Iter<KeyValue<'_>> {
 enum KeysInner<'a> {
     Empty,
     KV(IterKV),
-    Map(btree_map::Keys<'a, NixString, Value>),
+    Map(hash_map::Keys<'a, NixString, Value>),
+    Sorted(std::vec::IntoIter<&'a NixString>),
 }
 
 pub struct Keys<'a>(KeysInner<'a>);
@@ -546,6 +665,7 @@ impl<'a> Iterator for Keys<'a> {
             }
             KeysInner::KV(IterKV::Done) => None,
             KeysInner::Map(m) => m.next(),
+            KeysInner::Sorted(v) => v.next(),
         }
     }
 }
@@ -566,6 +686,7 @@ impl ExactSizeIterator for Keys<'_> {
             KeysInner::Empty => 0,
             KeysInner::KV(_) => 2,
             KeysInner::Map(m) => m.len(),
+            KeysInner::Sorted(v) => v.len(),
         }
     }
 }
@@ -574,7 +695,7 @@ impl ExactSizeIterator for Keys<'_> {
 pub enum IntoIterRepr {
     Empty,
     Finite(std::vec::IntoIter<(NixString, Value)>),
-    Map(btree_map::IntoIter<NixString, Value>),
+    Map(hash_map::IntoIter<NixString, Value>),
 }
 
 /// Wrapper type which hides the internal implementation details from
@@ -609,7 +730,8 @@ impl DoubleEndedIterator for OwnedAttrsIterator {
         match &mut self.0 {
             IntoIterRepr::Empty => None,
             IntoIterRepr::Finite(inner) => inner.next_back(),
-            IntoIterRepr::Map(inner) => inner.next_back(),
+            // hashmaps have arbitary iteration order, so reversing it would not make a difference
+            IntoIterRepr::Map(inner) => inner.next(),
         }
     }
 }

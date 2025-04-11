@@ -86,7 +86,7 @@ mod pure_builtins {
     use bstr::{BString, ByteSlice, B};
     use itertools::Itertools;
     use os_str_bytes::OsStringBytes;
-    use rustc_hash::FxHashSet;
+    use rustc_hash::{FxHashMap, FxHashSet};
 
     use crate::{value::PointerEquality, AddContext, NixContext, NixContextElement};
 
@@ -789,58 +789,14 @@ mod pure_builtins {
         if left_set.is_empty() {
             return Ok(Value::attrs(NixAttrs::empty()));
         }
-        let mut left_iter = left_set.iter_sorted();
 
         let right_set = y.to_attrs()?;
+
         if right_set.is_empty() {
             return Ok(Value::attrs(NixAttrs::empty()));
         }
-        let mut right_iter = right_set.iter_sorted();
 
-        let mut out: BTreeMap<NixString, Value> = BTreeMap::new();
-
-        // Both iterators have at least one entry
-        let mut left = left_iter.next().unwrap();
-        let mut right = right_iter.next().unwrap();
-
-        // Calculate the intersection of two attribute sets by iterating them
-        // simultaneously in lexicographic order, similar to a merge sort.
-        //
-        // Only when keys match are the key and value clones actually allocated.
-        //
-        // We opted for this implementation over simpler ones because of the
-        // heavy use of this function in nixpkgs.
-        loop {
-            match left.0.cmp(right.0) {
-                Ordering::Equal => {
-                    out.insert(right.0.clone(), right.1.clone());
-
-                    left = match left_iter.next() {
-                        Some(x) => x,
-                        None => break,
-                    };
-
-                    right = match right_iter.next() {
-                        Some(x) => x,
-                        None => break,
-                    };
-                }
-                Ordering::Less => {
-                    left = match left_iter.next() {
-                        Some(x) => x,
-                        None => break,
-                    };
-                }
-                Ordering::Greater => {
-                    right = match right_iter.next() {
-                        Some(x) => x,
-                        None => break,
-                    };
-                }
-            }
-        }
-
-        Ok(Value::attrs(out.into()))
+        Ok(Value::attrs(left_set.intersect(&right_set)))
     }
 
     #[builtin("isAttrs")]
@@ -949,7 +905,7 @@ mod pure_builtins {
     #[builtin("listToAttrs")]
     async fn builtin_list_to_attrs(co: GenCo, list: Value) -> Result<Value, ErrorKind> {
         let list = list.to_list()?;
-        let mut map = BTreeMap::new();
+        let mut map = FxHashMap::default();
         for val in list {
             let attrs = try_value!(generators::request_force(&co, val).await).to_attrs()?;
             let name = try_value!(
@@ -960,7 +916,7 @@ mod pure_builtins {
             // Map entries earlier in the list take precedence over entries later in the list
             map.entry(name).or_insert(value);
         }
-        Ok(Value::attrs(NixAttrs::from_iter(map.into_iter())))
+        Ok(Value::attrs(NixAttrs::from(map)))
     }
 
     #[builtin("map")]
@@ -986,7 +942,7 @@ mod pure_builtins {
         attrs: Value,
     ) -> Result<Value, ErrorKind> {
         let attrs = attrs.to_attrs()?;
-        let mut out: BTreeMap<NixString, Value> = BTreeMap::new();
+        let mut out = FxHashMap::default();
 
         // the best span we can get…
         let span = generators::request_span(&co).await;

@@ -42,7 +42,7 @@ impl Arbitrary for NixAttrs {
                 .prop_map(|(name, value)| AttrsRep::KV { name, value }.into()),
             // Map representation
             btree_map(NixString::arbitrary(), Value::arbitrary_with(args), 0..100)
-                .prop_map(|map| AttrsRep::Map(map).into())
+                .prop_map(|map| AttrsRep::Map(map.into_iter().collect()).into())
         ]
         .boxed()
     }

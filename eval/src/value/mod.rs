@@ -283,7 +283,7 @@ impl Value {
                 }
 
                 Value::Attrs(attrs) => {
-                    for (_, val) in attrs.into_iter().rev() {
+                    for (_, val) in attrs.into_iter_sorted().rev() {
                         vals.push(val);
                     }
                     continue;
