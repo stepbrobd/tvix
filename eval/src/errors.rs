@@ -711,7 +711,7 @@ impl Error {
             ErrorKind::IndexOutOfBounds { .. } => "E019",
             ErrorKind::NotAnAbsolutePath(_) => "E020",
             ErrorKind::ParseIntError(_) => "E021",
-            ErrorKind::TailEmptyList { .. } => "E023",
+            ErrorKind::TailEmptyList => "E023",
             ErrorKind::UnmergeableInherit { .. } => "E024",
             ErrorKind::UnmergeableValue => "E025",
             ErrorKind::ImportParseError { .. } => "E027",

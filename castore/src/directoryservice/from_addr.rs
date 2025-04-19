@@ -22,7 +22,7 @@ use super::DirectoryService;
 /// - `grpc+unix:///absolute/path/to/somewhere`
 ///   Connects to a local tvix-store gRPC service via Unix socket.
 /// - `grpc+http://host:port`, `grpc+https://host:port`
-///    Connects to a (remote) tvix-store gRPC service.
+///   Connects to a (remote) tvix-store gRPC service.
 pub async fn from_addr(
     uri: &str,
 ) -> Result<Arc<dyn DirectoryService>, Box<dyn std::error::Error + Send + Sync>> {

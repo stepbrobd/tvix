@@ -141,7 +141,7 @@ pub const fn decode_len(len: usize) -> usize {
 
 /// Returns the encoded length of an input of length len
 pub const fn encode_len(len: usize) -> usize {
-    (len * 8 + 4) / 5
+    (len * 8).div_ceil(5)
 }
 
 #[cfg(test)]

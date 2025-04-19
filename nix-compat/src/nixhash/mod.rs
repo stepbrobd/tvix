@@ -290,7 +290,7 @@ pub fn from_sri_str(s: &str) -> NixHashResult<NixHash> {
     let digest_str = {
         let encoded_max_len = BASE64.encode_len(algo.digest_length());
         if digest_str.len() > encoded_max_len {
-            digest_str[..encoded_max_len].as_bytes()
+            &digest_str.as_bytes()[..encoded_max_len]
         } else {
             digest_str.as_bytes()
         }

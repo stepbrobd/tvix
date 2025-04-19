@@ -26,7 +26,7 @@ use url::Url;
 /// - `grpc+unix:///absolute/path/to/somewhere`
 ///   Connects to a local tvix-store gRPC service via Unix socket.
 /// - `grpc+http://host:port`, `grpc+https://host:port`
-///    Connects to a (remote) tvix-store gRPC service.
+///   Connects to a (remote) tvix-store gRPC service.
 ///
 /// As the [PathInfoService] needs to talk to [tvix_castore::blobservice::BlobService] and
 /// [tvix_castore::directoryservice::DirectoryService], these also need to be passed in.
