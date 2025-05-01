@@ -789,47 +789,37 @@ mod pure_builtins {
         if left_set.is_empty() {
             return Ok(Value::attrs(NixAttrs::empty()));
         }
-        let mut left_keys = left_set.keys_sorted();
+        let mut left_iter = left_set.iter_sorted();
 
         let right_set = y.to_attrs()?;
         if right_set.is_empty() {
             return Ok(Value::attrs(NixAttrs::empty()));
         }
-        let mut right_keys = right_set.keys_sorted();
+        let mut right_iter = right_set.iter_sorted();
 
         let mut out: BTreeMap<NixString, Value> = BTreeMap::new();
 
         // Both iterators have at least one entry
-        let mut left = left_keys.next().unwrap();
-        let mut right = right_keys.next().unwrap();
+        let mut left = left_iter.next().unwrap();
+        let mut right = right_iter.next().unwrap();
 
-        // Calculate the intersection of the attribute sets by simultaneously
-        // advancing two key iterators, and inserting into the result set from
-        // the right side when the keys match. Iteration over Nix attribute sets
-        // is in sorted lexicographical order, so we can advance either iterator
-        // until it "catches up" with its counterpart.
+        // Calculate the intersection of two attribute sets by iterating them
+        // simultaneously in lexicographic order, similar to a merge sort.
         //
         // Only when keys match are the key and value clones actually allocated.
         //
         // We opted for this implementation over simpler ones because of the
         // heavy use of this function in nixpkgs.
         loop {
-            if left == right {
-                // We know that the key exists in the set, and can
-                // skip the check instructions.
-                unsafe {
-                    out.insert(
-                        right.clone(),
-                        right_set.select(right).unwrap_unchecked().clone(),
-                    );
-                }
+            if left.0 == right.0 {
+                out.insert(right.0.clone(), right.1.clone());
 
-                left = match left_keys.next() {
+                left = match left_iter.next() {
                     Some(x) => x,
                     None => break,
                 };
 
-                right = match right_keys.next() {
+                right = match right_iter.next() {
                     Some(x) => x,
                     None => break,
                 };
@@ -837,16 +827,16 @@ mod pure_builtins {
                 continue;
             }
 
-            if left < right {
-                left = match left_keys.next() {
+            if left.0 < right.0 {
+                left = match left_iter.next() {
                     Some(x) => x,
                     None => break,
                 };
                 continue;
             }
 
-            if right < left {
-                right = match right_keys.next() {
+            if right.0 < left.0 {
+                right = match right_iter.next() {
                     Some(x) => x,
                     None => break,
                 };
