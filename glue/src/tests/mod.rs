@@ -50,9 +50,9 @@ fn eval_test(code_path: PathBuf, expect_success: bool) {
         tokio_runtime.handle().clone(),
     ));
     // Wrap with TvixIO, so <nix/fetchurl.nix can be imported.
-    let mut eval_builder = tvix_eval::Evaluation::builder(Box::new(TvixIO::new(
+    let mut eval_builder = tvix_eval::Evaluation::builder(Rc::new(TvixIO::new(
         tvix_store_io.clone() as Rc<dyn EvalIO>,
-    )) as Box<dyn EvalIO>)
+    )) as Rc<dyn EvalIO>)
     .enable_import()
     .mode(EvalMode::Strict);
 

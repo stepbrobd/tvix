@@ -83,11 +83,11 @@ enum BuilderGlobals {
 ///
 /// Then configure the fields by calling the various methods on [`EvaluationBuilder`], and finally
 /// call [`build`](Self::build) to construct an [`Evaluation`]
-pub struct EvaluationBuilder<'co, 'ro, 'env, IO> {
+pub struct EvaluationBuilder<'co, 'ro, 'env> {
     source_map: Option<SourceCode>,
     globals: BuilderGlobals,
     env: Option<&'env FxHashMap<SmolStr, Value>>,
-    io_handle: IO,
+    io_handle: Rc<dyn EvalIO>,
     enable_import: bool,
     mode: EvalMode,
     nix_path: Option<String>,
@@ -95,10 +95,7 @@ pub struct EvaluationBuilder<'co, 'ro, 'env, IO> {
     runtime_observer: Option<&'ro mut dyn RuntimeObserver>,
 }
 
-impl<'co, 'ro, 'env, IO> EvaluationBuilder<'co, 'ro, 'env, IO>
-where
-    IO: AsRef<dyn EvalIO> + 'static,
-{
+impl<'co, 'ro, 'env> EvaluationBuilder<'co, 'ro, 'env> {
     /// Build an [`Evaluation`] based on the configuration in this builder.
     ///
     /// This:
@@ -106,7 +103,7 @@ where
     /// - Adds a `"storeDir"` builtin containing the store directory of the configured IO handle
     /// - Sets up globals based on the configured builtins
     /// - Copies all other configured fields to the [`Evaluation`]
-    pub fn build(self) -> Evaluation<'co, 'ro, 'env, IO> {
+    pub fn build(self) -> Evaluation<'co, 'ro, 'env> {
         let source_map = self.source_map.unwrap_or_default();
 
         let globals = match self.globals {
@@ -144,8 +141,8 @@ where
 
 // NOTE(aspen): The methods here are intentionally incomplete; feel free to add new ones (ideally
 // with similar naming conventions to the ones already present) but don't expose fields publically!
-impl<'co, 'ro, 'env, IO> EvaluationBuilder<'co, 'ro, 'env, IO> {
-    pub fn new(io_handle: IO) -> Self {
+impl<'co, 'ro, 'env> EvaluationBuilder<'co, 'ro, 'env> {
+    pub fn new(io_handle: Rc<dyn EvalIO>) -> Self {
         let mut builtins = builtins::pure_builtins();
         builtins.extend(builtins::placeholders()); // these are temporary
 
@@ -165,7 +162,7 @@ impl<'co, 'ro, 'env, IO> EvaluationBuilder<'co, 'ro, 'env, IO> {
         }
     }
 
-    pub fn io_handle<IO2>(self, io_handle: IO2) -> EvaluationBuilder<'co, 'ro, 'env, IO2> {
+    pub fn io_handle(self, io_handle: Rc<dyn EvalIO>) -> EvaluationBuilder<'co, 'ro, 'env> {
         EvaluationBuilder {
             io_handle,
             source_map: self.source_map,
@@ -293,17 +290,17 @@ impl<'co, 'ro, 'env, IO> EvaluationBuilder<'co, 'ro, 'env, IO> {
     }
 }
 
-impl<IO> EvaluationBuilder<'_, '_, '_, IO> {
+impl EvaluationBuilder<'_, '_, '_> {
     pub fn source_map(&mut self) -> &SourceCode {
         self.source_map.get_or_insert_with(SourceCode::default)
     }
 }
 
-impl EvaluationBuilder<'_, '_, '_, Box<dyn EvalIO>> {
+impl EvaluationBuilder<'_, '_, '_> {
     /// Initialize an `Evaluation`, without the import statement available, and
     /// all IO operations stubbed out.
     pub fn new_pure() -> Self {
-        Self::new(Box::new(DummyIO) as Box<dyn EvalIO>).with_enable_import(false)
+        Self::new(Rc::new(DummyIO) as Rc<dyn EvalIO>).with_enable_import(false)
     }
 
     #[cfg(feature = "impure")]
@@ -312,8 +309,8 @@ impl EvaluationBuilder<'_, '_, '_, Box<dyn EvalIO>> {
     ///
     /// If no I/O implementation is supplied, [`StdIO`] is used by
     /// default.
-    pub fn enable_impure(mut self, io: Option<Box<dyn EvalIO>>) -> Self {
-        self.io_handle = io.unwrap_or_else(|| Box::new(StdIO) as Box<dyn EvalIO>);
+    pub fn enable_impure(mut self, io: Option<Rc<dyn EvalIO>>) -> Self {
+        self.io_handle = io.unwrap_or_else(|| Rc::new(StdIO) as Rc<dyn EvalIO>);
         self.enable_import = true;
         self.builtins_mut()
             .builtins
@@ -340,7 +337,7 @@ impl EvaluationBuilder<'_, '_, '_, Box<dyn EvalIO>> {
 ///
 /// Public fields are intended to be set by the caller. Setting all
 /// fields is optional.
-pub struct Evaluation<'co, 'ro, 'env, IO> {
+pub struct Evaluation<'co, 'ro, 'env> {
     /// Source code map used for error reporting.
     source_map: SourceCode,
 
@@ -354,7 +351,7 @@ pub struct Evaluation<'co, 'ro, 'env, IO> {
     /// impure builtins.
     ///
     /// Defaults to [`DummyIO`] if not set explicitly.
-    io_handle: IO,
+    io_handle: Rc<dyn EvalIO>,
 
     /// Specification for how to handle top-level values returned by evaluation
     ///
@@ -393,11 +390,11 @@ pub struct EvaluationResult {
     pub expr: Option<rnix::ast::Expr>,
 }
 
-impl<'co, 'ro, 'env, IO> Evaluation<'co, 'ro, 'env, IO> {
+impl<'co, 'ro, 'env> Evaluation<'co, 'ro, 'env> {
     /// Make a new [builder][] for configuring an evaluation
     ///
     /// [builder]: EvaluationBuilder
-    pub fn builder(io_handle: IO) -> EvaluationBuilder<'co, 'ro, 'env, IO> {
+    pub fn builder(io_handle: Rc<dyn EvalIO>) -> EvaluationBuilder<'co, 'ro, 'env> {
         EvaluationBuilder::new(io_handle)
     }
 
@@ -416,21 +413,18 @@ impl<'co, 'ro, 'env, IO> Evaluation<'co, 'ro, 'env, IO> {
     }
 }
 
-impl<'co, 'ro, 'env> Evaluation<'co, 'ro, 'env, Box<dyn EvalIO>> {
+impl<'co, 'ro, 'env> Evaluation<'co, 'ro, 'env> {
     #[cfg(feature = "impure")]
-    pub fn builder_impure() -> EvaluationBuilder<'co, 'ro, 'env, Box<dyn EvalIO>> {
+    pub fn builder_impure() -> EvaluationBuilder<'co, 'ro, 'env> {
         EvaluationBuilder::new_impure()
     }
 
-    pub fn builder_pure() -> EvaluationBuilder<'co, 'ro, 'env, Box<dyn EvalIO>> {
+    pub fn builder_pure() -> EvaluationBuilder<'co, 'ro, 'env> {
         EvaluationBuilder::new_pure()
     }
 }
 
-impl<IO> Evaluation<'_, '_, '_, IO>
-where
-    IO: AsRef<dyn EvalIO> + 'static,
-{
+impl Evaluation<'_, '_, '_> {
     /// Only compile the provided source code, at an optional location of the
     /// source code (i.e. path to the file it was read from; used for error
     /// reporting, and for resolving relative paths in impure functions)

@@ -20,10 +20,10 @@ pub use errors::{DerivationError, FetcherError, ImportError};
 ///
 /// As they need to interact with `known_paths`, we also need to pass in
 /// `known_paths`.
-pub fn add_derivation_builtins<'co, 'ro, 'env, IO>(
-    eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO>,
+pub fn add_derivation_builtins<'co, 'ro, 'env>(
+    eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env>,
     io: Rc<TvixStoreIO>,
-) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO> {
+) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env> {
     eval_builder
         .add_builtins(derivation::derivation_builtins::builtins(Rc::clone(&io)))
         // Add the actual `builtins.derivation` from compiled Nix code
@@ -35,10 +35,10 @@ pub fn add_derivation_builtins<'co, 'ro, 'env, IO>(
 /// * `fetchurl`
 /// * `fetchTarball`
 /// * `fetchGit`
-pub fn add_fetcher_builtins<'co, 'ro, 'env, IO>(
-    eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO>,
+pub fn add_fetcher_builtins<'co, 'ro, 'env>(
+    eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env>,
     io: Rc<TvixStoreIO>,
-) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO> {
+) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env> {
     eval_builder.add_builtins(fetchers::fetcher_builtins::builtins(Rc::clone(&io)))
 }
 
@@ -50,10 +50,10 @@ pub fn add_fetcher_builtins<'co, 'ro, 'env, IO>(
 /// * `storePath`
 ///
 /// As they need to interact with the store implementation, we pass [`TvixStoreIO`].
-pub fn add_import_builtins<'co, 'ro, 'env, IO>(
-    eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO>,
+pub fn add_import_builtins<'co, 'ro, 'env>(
+    eval_builder: tvix_eval::EvaluationBuilder<'co, 'ro, 'env>,
     io: Rc<TvixStoreIO>,
-) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env, IO> {
+) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env> {
     eval_builder.add_builtins(import::import_builtins(io))
 }
 

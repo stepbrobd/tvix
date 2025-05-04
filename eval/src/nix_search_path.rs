@@ -163,6 +163,7 @@ impl FromStr for NixSearchPath {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::rc::Rc;
 
     mod parse {
         use super::*;
@@ -209,7 +210,7 @@ mod tests {
         #[test]
         fn simple_dir() {
             let nix_search_path = NixSearchPath::from_str("./.").unwrap();
-            let io = Box::new(StdIO {}) as Box<dyn EvalIO>;
+            let io = Rc::new(StdIO {}) as Rc<dyn EvalIO>;
             let res = nix_search_path.resolve(&io, "src").unwrap();
             assert_eq!(
                 res.unwrap().to_path_buf(),
@@ -220,7 +221,7 @@ mod tests {
         #[test]
         fn failed_resolution() {
             let nix_search_path = NixSearchPath::from_str("./.").unwrap();
-            let io = Box::new(StdIO {}) as Box<dyn EvalIO>;
+            let io = Rc::new(StdIO {}) as Rc<dyn EvalIO>;
             let err = nix_search_path.resolve(&io, "nope").unwrap();
             assert!(
                 matches!(err, Err(CatchableErrorKind::NixPathResolution(..))),
@@ -231,7 +232,7 @@ mod tests {
         #[test]
         fn second_in_path() {
             let nix_search_path = NixSearchPath::from_str("./.:/").unwrap();
-            let io = Box::new(StdIO {}) as Box<dyn EvalIO>;
+            let io = Rc::new(StdIO {}) as Rc<dyn EvalIO>;
             let res = nix_search_path.resolve(&io, "etc").unwrap();
             assert_eq!(res.unwrap().to_path_buf(), Path::new("/etc"));
         }
@@ -239,7 +240,7 @@ mod tests {
         #[test]
         fn prefix() {
             let nix_search_path = NixSearchPath::from_str("/:tvix=.").unwrap();
-            let io = Box::new(StdIO {}) as Box<dyn EvalIO>;
+            let io = Rc::new(StdIO {}) as Rc<dyn EvalIO>;
             let res = nix_search_path.resolve(&io, "tvix/src").unwrap();
             assert_eq!(
                 res.unwrap().to_path_buf(),
@@ -250,7 +251,7 @@ mod tests {
         #[test]
         fn matching_prefix() {
             let nix_search_path = NixSearchPath::from_str("/:tvix=.").unwrap();
-            let io = Box::new(StdIO {}) as Box<dyn EvalIO>;
+            let io = Rc::new(StdIO {}) as Rc<dyn EvalIO>;
             let res = nix_search_path.resolve(&io, "tvix").unwrap();
             assert_eq!(res.unwrap().to_path_buf(), current_dir().unwrap().clean());
         }

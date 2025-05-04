@@ -49,7 +49,7 @@ trait GetSpan {
     fn get_span(self) -> Span;
 }
 
-impl<IO> GetSpan for &VM<'_, IO> {
+impl GetSpan for &VM<'_> {
     fn get_span(self) -> Span {
         self.reasonable_span
     }
@@ -76,12 +76,12 @@ impl GetSpan for Span {
 /// Internal helper trait for ergonomically converting from a `Result<T,
 /// ErrorKind>` to a `Result<T, Error>` using the current span of a call frame,
 /// and chaining the VM's frame stack around it for printing a cause chain.
-trait WithSpan<T, S: GetSpan, IO> {
-    fn with_span(self, top_span: S, vm: &VM<IO>) -> Result<T, Error>;
+trait WithSpan<T, S: GetSpan> {
+    fn with_span(self, top_span: S, vm: &VM) -> Result<T, Error>;
 }
 
-impl<T, S: GetSpan, IO> WithSpan<T, S, IO> for Result<T, ErrorKind> {
-    fn with_span(self, top_span: S, vm: &VM<IO>) -> Result<T, Error> {
+impl<T, S: GetSpan> WithSpan<T, S> for Result<T, ErrorKind> {
+    fn with_span(self, top_span: S, vm: &VM) -> Result<T, Error> {
         match self {
             Ok(something) => Ok(something),
             Err(kind) => {
@@ -176,7 +176,7 @@ impl CallFrame {
 
     /// Construct an error result from the given ErrorKind and the source span
     /// of the current instruction.
-    pub fn error<T, IO>(&self, vm: &VM<IO>, kind: ErrorKind) -> Result<T, Error> {
+    pub fn error<T>(&self, vm: &VM, kind: ErrorKind) -> Result<T, Error> {
         Err(kind).with_span(self, vm)
     }
 
@@ -269,7 +269,7 @@ impl ImportCache {
     }
 }
 
-struct VM<'o, IO> {
+struct VM<'o> {
     /// VM's frame stack, representing the execution contexts the VM is working
     /// through. Elements are usually pushed when functions are called, or
     /// thunks are being forced.
@@ -304,7 +304,7 @@ struct VM<'o, IO> {
 
     /// Implementation of I/O operations used for impure builtins and
     /// features like `import`.
-    io_handle: IO,
+    io_handle: Rc<dyn EvalIO>,
 
     /// Runtime observer which can print traces of runtime operations.
     observer: &'o mut dyn RuntimeObserver,
@@ -348,13 +348,10 @@ struct VM<'o, IO> {
     try_eval_frames: Vec<usize>,
 }
 
-impl<'o, IO> VM<'o, IO>
-where
-    IO: AsRef<dyn EvalIO> + 'static,
-{
+impl<'o> VM<'o> {
     pub fn new(
         nix_search_path: NixSearchPath,
-        io_handle: IO,
+        io_handle: Rc<dyn EvalIO>,
         observer: &'o mut dyn RuntimeObserver,
         source: SourceCode,
         globals: Rc<GlobalsMap>,
@@ -983,10 +980,7 @@ where
 }
 
 /// Implementation of helper functions for the runtime logic above.
-impl<IO> VM<'_, IO>
-where
-    IO: AsRef<dyn EvalIO> + 'static,
-{
+impl VM<'_> {
     pub(crate) fn stack_pop(&mut self) -> Value {
         self.stack.pop().expect("runtime stack empty")
     }
@@ -1390,18 +1384,15 @@ pub enum EvalMode {
     Strict,
 }
 
-pub fn run_lambda<IO>(
+pub fn run_lambda(
     nix_search_path: NixSearchPath,
-    io_handle: IO,
+    io_handle: Rc<dyn EvalIO>,
     observer: &mut dyn RuntimeObserver,
     source: SourceCode,
     globals: Rc<GlobalsMap>,
     lambda: Rc<Lambda>,
     mode: EvalMode,
-) -> EvalResult<RuntimeResult>
-where
-    IO: AsRef<dyn EvalIO> + 'static,
-{
+) -> EvalResult<RuntimeResult> {
     // Retain the top-level span of the expression in this lambda, as
     // synthetic "calls" in deep_force will otherwise not have a span
     // to fall back to.

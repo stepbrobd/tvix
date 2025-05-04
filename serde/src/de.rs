@@ -3,7 +3,7 @@
 use bstr::ByteSlice;
 use serde::de::value::{MapDeserializer, SeqDeserializer};
 use serde::de::{self, EnumAccess, VariantAccess};
-use tvix_eval::{EvalIO, EvalMode, EvaluationBuilder, Value};
+use tvix_eval::{EvalMode, EvaluationBuilder, Value};
 
 use crate::error::Error;
 
@@ -44,8 +44,8 @@ pub fn from_str_with_config<'code, T, F>(src: &'code str, config: F) -> Result<T
 where
     T: serde::Deserialize<'code>,
     F: for<'co, 'ro, 'env> FnOnce(
-        EvaluationBuilder<'co, 'ro, 'env, Box<dyn EvalIO>>,
-    ) -> EvaluationBuilder<'co, 'ro, 'env, Box<dyn EvalIO>>,
+        EvaluationBuilder<'co, 'ro, 'env>,
+    ) -> EvaluationBuilder<'co, 'ro, 'env>,
 {
     // First step is to evaluate the Nix code ...
     let eval = config(EvaluationBuilder::new_pure().mode(EvalMode::Strict)).build();

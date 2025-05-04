@@ -1,6 +1,6 @@
 //! Tests which use upstream nix as an oracle to test evaluation against
 
-use std::{env, path::PathBuf, process::Command};
+use std::{env, path::PathBuf, process::Command, rc::Rc};
 
 use pretty_assertions::assert_eq;
 
@@ -66,7 +66,7 @@ fn compare_eval(expr: &str, strictness: Strictness) {
         eval_builder = eval_builder.mode(EvalMode::Strict);
     }
     let eval = eval_builder
-        .io_handle(Box::new(tvix_eval::StdIO) as Box<dyn EvalIO>)
+        .io_handle(Rc::new(tvix_eval::StdIO) as Rc<dyn EvalIO>)
         .build();
 
     let tvix_result = eval

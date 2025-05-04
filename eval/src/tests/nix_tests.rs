@@ -3,6 +3,7 @@ use builtin_macros::builtins;
 use pretty_assertions::assert_eq;
 use rstest::rstest;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 #[builtins]
 mod mock_builtins {
@@ -131,7 +132,7 @@ fn identity(#[files("src/tests/tvix_tests/identity-*.nix")] code_path: PathBuf) 
 
     let code = std::fs::read_to_string(code_path).expect("should be able to read test code");
 
-    let eval = crate::Evaluation::builder(Box::new(crate::StdIO) as Box<dyn EvalIO>)
+    let eval = crate::Evaluation::builder(Rc::new(crate::StdIO) as Rc<dyn EvalIO>)
         .disable_import()
         .mode(EvalMode::Strict)
         .build();

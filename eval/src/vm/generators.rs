@@ -230,10 +230,7 @@ pub fn pin_generator(
     Box::pin(f)
 }
 
-impl<IO> VM<'_, IO>
-where
-    IO: AsRef<dyn EvalIO> + 'static,
-{
+impl VM<'_> {
     /// Helper function to re-enqueue the current generator while it
     /// is awaiting a value.
     fn reenqueue_generator(&mut self, name: &'static str, span: Span, generator: Generator) {
