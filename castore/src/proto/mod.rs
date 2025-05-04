@@ -11,12 +11,6 @@ pub use grpc_directoryservice_wrapper::GRPCDirectoryServiceWrapper;
 
 tonic::include_proto!("tvix.castore.v1");
 
-#[cfg(feature = "tonic-reflection")]
-/// Compiled file descriptors for implementing [gRPC
-/// reflection](https://github.com/grpc/grpc/blob/master/doc/server-reflection.md) with e.g.
-/// [`tonic_reflection`](https://docs.rs/tonic-reflection).
-pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("tvix.castore.v1");
-
 #[cfg(test)]
 mod tests;
 

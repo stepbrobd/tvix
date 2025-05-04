@@ -69,14 +69,3 @@ pub async fn make_grpc_path_info_service_client() -> (
 
     (blob_service, directory_service, path_info_service)
 }
-
-#[cfg(all(feature = "cloud", feature = "integration"))]
-pub(crate) async fn make_bigtable_path_info_service(
-) -> crate::pathinfoservice::BigtablePathInfoService {
-    use crate::pathinfoservice::bigtable::BigtableParameters;
-    use crate::pathinfoservice::BigtablePathInfoService;
-
-    BigtablePathInfoService::connect("test".into(), BigtableParameters::default_for_tests())
-        .await
-        .unwrap()
-}

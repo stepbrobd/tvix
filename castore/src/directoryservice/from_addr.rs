@@ -97,27 +97,6 @@ mod tests {
         not(feature = "xp-composition-url-refs"),
         case::anonymous_url_composition("cache://?near=memory://&far=memory://", false)
     )]
-    /// A valid example for Bigtable
-    #[cfg_attr(
-        all(feature = "cloud", feature = "integration"),
-        case::bigtable_valid_url(
-            "bigtable://instance-1?project_id=project-1&table_name=table-1&family_name=cf1",
-            true
-        )
-    )]
-    /// A valid example for Bigtable, specifying a custom channel size and timeout
-    #[cfg_attr(
-        all(feature = "cloud", feature = "integration"),
-        case::bigtable_valid_url(
-            "bigtable://instance-1?project_id=project-1&table_name=table-1&family_name=cf1&channel_size=10&timeout=10",
-            true
-        )
-    )]
-    /// A invalid Bigtable example (missing fields)
-    #[cfg_attr(
-        all(feature = "cloud", feature = "integration"),
-        case::bigtable_invalid_url("bigtable://instance-1", false)
-    )]
     #[tokio::test]
     async fn test_from_addr_tokio(#[case] uri_str: &str, #[case] exp_succeed: bool) {
         if exp_succeed {

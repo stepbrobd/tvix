@@ -14,6 +14,7 @@ option go_package = "code.tvl.fyi/tvix/castore-go;castorev1";
 //  - MUST not contain slashes or null bytes
 //  - MUST not be '.' or '..'
 //  - MUST be unique across all three lists
+//
 // Elements in each list need to be lexicographically ordered by the name
 // attribute.
 message Directory {

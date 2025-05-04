@@ -67,16 +67,6 @@ mod tests {
     #[case::objectstore_valid_file("objectstore+file:///foo/bar", true)]
     // An example for object store (HTTP / WebDAV)
     #[case::objectstore_valid_http_url("objectstore+https://localhost:8080/some-path", true)]
-    /// An example for object store (S3)
-    #[cfg_attr(
-        feature = "cloud",
-        case::objectstore_valid_s3_url("objectstore+s3://bucket/path", true)
-    )]
-    /// An example for object store (GCS)
-    #[cfg_attr(
-        feature = "cloud",
-        case::objectstore_valid_gcs_url("objectstore+gs://bucket/path", true)
-    )]
     #[tokio::test]
     async fn test_from_addr_tokio(#[case] uri_str: &str, #[case] exp_succeed: bool) {
         if exp_succeed {

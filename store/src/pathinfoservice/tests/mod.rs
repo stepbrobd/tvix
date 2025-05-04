@@ -15,9 +15,6 @@ use crate::pathinfoservice::MemoryPathInfoService;
 mod utils;
 pub use self::utils::make_grpc_path_info_service_client;
 
-#[cfg(all(feature = "cloud", feature = "integration"))]
-use self::utils::make_bigtable_path_info_service;
-
 #[template]
 #[rstest]
 #[case::memory(MemoryPathInfoService::default())]
@@ -27,7 +24,6 @@ use self::utils::make_bigtable_path_info_service;
 })]
 #[case::redb(RedbPathInfoService::new_temporary("test".into()).unwrap())]
 #[case::signing(test_signing_service())]
-#[cfg_attr(all(feature = "cloud",feature="integration"), case::bigtable(make_bigtable_path_info_service().await))]
 pub fn path_info_services(#[case] svc: impl PathInfoService) {}
 
 // FUTUREWORK: add more tests rejecting invalid PathInfo messages.

@@ -30,11 +30,6 @@ struct Cli {
     /// Should be bigger than the number of concurrent NAR uploads.
     #[arg(long, env, default_value_t = NonZeroUsize::new(1000).unwrap())]
     root_nodes_cache_capacity: NonZeroUsize,
-
-    #[cfg(feature = "otlp")]
-    /// Whether to configure OTLP. Set --otlp=false to disable.
-    #[arg(long, default_missing_value = "true", default_value = "true", num_args(0..=1), require_equals(true), action(clap::ArgAction::Set))]
-    otlp: bool,
 }
 
 #[tokio::main]
@@ -44,12 +39,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _tracing_handle = {
         #[allow(unused_mut)]
         let mut builder = tvix_tracing::TracingBuilder::default();
-        #[cfg(feature = "otlp")]
-        {
-            if cli.otlp {
-                builder = builder.enable_otlp("nar-bridge");
-            }
-        }
         builder.build()?
     };
 
@@ -66,15 +55,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let app = nar_bridge::gen_router(cli.priority)
         .layer(
-            ServiceBuilder::new()
-                .layer(
-                    TraceLayer::new_for_http().make_span_with(
-                        DefaultMakeSpan::new()
-                            .level(tracing::Level::INFO)
-                            .include_headers(true),
-                    ),
-                )
-                .map_request(tvix_tracing::propagate::axum::accept_trace),
+            ServiceBuilder::new().layer(
+                TraceLayer::new_for_http().make_span_with(
+                    DefaultMakeSpan::new()
+                        .level(tracing::Level::INFO)
+                        .include_headers(true),
+                ),
+            ),
         )
         .with_state(state);
 

@@ -30,12 +30,6 @@ pub use self::simple_putter::SimplePutter;
 pub use self::traverse::descend_to;
 pub use self::utils::traverse_directory;
 
-#[cfg(feature = "cloud")]
-mod bigtable;
-
-#[cfg(feature = "cloud")]
-pub use self::bigtable::{BigtableDirectoryService, BigtableParameters};
-
 /// The base trait all Directory services need to implement.
 /// This is a simple get and put of [Directory], returning their
 /// digest.
@@ -114,8 +108,4 @@ pub(crate) fn register_directory_services(reg: &mut Registry) {
     reg.register::<Box<dyn ServiceBuilder<Output = dyn DirectoryService>>, super::directoryservice::CacheConfig>("cache");
     reg.register::<Box<dyn ServiceBuilder<Output = dyn DirectoryService>>, super::directoryservice::GRPCDirectoryServiceConfig>("grpc");
     reg.register::<Box<dyn ServiceBuilder<Output = dyn DirectoryService>>, super::directoryservice::RedbDirectoryServiceConfig>("redb");
-    #[cfg(feature = "cloud")]
-    {
-        reg.register::<Box<dyn ServiceBuilder<Output = dyn DirectoryService>>, super::directoryservice::BigtableParameters>("bigtable");
-    }
 }

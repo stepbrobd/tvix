@@ -9,7 +9,6 @@ bstr.workspace = true
 bytes.workspace = true
 data-encoding.workspace = true
 futures.workspace = true
-magic.workspace = true
 nix-compat = { path = "../nix-compat" }
 pin-project.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls-native-roots"] }
@@ -24,7 +23,6 @@ tokio.workspace = true
 tokio-tar.workspace = true
 tokio-util = { workspace = true, features = ["io", "io-util", "compat"] }
 thiserror.workspace = true
-serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 sha1.workspace = true

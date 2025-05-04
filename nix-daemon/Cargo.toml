@@ -4,9 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-trait = "0.1.83"
 clap = { workspace = true, features = ["derive", "env"] }
-futures.workspace = true
 mimalloc.workspace = true
 nix-compat = { path = "../nix-compat" }
 tvix-castore = { path = "../castore" }
@@ -20,5 +18,4 @@ tracing.workspace = true
 workspace = true
 
 [features]
-default = ["otlp"]
-otlp = ["tvix-tracing/otlp"]
+default = []

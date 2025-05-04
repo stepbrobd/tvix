@@ -8,52 +8,22 @@
   pkgs ? (import ./nixpkgs {
     depotOverlays = false;
     depot.third_party.sources = import ./sources { };
-    additionalOverlays = [
-      (self: super: {
-        # macFUSE bump containing fix for https://github.com/osxfuse/osxfuse/issues/974
-        # https://github.com/NixOS/nixpkgs/pull/320197
-        fuse =
-          if super.stdenv.isDarwin then
-            super.fuse.overrideAttrs
-              (old: rec {
-                version = "4.8.0";
-                src = super.fetchurl {
-                  url = "https://github.com/osxfuse/osxfuse/releases/download/macfuse-${version}/macfuse-${version}.dmg";
-                  hash = "sha256-ucTzO2qdN4QkowMVvC3+4pjEVjbwMsB0xFk+bvQxwtQ=";
-                };
-              }) else super.fuse;
-      })
-    ];
   })
-, withIntegration ? false
 , ...
 }:
 
 pkgs.mkShell {
   name = "tvix-rust-dev-env";
   packages = [
-    pkgs.buf
     pkgs.cargo
     pkgs.cargo-machete
     pkgs.cargo-expand
-    pkgs.cargo-flamegraph
     pkgs.clippy
-    pkgs.d2
-    pkgs.evans
-    pkgs.fuse
-    pkgs.go
-    pkgs.grpcurl
     pkgs.hyperfine
-    pkgs.mdbook
-    pkgs.mdbook-admonish
-    pkgs.mdbook-d2
-    pkgs.mdbook-plantuml
     pkgs.nix_2_3 # b/313
     pkgs.pkg-config
-    pkgs.rust-analyzer
     pkgs.rustc
     pkgs.rustfmt
-    pkgs.plantuml
     pkgs.protobuf
   ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
     pkgs.runc
@@ -62,9 +32,6 @@ pkgs.mkShell {
     # `cargo build` on MacOS.
     pkgs.libiconv
     pkgs.buildPackages.darwin.apple_sdk.frameworks.Security
-  ] ++ pkgs.lib.optionals withIntegration [
-    pkgs.cbtemulator
-    pkgs.google-cloud-bigtable-tool
   ];
 
   # Set TVIX_BENCH_NIX_PATH to a somewhat pinned nixpkgs path.

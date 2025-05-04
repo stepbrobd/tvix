@@ -8,48 +8,10 @@ tracing = { workspace = true, features = ["max_level_trace", "release_max_level_
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 indicatif.workspace = true
 tracing-indicatif.workspace = true
-tokio = { workspace = true, features = ["sync", "rt"] }
 thiserror.workspace = true
-
-tracing-opentelemetry = { workspace = true, optional = true }
-opentelemetry = { workspace = true, optional = true }
-opentelemetry-otlp = { workspace = true, features = ["grpc-tonic"], optional = true }
-opentelemetry_sdk = { workspace = true, features = ["rt-tokio"], optional = true }
-tracing-tracy = { workspace = true, features = ["flush-on-exit"], optional = true }
-opentelemetry-http = { workspace = true, optional = true }
-opentelemetry-semantic-conventions = { workspace = true, optional = true }
-
-tonic = { workspace = true, optional = true }
-http  = { workspace = true, optional = true }
-
-reqwest-tracing = { workspace = true, optional = true }
-
-axum = { workspace = true, optional = true }
 
 [features]
 default = []
-otlp = [
-  "dep:tracing-opentelemetry",
-  "dep:opentelemetry",
-  "dep:opentelemetry-otlp",
-  "dep:opentelemetry_sdk",
-  "dep:opentelemetry-http",
-  "dep:opentelemetry-semantic-conventions",
-  "reqwest-tracing?/opentelemetry_0_28",
-]
-tracy = [
-  "dep:tracing-tracy"
-]
-tonic = [
-  "dep:tonic",
-  "dep:http",
-]
-reqwest = [
-  "dep:reqwest-tracing",
-]
-axum = [
-  "dep:axum",
-]
 
 [lints]
 workspace = true

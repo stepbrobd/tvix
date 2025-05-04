@@ -10,12 +10,6 @@ pub use grpc_buildservice_wrapper::GRPCBuildServiceWrapper;
 
 tonic::include_proto!("tvix.build.v1");
 
-#[cfg(feature = "tonic-reflection")]
-/// Compiled file descriptors for implementing [gRPC
-/// reflection](https://github.com/grpc/grpc/blob/master/doc/server-reflection.md) with e.g.
-/// [`tonic_reflection`](https://docs.rs/tonic-reflection).
-pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("tvix.build.v1");
-
 /// Errors that occur during the validation of [BuildRequest] messages.
 #[derive(Debug, thiserror::Error)]
 pub enum ValidateBuildRequestError {

@@ -60,7 +60,6 @@ impl<BS, DS> NixHTTPPathInfoService<BS, DS> {
                     .build()
                     .expect("Client::new()"),
             )
-            .with(tvix_tracing::propagate::reqwest::tracing_middleware())
             .build(),
             blob_service,
             directory_service,

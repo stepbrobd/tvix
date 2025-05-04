@@ -58,6 +58,3 @@ digest (TYPE_BYTES) => KOM3/IHEx7YfInAnlJpAElYezq0Sxn9fRz7xuClwNfA=
 $ echo eDg2XzY0LWxpbnV4 | base64 -d
 x86_64-linux
 ```
-
-Thanks to `tvix-store` providing gRPC Server Reflection (with `reflection`
-feature), you don't need to point `evans` to the `.proto` files.

@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 async-compression = { workspace = true, features = ["tokio", "zstd"] }
 async-stream.workspace = true
-async-tempfile.workspace = true
 blake3 = { workspace = true, features = ["rayon", "std", "traits-preview"] }
 bstr.workspace = true
 bytes.workspace = true
@@ -29,12 +28,11 @@ tonic.workspace = true
 tower.workspace = true
 tracing.workspace = true
 tracing-indicatif.workspace = true
-tvix-tracing = { path = "../tracing", features = ["tonic"] }
+tvix-tracing = { path = "../tracing" }
 url.workspace = true
 walkdir.workspace = true
 zstd.workspace = true
 serde = { workspace = true, features = ["derive"] }
-serde_with.workspace = true
 serde_qs.workspace = true
 petgraph.workspace = true
 pin-project.workspace = true
@@ -42,11 +40,9 @@ erased-serde.workspace = true
 serde_tagged.workspace = true
 hyper-util.workspace = true
 redb = { workspace = true, features = ["logging"] }
-bigtable_rs = { workspace = true, optional = true }
 fuse-backend-rs = { workspace = true, optional = true }
 libc = { workspace = true, optional = true }
 threadpool = { workspace = true, optional = true }
-tonic-reflection = { workspace = true, optional = true }
 vhost = { workspace = true, optional = true }
 vhost-user-backend = { workspace = true, optional = true }
 virtio-queue = { workspace = true, optional = true }
@@ -72,13 +68,6 @@ serde_json.workspace = true
 tokio-test.workspace = true
 
 [features]
-default = ["cloud"]
-cloud = [
-  "dep:bigtable_rs",
-  "object_store/aws",
-  "object_store/azure",
-  "object_store/gcp",
-]
 fs = ["dep:fuse-backend-rs", "dep:threadpool", "dep:libc"]
 virtiofs = [
   "fs",
@@ -92,15 +81,10 @@ virtiofs = [
   "fuse-backend-rs?/virtiofs",
 ]
 fuse = ["fs"]
-tonic-reflection = ["dep:tonic-reflection"]
 xp-composition-cli = ["toml", "xp-composition-url-refs"]
 # This feature enables anonymous url syntax which might inherently expose
 # arbitrary composition possibilities to the user.
 xp-composition-url-refs = []
-# Whether to run the integration tests.
-# Requires the following packages in $PATH:
-# cbtemulator, google-cloud-bigtable-tool
-integration = []
 
 [lints]
 workspace = true

@@ -10,15 +10,6 @@ use tracing_subscriber::{
     EnvFilter, Layer, Registry,
 };
 
-#[cfg(feature = "otlp")]
-use opentelemetry_sdk::{
-    propagation::TraceContextPropagator, resource::SdkProvidedResourceDetector, Resource,
-};
-#[cfg(feature = "tracy")]
-use tracing_tracy::TracyLayer;
-
-pub mod propagate;
-
 pub static PB_PROGRESS_STYLE: LazyLock<ProgressStyle> = LazyLock::new(|| {
     ProgressStyle::with_template(
         "{span_child_prefix} {wide_msg} {bar:10} ({elapsed}) {pos:>7}/{len:7}",
@@ -42,22 +33,12 @@ pub static PB_SPINNER_STYLE: LazyLock<ProgressStyle> = LazyLock::new(|| {
 pub enum Error {
     #[error(transparent)]
     Init(#[from] tracing_subscriber::util::TryInitError),
-
-    #[cfg(feature = "otlp")]
-    #[error(transparent)]
-    OTEL(#[from] opentelemetry_sdk::error::OTelSdkError),
 }
 
 #[derive(Clone)]
 pub struct TracingHandle {
     stdout_writer: IndicatifWriter<writer::Stdout>,
     stderr_writer: IndicatifWriter<writer::Stderr>,
-
-    #[cfg(feature = "otlp")]
-    meter_provider: Option<opentelemetry_sdk::metrics::SdkMeterProvider>,
-
-    #[cfg(feature = "otlp")]
-    tracer_provider: Option<opentelemetry_sdk::trace::SdkTracerProvider>,
 }
 
 impl TracingHandle {
@@ -84,15 +65,6 @@ impl TracingHandle {
     ///
     /// It will wait until the flush is complete.
     pub async fn flush(&self) -> Result<(), Error> {
-        #[cfg(feature = "otlp")]
-        {
-            if let Some(tracer_provider) = &self.tracer_provider {
-                tracer_provider.force_flush()?;
-            }
-            if let Some(meter_provider) = &self.meter_provider {
-                meter_provider.force_flush()?;
-            }
-        }
         Ok(())
     }
 
@@ -102,16 +74,6 @@ impl TracingHandle {
     /// This should only be called on a regular shutdown.
     pub async fn shutdown(&self) -> Result<(), Error> {
         self.flush().await?;
-        #[cfg(feature = "otlp")]
-        {
-            if let Some(tracer_provider) = &self.tracer_provider {
-                tracer_provider.shutdown()?;
-            }
-            if let Some(meter_provider) = &self.meter_provider {
-                meter_provider.shutdown()?;
-            }
-        }
-
         Ok(())
     }
 }
@@ -120,19 +82,9 @@ impl TracingHandle {
 #[derive(Default)]
 pub struct TracingBuilder {
     progess_bar: bool,
-
-    #[cfg(feature = "otlp")]
-    service_name: Option<&'static str>,
 }
 
 impl TracingBuilder {
-    #[cfg(feature = "otlp")]
-    /// Enable otlp by setting a custom service_name
-    pub fn enable_otlp(mut self, service_name: &'static str) -> TracingBuilder {
-        self.service_name = Some(service_name);
-        self
-    }
-
     /// Enable progress bar layer, default is disabled
     pub fn enable_progressbar(mut self) -> TracingBuilder {
         self.progess_bar = true;
@@ -185,42 +137,6 @@ impl TracingBuilder {
                     IndicatifFilter::new(false),
                 )
             }));
-        #[cfg(feature = "tracy")]
-        let layered = layered.and_then(TracyLayer::default());
-
-        #[cfg(feature = "otlp")]
-        let mut g_tracer_provider = None;
-        #[cfg(feature = "otlp")]
-        let mut g_meter_provider = None;
-
-        // Setup otlp if a service_name is configured
-        #[cfg(feature = "otlp")]
-        let layered = layered.and_then({
-            if let Some(service_name) = self.service_name.map(String::from) {
-                use opentelemetry::trace::TracerProvider;
-
-                // register a text map propagator for trace propagation
-                opentelemetry::global::set_text_map_propagator(TraceContextPropagator::new());
-
-                let tracer_provider = gen_tracer_provider(service_name.clone())
-                    .expect("Unable to configure trace provider");
-
-                let meter_provider =
-                    gen_meter_provider(service_name).expect("Unable to configure meter provider");
-
-                // Register the returned meter provider as the global one.
-                // FUTUREWORK: store in the struct and provide getter too?
-                opentelemetry::global::set_meter_provider(meter_provider.clone());
-
-                g_tracer_provider = Some(tracer_provider.clone());
-                g_meter_provider = Some(meter_provider.clone());
-
-                // Create a tracing layer with the configured tracer
-                Some(tracing_opentelemetry::layer().with_tracer(tracer_provider.tracer("tvix")))
-            } else {
-                None
-            }
-        });
 
         let layered = layered.with_filter(
             EnvFilter::builder()
@@ -239,64 +155,8 @@ impl TracingBuilder {
         Ok(TracingHandle {
             stdout_writer,
             stderr_writer,
-
-            #[cfg(feature = "otlp")]
-            meter_provider: g_meter_provider,
-            #[cfg(feature = "otlp")]
-            tracer_provider: g_tracer_provider,
         })
     }
-}
-
-#[cfg(feature = "otlp")]
-fn gen_resources(service_name: String) -> Resource {
-    // use SdkProvidedResourceDetector.detect to detect resources,
-    // but replace the default service name with our default.
-    // https://github.com/open-telemetry/opentelemetry-rust/issues/1298
-    //
-    Resource::builder()
-        .with_service_name(service_name)
-        .with_detector(Box::new(SdkProvidedResourceDetector))
-        .build()
-}
-
-/// Returns an OTLP tracer, and the TX part of a channel, which can be used
-/// to request flushes (and signal back the completion of the flush).
-#[cfg(feature = "otlp")]
-fn gen_tracer_provider(
-    service_name: String,
-) -> Result<opentelemetry_sdk::trace::SdkTracerProvider, opentelemetry::trace::TraceError> {
-    use opentelemetry_otlp::{ExportConfig, SpanExporter, WithExportConfig};
-
-    let exporter = SpanExporter::builder()
-        .with_tonic()
-        .with_export_config(ExportConfig::default())
-        .build()?;
-
-    let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
-        .with_batch_exporter(exporter)
-        .with_resource(gen_resources(service_name))
-        .build();
-    // Unclear how to configure this
-    // let batch_config = BatchConfigBuilder::default()
-    //     // the default values for `max_export_batch_size` is set to 512, which we will fill
-    //     // pretty quickly, which will then result in an export. We want to make sure that
-    //     // the export is only done once the schedule is met and not as soon as 512 spans
-    //     // are collected.
-    //     .with_max_export_batch_size(4096)
-    //     // analog to default config `max_export_batch_size * 4`
-    //     .with_max_queue_size(4096 * 4)
-    //     // only force an export to the otlp collector every 10 seconds to reduce the amount
-    //     // of error messages if an otlp collector is not available
-    //     .with_scheduled_delay(std::time::Duration::from_secs(10))
-    //     .build();
-
-    // use opentelemetry_sdk::trace::BatchSpanProcessor;
-    // let batch_span_processor = BatchSpanProcessor::builder(exporter, runtime::Tokio)
-    //     .with_batch_config(batch_config)
-    //     .build();
-
-    Ok(tracer_provider)
 }
 
 // Metric export interval should be less than or equal to 15s
@@ -306,26 +166,3 @@ fn gen_tracer_provider(
 // so queries ranging over 1m requre <= 15s scrape intervals.
 // OTEL SDKS also respect the env var `OTEL_METRIC_EXPORT_INTERVAL` (no underscore prefix).
 const _OTEL_METRIC_EXPORT_INTERVAL: std::time::Duration = std::time::Duration::from_secs(10);
-
-#[cfg(feature = "otlp")]
-fn gen_meter_provider(
-    service_name: String,
-) -> Result<opentelemetry_sdk::metrics::SdkMeterProvider, opentelemetry_sdk::metrics::MetricError> {
-    use std::time::Duration;
-
-    use opentelemetry_otlp::WithExportConfig;
-    use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider};
-    let exporter = opentelemetry_otlp::MetricExporter::builder()
-        .with_tonic()
-        .with_timeout(Duration::from_secs(10))
-        .build()?;
-
-    let reader = PeriodicReader::builder(exporter)
-        .with_interval(_OTEL_METRIC_EXPORT_INTERVAL)
-        .build();
-
-    Ok(SdkMeterProvider::builder()
-        .with_reader(reader)
-        .with_resource(gen_resources(service_name))
-        .build())
-}

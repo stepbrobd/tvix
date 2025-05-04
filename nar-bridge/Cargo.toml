@@ -13,23 +13,16 @@ bytes.workspace = true
 clap = { workspace = true, features = ["derive", "env"] }
 data-encoding.workspace = true
 futures.workspace = true
-itertools.workspace = true
 prost.workspace = true
 nix-compat = { path = "../nix-compat", features = ["async"] }
-opentelemetry.workspace = true
-thiserror.workspace = true
 tokio.workspace = true
 tokio-listener = { workspace = true, features = ["axum07", "clap", "multi-listener", "sd_listen"] }
 tokio-util = { workspace = true, features = ["io", "io-util", "compat"] }
-tonic = { workspace = true, features = ["tls", "tls-roots"] }
-tower-otel-http-metrics = { workspace = true, features = ["axum"], optional = true }
 tvix-castore = { path = "../castore" }
 tvix-store = { path = "../store" }
-tvix-tracing = { path = "../tracing", features = ["tonic", "axum"] }
+tvix-tracing = { path = "../tracing" }
 tracing.workspace = true
-tracing-subscriber.workspace = true
 tracing-test.workspace = true
-url.workspace = true
 serde = { workspace = true, features = ["derive"] }
 lru.workspace = true
 parking_lot.workspace = true
@@ -40,8 +33,7 @@ prost-build.workspace = true
 tonic-build.workspace = true
 
 [features]
-default = ["otlp"]
-otlp = ["tvix-tracing/otlp", "tower-otel-http-metrics"]
+default = []
 xp-store-composition-cli = ["tvix-store/xp-composition-cli"]
 
 [dev-dependencies]

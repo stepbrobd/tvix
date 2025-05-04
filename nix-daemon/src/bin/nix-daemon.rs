@@ -19,11 +19,6 @@ struct Cli {
     /// The address to listen on. Must be a unix domain socket.
     #[clap(flatten)]
     listen_args: tokio_listener::ListenerAddressLFlag,
-
-    #[cfg(feature = "otlp")]
-    /// Whether to configure OTLP. Set --otlp=false to disable.
-    #[arg(long, default_missing_value = "true", default_value = "true", num_args(0..=1), require_equals(true), action(clap::ArgAction::Set))]
-    otlp: bool,
 }
 
 #[tokio::main]
@@ -33,12 +28,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let tracing_handle = {
         let mut builder = tvix_tracing::TracingBuilder::default();
         builder = builder.enable_progressbar();
-        #[cfg(feature = "otlp")]
-        {
-            if cli.otlp {
-                builder = builder.enable_otlp("tvix.daemon");
-            }
-        }
         builder.build()?
     };
 

@@ -113,19 +113,6 @@ mod tests {
     #[case::grpc_valid_https_host_without_port("grpc+https://localhost", true)]
     /// Correct scheme to connect to localhost over http, but with additional path, which is invalid.
     #[case::grpc_invalid_host_and_path("grpc+http://localhost/some-path", false)]
-    /// A valid example for Bigtable.
-    #[cfg_attr(
-        all(feature = "cloud", feature = "integration"),
-        case::bigtable_valid(
-            "bigtable://instance-1?project_id=project-1&table_name=table-1&family_name=cf1",
-            true
-        )
-    )]
-    /// An invalid example for Bigtable, missing fields
-    #[cfg_attr(
-        all(feature = "cloud", feature = "integration"),
-        case::bigtable_invalid_missing_fields("bigtable://instance-1", false)
-    )]
     #[tokio::test]
     async fn test_from_addr_tokio(#[case] uri_str: &str, #[case] exp_succeed: bool) {
         let mut comp = Composition::new(&REG);

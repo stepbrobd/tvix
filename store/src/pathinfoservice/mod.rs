@@ -34,11 +34,6 @@ pub use self::signing_wrapper::{KeyFileSigningPathInfoServiceConfig, SigningPath
 #[cfg(test)]
 pub(crate) use self::signing_wrapper::test_signing_service;
 
-#[cfg(feature = "cloud")]
-mod bigtable;
-#[cfg(feature = "cloud")]
-pub use self::bigtable::{BigtableParameters, BigtablePathInfoService};
-
 #[cfg(any(feature = "fuse", feature = "virtiofs"))]
 pub use self::fs::make_fs;
 
@@ -78,10 +73,4 @@ pub(crate) fn register_pathinfo_services(reg: &mut Registry) {
     reg.register::<Box<dyn ServiceBuilder<Output = dyn PathInfoService>>, NixHTTPPathInfoServiceConfig>("nix");
     reg.register::<Box<dyn ServiceBuilder<Output = dyn PathInfoService>>, RedbPathInfoServiceConfig>("redb");
     reg.register::<Box<dyn ServiceBuilder<Output = dyn PathInfoService>>, KeyFileSigningPathInfoServiceConfig>("keyfile-signing");
-    #[cfg(feature = "cloud")]
-    {
-        reg.register::<Box<dyn ServiceBuilder<Output = dyn PathInfoService>>, BigtableParameters>(
-            "bigtable",
-        );
-    }
 }

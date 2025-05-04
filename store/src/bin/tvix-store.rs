@@ -40,11 +40,6 @@ use tvix_castore::fs::fuse::FuseDaemon;
 #[cfg(feature = "virtiofs")]
 use tvix_castore::fs::virtiofs::start_virtiofs_daemon;
 
-#[cfg(feature = "tonic-reflection")]
-use tvix_castore::proto::FILE_DESCRIPTOR_SET as CASTORE_FILE_DESCRIPTOR_SET;
-#[cfg(feature = "tonic-reflection")]
-use tvix_store::proto::FILE_DESCRIPTOR_SET;
-
 use mimalloc::MiMalloc;
 
 #[global_allocator]
@@ -179,20 +174,18 @@ async fn run_cli(
                 tvix_store::utils::construct_services(service_addrs).await?;
 
             let mut server = Server::builder().layer(
-                ServiceBuilder::new()
-                    .layer(
-                        TraceLayer::new(SharedClassifier::new(
-                            GrpcErrorsAsFailures::new()
-                                .with_success(GrpcCode::InvalidArgument)
-                                .with_success(GrpcCode::NotFound),
-                        ))
-                        .make_span_with(
-                            DefaultMakeSpan::new()
-                                .level(Level::INFO)
-                                .include_headers(true),
-                        ),
-                    )
-                    .map_request(tvix_tracing::propagate::tonic::accept_trace),
+                ServiceBuilder::new().layer(
+                    TraceLayer::new(SharedClassifier::new(
+                        GrpcErrorsAsFailures::new()
+                            .with_success(GrpcCode::InvalidArgument)
+                            .with_success(GrpcCode::NotFound),
+                    ))
+                    .make_span_with(
+                        DefaultMakeSpan::new()
+                            .level(Level::INFO)
+                            .include_headers(true),
+                    ),
+                ),
             );
 
             let (_health_reporter, health_service) = tonic_health::server::health_reporter();
@@ -210,22 +203,6 @@ async fn run_cli(
                     path_info_service,
                     nar_calculation_service,
                 )));
-
-            #[cfg(feature = "tonic-reflection")]
-            {
-                router = router.add_service(
-                    tonic_reflection::server::Builder::configure()
-                        .register_encoded_file_descriptor_set(CASTORE_FILE_DESCRIPTOR_SET)
-                        .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
-                        .build_v1alpha()?,
-                );
-                router = router.add_service(
-                    tonic_reflection::server::Builder::configure()
-                        .register_encoded_file_descriptor_set(CASTORE_FILE_DESCRIPTOR_SET)
-                        .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
-                        .build_v1()?,
-                );
-            }
 
             let listen_address = &listen_args.listen_address.unwrap_or_else(|| {
                 "[::]:8000"
@@ -535,12 +512,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let tracing_handle = {
         let mut builder = tvix_tracing::TracingBuilder::default();
         builder = builder.enable_progressbar();
-        #[cfg(feature = "otlp")]
-        {
-            if cli.otlp {
-                builder = builder.enable_otlp("tvix.store");
-            }
-        }
         builder.build()?
     };
 

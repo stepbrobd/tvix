@@ -12,11 +12,6 @@ use tvix_build::{
 use tvix_castore::blobservice;
 use tvix_castore::directoryservice;
 
-#[cfg(feature = "tonic-reflection")]
-use tvix_build::proto::FILE_DESCRIPTOR_SET;
-#[cfg(feature = "tonic-reflection")]
-use tvix_castore::proto::FILE_DESCRIPTOR_SET as CASTORE_FILE_DESCRIPTOR_SET;
-
 use mimalloc::MiMalloc;
 
 #[global_allocator]
@@ -80,22 +75,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             let mut router = server.add_service(BuildServiceServer::new(
                 GRPCBuildServiceWrapper::new(build_service),
             ));
-
-            #[cfg(feature = "tonic-reflection")]
-            {
-                router = router.add_service(
-                    tonic_reflection::server::Builder::configure()
-                        .register_encoded_file_descriptor_set(CASTORE_FILE_DESCRIPTOR_SET)
-                        .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
-                        .build_v1alpha()?,
-                );
-                router = router.add_service(
-                    tonic_reflection::server::Builder::configure()
-                        .register_encoded_file_descriptor_set(CASTORE_FILE_DESCRIPTOR_SET)
-                        .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
-                        .build_v1()?,
-                );
-            }
 
             info!(listen_address=%listen_address, "listening");
 

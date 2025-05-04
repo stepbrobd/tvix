@@ -4,25 +4,20 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow.workspace = true
 async-compression = { workspace = true, features = ["tokio", "bzip2", "gzip", "xz", "zstd"] }
 async-stream.workspace = true
-blake3 = { workspace = true, features = ["rayon", "std"] }
 bstr.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["derive", "env"] }
 count-write.workspace = true
 data-encoding.workspace = true
 ed25519.workspace = true
-ed25519-dalek.workspace = true
 futures.workspace = true
 nix-compat = { path = "../nix-compat", features = ["async"] }
 pin-project-lite.workspace = true
 prost.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
-serde_with.workspace = true
-serde_qs.workspace = true
 sha1.workspace = true
 sha2.workspace = true
 md-5.workspace = true
@@ -36,12 +31,10 @@ tower.workspace = true
 tower-http = { workspace = true, features = ["trace"] }
 tvix-castore = { path = "../castore" }
 url.workspace = true
-walkdir.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls-native-roots", "stream"] }
 reqwest-middleware.workspace = true
 lru.workspace = true
-parking_lot.workspace = true
-tvix-tracing = { path = "../tracing", features = ["tonic", "reqwest"] }
+tvix-tracing = { path = "../tracing" }
 tracing.workspace = true
 tracing-indicatif.workspace = true
 hyper-util.workspace = true
@@ -49,8 +42,6 @@ toml = { version = "0.8.19", optional = true }
 tonic-health.workspace = true
 redb = { workspace = true, features = ["logging"] }
 mimalloc.workspace = true
-tonic-reflection = { workspace = true, optional = true }
-bigtable_rs = { workspace = true, optional = true }
 auto_impl = "1.2.0"
 
 [build-dependencies]
@@ -66,21 +57,10 @@ tokio-retry.workspace = true
 hex-literal.workspace = true
 
 [features]
-default = ["cloud", "fuse", "otlp", "tonic-reflection"]
-cloud = [
-  "dep:bigtable_rs",
-  "tvix-castore/cloud"
-]
+default = ["fuse" ]
 fuse = ["tvix-castore/fuse"]
-otlp = ["tvix-tracing/otlp"]
-tonic-reflection = ["dep:tonic-reflection", "tvix-castore/tonic-reflection"]
-tracy = ["tvix-tracing/tracy"]
 virtiofs = ["tvix-castore/virtiofs"]
 xp-composition-cli = ["toml", "tvix-castore/xp-composition-url-refs"]
-# Whether to run the integration tests.
-# Requires the following packages in $PATH:
-# cbtemulator, google-cloud-bigtable-tool
-integration = []
 
 [lints]
 workspace = true
