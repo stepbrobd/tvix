@@ -54,7 +54,6 @@ the methods outlined above.
 
 This folder contains the following components:
 
-* `//tvix/boot` - tooling to boot MicroVMs off of `tvix-[ca]store`
 * `//tvix/build` - a generic (Nix-unaware) builder protocol and various implementations
 * `//tvix/castore` - subtree storage/transfer in a content-addressed fashion
 * `//tvix/cli` - preliminary REPL & CLI implementation for Tvix
