@@ -94,7 +94,6 @@ pub fn evaluate(
 ) -> Result<EvalResult, IncompleteInput> {
     let span = Span::current();
     span.pb_start();
-    span.pb_set_style(&tvix_tracing::PB_SPINNER_STYLE);
     span.pb_set_message("Setting up evaluator…");
 
     let mut eval_builder = tvix_eval::Evaluation::builder(Rc::new(TvixIO::new(

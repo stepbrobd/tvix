@@ -167,7 +167,6 @@ where
             .instrument({
                 let span = info_span!("upload_blob", "indicatif.pb_show" = tracing::field::Empty);
                 span.pb_set_message(&format!("Uploading blob for {:?}", fs_path));
-                span.pb_set_style(&tvix_tracing::PB_TRANSFER_STYLE);
 
                 span
             })

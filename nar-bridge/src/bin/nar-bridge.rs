@@ -36,12 +36,6 @@ struct Cli {
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
 
-    let _tracing_handle = {
-        #[allow(unused_mut)]
-        let mut builder = tvix_tracing::TracingBuilder::default();
-        builder.build()?
-    };
-
     // initialize stores
     let (blob_service, directory_service, path_info_service, _nar_calculation_service) =
         tvix_store::utils::construct_services(cli.service_addrs).await?;

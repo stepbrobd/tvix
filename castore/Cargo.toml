@@ -28,7 +28,6 @@ tonic.workspace = true
 tower.workspace = true
 tracing.workspace = true
 tracing-indicatif.workspace = true
-tvix-tracing = { path = "../tracing" }
 url.workspace = true
 walkdir.workspace = true
 zstd.workspace = true

@@ -165,16 +165,6 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
-    "tvix-tracing" = rec {
-      packageId = "tvix-tracing";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "tvix-tracing";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
   };
 
   # A derivation that joins the outputs of all workspace members together.
@@ -6860,10 +6850,6 @@ rec {
             name = "tvix-store";
             packageId = "tvix-store";
           }
-          {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
-          }
         ];
         buildDependencies = [
           {
@@ -7401,10 +7387,6 @@ rec {
           {
             name = "tvix-store";
             packageId = "tvix-store";
-          }
-          {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
           }
         ];
         features = { };
@@ -13651,7 +13633,7 @@ rec {
           "tracing-attributes" = [ "dep:tracing-attributes" ];
           "valuable" = [ "tracing-core/valuable" ];
         };
-        resolvedDefaultFeatures = [ "attributes" "default" "log" "max_level_trace" "release_max_level_debug" "std" "tracing-attributes" ];
+        resolvedDefaultFeatures = [ "attributes" "default" "log" "std" "tracing-attributes" ];
       };
       "tracing-attributes" = rec {
         crateName = "tracing-attributes";
@@ -14084,10 +14066,6 @@ rec {
             features = [ "fuse" ];
           }
           {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
-          }
-          {
             name = "url";
             packageId = "url";
           }
@@ -14286,10 +14264,6 @@ rec {
             packageId = "tracing-indicatif";
           }
           {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
-          }
-          {
             name = "url";
             packageId = "url";
           }
@@ -14464,10 +14438,6 @@ rec {
             name = "tvix-store";
             packageId = "tvix-store";
             usesDefaultFeatures = false;
-          }
-          {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
           }
         ];
         devDependencies = [
@@ -14788,10 +14758,6 @@ rec {
             usesDefaultFeatures = false;
           }
           {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
-          }
-          {
             name = "url";
             packageId = "url";
           }
@@ -15040,10 +15006,6 @@ rec {
             packageId = "tvix-castore";
           }
           {
-            name = "tvix-tracing";
-            packageId = "tvix-tracing";
-          }
-          {
             name = "url";
             packageId = "url";
           }
@@ -15088,39 +15050,6 @@ rec {
           "xp-composition-cli" = [ "toml" "tvix-castore/xp-composition-url-refs" ];
         };
         resolvedDefaultFeatures = [ "default" "fuse" "toml" "virtiofs" "xp-composition-cli" ];
-      };
-      "tvix-tracing" = rec {
-        crateName = "tvix-tracing";
-        version = "0.1.0";
-        edition = "2021";
-        src = lib.cleanSourceWith { filter = sourceFilter; src = ./tracing; };
-        libName = "tvix_tracing";
-        dependencies = [
-          {
-            name = "indicatif";
-            packageId = "indicatif";
-          }
-          {
-            name = "thiserror";
-            packageId = "thiserror 2.0.9";
-          }
-          {
-            name = "tracing";
-            packageId = "tracing";
-            features = [ "max_level_trace" "release_max_level_debug" ];
-          }
-          {
-            name = "tracing-indicatif";
-            packageId = "tracing-indicatif";
-          }
-          {
-            name = "tracing-subscriber";
-            packageId = "tracing-subscriber";
-            features = [ "env-filter" ];
-          }
-        ];
-        features = { };
-        resolvedDefaultFeatures = [ "default" ];
       };
       "typeid" = rec {
         crateName = "typeid";

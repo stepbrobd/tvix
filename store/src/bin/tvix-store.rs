@@ -21,7 +21,6 @@ use tvix_castore::import::fs::ingest_path;
 use tvix_store::import::path_to_name;
 use tvix_store::nar::NarCalculationService;
 use tvix_store::utils::{ServiceUrls, ServiceUrlsGrpc};
-use tvix_tracing::TracingHandle;
 
 use tvix_castore::proto::blob_service_server::BlobServiceServer;
 use tvix_castore::proto::directory_service_server::DirectoryServiceServer;
@@ -160,10 +159,7 @@ fn default_threads() -> usize {
 }
 
 #[instrument(skip_all)]
-async fn run_cli(
-    cli: Cli,
-    tracing_handle: TracingHandle,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn run_cli(cli: Cli) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     match cli.command {
         Commands::Daemon {
             listen_args,
@@ -249,7 +245,6 @@ async fn run_cli(
                 info_span!("import paths", "indicatif.pb_show" = tracing::field::Empty);
             imports_span.pb_set_message("Importing");
             imports_span.pb_set_length(paths_and_names.len() as u64);
-            imports_span.pb_set_style(&tvix_tracing::PB_PROGRESS_STYLE);
             imports_span.pb_start();
 
             futures::stream::iter(paths_and_names)
@@ -259,11 +254,9 @@ async fn run_cli(
                     let path_info_service = path_info_service.clone();
                     let nar_calculation_service = nar_calculation_service.clone();
                     let imports_span = imports_span.clone();
-                    let tracing_handle = tracing_handle.clone();
 
                     async move {
                         let span = Span::current();
-                        span.pb_set_style(&tvix_tracing::PB_SPINNER_STYLE);
                         span.pb_set_message(&format!("Ingesting {:?}", path));
                         span.pb_start();
 
@@ -316,9 +309,8 @@ async fn run_cli(
                         {
                             // If the import was successful, print the path to stdout.
                             Ok(path_info) => {
-                                use std::io::Write;
                                 debug!(store_path=%path_info.store_path.to_absolute_path(), "imported path");
-                                writeln!(&mut tracing_handle.get_stdout_writer(), "{}", path_info.store_path.to_absolute_path())?;
+                                println!("{}", path_info.store_path.to_absolute_path());
                                 imports_span.pb_inc(1);
                                 Ok(())
                             }
@@ -362,7 +354,6 @@ async fn run_cli(
                 "indicatif.pb_show" = tracing::field::Empty
             );
             lookups_span.pb_set_length(reference_graph.closure.len() as u64);
-            lookups_span.pb_set_style(&tvix_tracing::PB_PROGRESS_STYLE);
             lookups_span.pb_start();
 
             // From our reference graph, lookup all pathinfos that might exist.
@@ -509,24 +500,12 @@ async fn run_cli(
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
 
-    let tracing_handle = {
-        let mut builder = tvix_tracing::TracingBuilder::default();
-        builder = builder.enable_progressbar();
-        builder.build()?
-    };
-
     tokio::select! {
         res = tokio::signal::ctrl_c() => {
             res?;
-            if let Err(e) = tracing_handle.shutdown().await {
-                eprintln!("failed to shutdown tracing: {e}");
-            }
             Ok(())
         },
-        res = run_cli(cli, tracing_handle.clone()) => {
-            if let Err(e) = tracing_handle.shutdown().await {
-                eprintln!("failed to shutdown tracing: {e}");
-            }
+        res = run_cli(cli) => {
             res
         }
     }

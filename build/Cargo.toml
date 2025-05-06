@@ -25,7 +25,6 @@ data-encoding = "2.5.0"
 futures = "0.3.30"
 oci-spec = "0.7.0"
 serde_json = "1.0.111"
-tvix-tracing = { path = "../tracing" }
 uuid = { version = "1.7.0", features = ["v4"] }
 
 [build-dependencies]

@@ -2199,7 +2199,6 @@ dependencies = [
  "tracing-test",
  "tvix-castore",
  "tvix-store",
- "tvix-tracing",
 ]
 
 [[package]]
@@ -2332,7 +2331,6 @@ dependencies = [
  "tracing",
  "tvix-castore",
  "tvix-store",
- "tvix-tracing",
 ]
 
 [[package]]
@@ -4357,7 +4355,6 @@ dependencies = [
  "tonic-build",
  "tracing",
  "tvix-castore",
- "tvix-tracing",
  "url",
  "uuid",
 ]
@@ -4411,7 +4408,6 @@ dependencies = [
  "tower 0.4.13",
  "tracing",
  "tracing-indicatif",
- "tvix-tracing",
  "url",
  "vhost",
  "vhost-user-backend",
@@ -4445,7 +4441,6 @@ dependencies = [
  "tvix-eval",
  "tvix-glue",
  "tvix-store",
- "tvix-tracing",
 ]
 
 [[package]]
@@ -4532,7 +4527,6 @@ dependencies = [
  "tvix-castore",
  "tvix-eval",
  "tvix-store",
- "tvix-tracing",
  "url",
  "walkdir",
 ]
@@ -4594,19 +4588,7 @@ dependencies = [
  "tracing",
  "tracing-indicatif",
  "tvix-castore",
- "tvix-tracing",
  "url",
-]
-
-[[package]]
-name = "tvix-tracing"
-version = "0.1.0"
-dependencies = [
- "indicatif",
- "thiserror 2.0.9",
- "tracing",
- "tracing-indicatif",
- "tracing-subscriber",
 ]
 
 [[package]]

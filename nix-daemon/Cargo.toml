@@ -9,7 +9,6 @@ mimalloc.workspace = true
 nix-compat = { path = "../nix-compat" }
 tvix-castore = { path = "../castore" }
 tvix-store = { path = "../store" }
-tvix-tracing = { path = "../tracing" }
 tokio = { workspace = true, features = ["fs", "macros", "net", "rt", "rt-multi-thread", "signal"] }
 tokio-listener.workspace = true
 tracing.workspace = true

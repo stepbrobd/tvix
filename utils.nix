@@ -110,10 +110,6 @@
       tvix-serde = prev: {
         src = depot.tvix.utils.filterRustCrateSrc { root = prev.src.origSrc; };
       };
-
-      tvix-tracing = prev: {
-        src = depot.tvix.utils.filterRustCrateSrc { root = prev.src.origSrc; };
-      };
     };
 
   # This creates an extraStep in CI to check whether the Cargo.nix file is up-to-date.

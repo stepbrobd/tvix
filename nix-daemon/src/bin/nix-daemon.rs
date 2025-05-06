@@ -25,24 +25,12 @@ struct Cli {
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cli = Cli::parse();
 
-    let tracing_handle = {
-        let mut builder = tvix_tracing::TracingBuilder::default();
-        builder = builder.enable_progressbar();
-        builder.build()?
-    };
-
     tokio::select! {
         res = tokio::signal::ctrl_c() => {
             res?;
-            if let Err(e) = tracing_handle.shutdown().await {
-                eprintln!("failed to shutdown tracing: {e}");
-            }
             Ok(())
         },
         res = run(cli) => {
-            if let Err(e) = tracing_handle.shutdown().await {
-                eprintln!("failed to shutdown tracing: {e}");
-            }
             res
         }
     }

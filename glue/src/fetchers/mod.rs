@@ -224,7 +224,6 @@ impl<BS, DS, PS, NS> Fetcher<BS, DS, PS, NS> {
                 .await?;
 
                 span.pb_set_length(f.metadata().await?.len());
-                span.pb_set_style(&tvix_tracing::PB_TRANSFER_STYLE);
                 span.pb_start();
                 Ok(Box::new(tokio::io::BufReader::new(InspectReader::new(
                     f,
@@ -238,10 +237,8 @@ impl<BS, DS, PS, NS> Fetcher<BS, DS, PS, NS> {
 
                 if let Some(content_length) = resp.content_length() {
                     span.pb_set_length(content_length);
-                    span.pb_set_style(&tvix_tracing::PB_TRANSFER_STYLE);
-                } else {
-                    span.pb_set_style(&tvix_tracing::PB_TRANSFER_STYLE);
                 }
+
                 span.pb_start();
 
                 Ok(Box::new(tokio_util::io::StreamReader::new(

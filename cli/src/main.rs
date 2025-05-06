@@ -56,11 +56,6 @@ fn lint(code: &str, path: Option<PathBuf>, args: &Args) -> bool {
 
 fn main() {
     let args = Args::parse();
-
-    tvix_tracing::TracingBuilder::default()
-        .enable_progressbar()
-        .build()
-        .expect("unable to set up tracing subscriber");
     let tokio_runtime = tokio::runtime::Runtime::new().expect("failed to setup tokio runtime");
 
     let io_handle = init_io_handle(&tokio_runtime, &args);

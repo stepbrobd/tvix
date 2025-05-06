@@ -34,7 +34,6 @@ url.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls-native-roots", "stream"] }
 reqwest-middleware.workspace = true
 lru.workspace = true
-tvix-tracing = { path = "../tracing" }
 tracing.workspace = true
 tracing-indicatif.workspace = true
 hyper-util.workspace = true

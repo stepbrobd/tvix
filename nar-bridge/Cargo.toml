@@ -20,7 +20,6 @@ tokio-listener = { workspace = true, features = ["axum07", "clap", "multi-listen
 tokio-util = { workspace = true, features = ["io", "io-util", "compat"] }
 tvix-castore = { path = "../castore" }
 tvix-store = { path = "../store" }
-tvix-tracing = { path = "../tracing" }
 tracing.workspace = true
 tracing-test.workspace = true
 serde = { workspace = true, features = ["derive"] }
