@@ -15,6 +15,9 @@
 //! - [`SimulatedStoreIO`] implements the `EvalIO` trait and handles calculation of the store
 //!   paths for files that would need to be imported into the store.
 //! - The necessary additional builtins haven't been implemented yet.
+use std::borrow::Cow;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 use std::io::{BufReader, Error, Read, Result};
@@ -32,11 +35,13 @@ use tvix_eval::{EvalIO, FileType, StdIO};
 
 pub struct SimulatedStoreIO {
     store_dir: String,
+    passthru_paths: RefCell<HashMap<[u8; 20], PathBuf>>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SimulatedStoreError {
     StorePathRead,
+    NixCompatError(nix_compat::store_path::Error),
 }
 
 impl fmt::Display for SimulatedStoreError {
@@ -44,6 +49,11 @@ impl fmt::Display for SimulatedStoreError {
         match self {
             SimulatedStoreError::StorePathRead => {
                 write!(f, "simstore would need to read from a realised store path")
+            }
+
+            SimulatedStoreError::NixCompatError(cause) => {
+                write!(f, "invalid Nix store path: ")?;
+                cause.fmt(f)
             }
         }
     }
@@ -55,22 +65,42 @@ impl std::error::Error for SimulatedStoreError {
     }
 }
 
+impl From<nix_compat::store_path::Error> for SimulatedStoreError {
+    fn from(cause: nix_compat::store_path::Error) -> Self {
+        Self::NixCompatError(cause)
+    }
+}
+
 impl Default for SimulatedStoreIO {
     fn default() -> Self {
         Self {
             store_dir: "/nix/store".to_owned(),
+            passthru_paths: Default::default(),
         }
     }
 }
 
 // TODO(sterni): creation with configurable store dir
 impl SimulatedStoreIO {
-    fn check_below_store_dir(&self, path: &Path) -> Result<()> {
+    /// Returns a path from which StdIO can read, unless realisation is required
+    /// (which the simulated store does not support).
+    fn to_readable_path<'a>(&self, path: &'a Path) -> Result<Cow<'a, Path>> {
         if !path.starts_with(Path::new(&self.store_dir)) {
-            Ok(())
-        } else {
-            Err(Error::other(SimulatedStoreError::StorePathRead))
+            return Ok(Cow::Borrowed(path));
         }
+
+        let (store_path, relative) =
+            StorePath::<&str>::from_absolute_path_full(path).map_err(Error::other)?;
+
+        if let Some(base) = self.passthru_paths.borrow().get(store_path.digest()) {
+            return Ok(Cow::Owned(if relative.as_os_str().is_empty() {
+                base.into()
+            } else {
+                base.join(relative)
+            }));
+        }
+
+        Err(Error::other(SimulatedStoreError::StorePathRead))
     }
 }
 
@@ -126,28 +156,28 @@ impl EvalIO for SimulatedStoreIO {
         let store_path: StorePath<&str> = build_ca_path(name, &hash, Vec::<&str>::new(), false)
             .map_err(|_| Error::other("Failed to construct store path"))?;
 
+        self.passthru_paths
+            .borrow_mut()
+            .insert(*store_path.digest(), path.to_owned());
+
         Ok(PathBuf::from(store_path.to_absolute_path()))
     }
 
     // TODO(sterni): proc macro for dispatching methods
     fn path_exists(&self, path: &Path) -> Result<bool> {
-        self.check_below_store_dir(path)?;
-        StdIO.path_exists(path)
+        StdIO.path_exists(self.to_readable_path(path)?.as_ref())
     }
 
     fn open(&self, path: &Path) -> Result<Box<dyn Read>> {
-        self.check_below_store_dir(path)?;
-        StdIO.open(path)
+        StdIO.open(self.to_readable_path(path)?.as_ref())
     }
 
     fn file_type(&self, path: &Path) -> Result<FileType> {
-        self.check_below_store_dir(path)?;
-        StdIO.file_type(path)
+        StdIO.file_type(self.to_readable_path(path)?.as_ref())
     }
 
     fn read_dir(&self, path: &Path) -> Result<Vec<(bytes::Bytes, FileType)>> {
-        self.check_below_store_dir(path)?;
-        StdIO.read_dir(path)
+        StdIO.read_dir(self.to_readable_path(path)?.as_ref())
     }
 }
 
@@ -179,7 +209,7 @@ mod tests {
             );
             abs.push(path);
 
-            assert!(store_io.check_below_store_dir(&abs).is_err());
+            assert!(store_io.to_readable_path(&abs).is_err());
 
             assert_eq!(
                 io_err_to_simstore_err(store_io.path_exists(&abs)),
@@ -215,5 +245,27 @@ mod tests {
                 .expect("importing test data should succeed"),
             Path::new("/nix/store/ljqm0pf4b43bk53lymzrbljvdxi5vkcm-test-data")
         );
+    }
+
+    #[test]
+    fn passthru_paths_file() {
+        let store_io = SimulatedStoreIO::default();
+        let imported = store_io
+            .import_path(Path::new("./test-data/q.txt"))
+            .expect("importing test data should succeed");
+        assert!(store_io
+            .path_exists(&imported)
+            .expect("imported path should be forwarded"));
+    }
+
+    #[test]
+    fn passthru_paths_folder() {
+        let store_io = SimulatedStoreIO::default();
+        let imported = store_io
+            .import_path(Path::new("./test-data"))
+            .expect("importing test data should succeed");
+        assert!(store_io
+            .path_exists(&imported.join("q.txt"))
+            .expect("imported path should be forwarded"));
     }
 }
