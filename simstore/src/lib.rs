@@ -38,6 +38,22 @@ pub struct SimulatedStoreIO {
     passthru_paths: RefCell<HashMap<[u8; 20], PathBuf>>,
 }
 
+impl SimulatedStoreIO {
+    /// Adds a passthru path, mapping the given path to the given location on the
+    /// filesystem.
+    ///
+    /// Using this incorrectly can lead to incomprehensible breakage.
+    pub fn add_passthru(&mut self, path: &str, loc: PathBuf) -> Result<()> {
+        let (store_path, _) =
+            StorePath::<&str>::from_absolute_path_full(path).map_err(Error::other)?;
+
+        self.passthru_paths
+            .borrow_mut()
+            .insert(*store_path.digest(), loc);
+        Ok(())
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum SimulatedStoreError {
     StorePathRead,
@@ -267,5 +283,20 @@ mod tests {
         assert!(store_io
             .path_exists(&imported.join("q.txt"))
             .expect("imported path should be forwarded"));
+    }
+
+    #[test]
+    fn added_passthru_path() {
+        let mut store_io = SimulatedStoreIO::default();
+        let example = "/nix/store/a396z42saqql55cp5n1vrb2j0siq86k1-nixpkgs-src";
+        let example_path = PathBuf::from(example);
+
+        store_io
+            .add_passthru(example, example_path.clone())
+            .expect("adding passthru should work");
+
+        store_io
+            .path_exists(&example_path)
+            .expect("path access should not fail");
     }
 }
