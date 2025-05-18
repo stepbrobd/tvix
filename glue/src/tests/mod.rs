@@ -42,6 +42,7 @@ fn eval_test(code_path: PathBuf, expect_success: bool) {
             .unwrap();
 
     let tvix_store_io = Rc::new(TvixStoreIO::new(
+        Default::default(),
         blob_service,
         directory_service,
         path_info_service,

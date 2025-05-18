@@ -14445,6 +14445,10 @@ rec {
             packageId = "tvix-glue";
           }
           {
+            name = "tvix-simstore";
+            packageId = "tvix-simstore";
+          }
+          {
             name = "tvix-store";
             packageId = "tvix-store";
             usesDefaultFeatures = false;
@@ -14761,6 +14765,10 @@ rec {
           {
             name = "tvix-eval";
             packageId = "tvix-eval";
+          }
+          {
+            name = "tvix-simstore";
+            packageId = "tvix-simstore";
           }
           {
             name = "tvix-store";

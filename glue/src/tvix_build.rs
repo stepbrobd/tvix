@@ -12,10 +12,11 @@ use tvix_castore::Node;
 
 /// These are the environment variables that Nix sets in its sandbox for every
 /// build.
+#[allow(dead_code)] // TODO(tazjin): keeping this, might become useful?
 const NIX_ENVIRONMENT_VARS: [(&str, &str); 12] = [
     ("HOME", "/homeless-shelter"),
     ("NIX_BUILD_CORES", "0"), // TODO: make this configurable?
-    ("NIX_BUILD_TOP", "/"),
+    ("NIX_BUILD_TOP", "/build"),
     ("NIX_LOG_FD", "2"),
     ("NIX_STORE", "/nix/store"),
     ("PATH", "/path-not-set"),
@@ -48,6 +49,7 @@ pub(crate) fn get_refscan_needles(
 ///   (`fn_input_sources_to_node`)
 /// - one translating a tuple of drv path and (a subset of their) output names to
 ///   castore nodes of the selected outpus (`fn_input_drvs_to_output_nodes`).
+#[allow(dead_code)]
 pub(crate) fn derivation_to_build_request(
     derivation: &Derivation,
     inputs: BTreeMap<StorePath<String>, Node>,

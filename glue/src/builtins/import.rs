@@ -1,31 +1,45 @@
 //! Implements builtins used to import paths in the store.
 
-use crate::tvix_store_io::TvixStoreIO;
 use std::path::Path;
-use tvix_castore::import::ingest_entries;
-use tvix_castore::Node;
+use std::rc::Rc;
+
+use crate::tvix_store_io::TvixStoreIO;
+use nix_compat::store_path::{build_ca_path, StorePath, StorePathRef};
 use tvix_eval::{
     builtin_macros::builtins,
     generators::{self, GenCo},
     ErrorKind, EvalIO, Value,
 };
 
-use std::rc::Rc;
+/// Transform a path into its base name and returns an [`std::io::Error`] if it is `..` or if the
+/// basename is not valid unicode.
+fn path_to_name(path: &Path) -> std::io::Result<&str> {
+    path.file_name()
+        .and_then(|file_name| file_name.to_str())
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "path must not be .. and the basename valid unicode",
+            )
+        })
+}
 
 async fn filtered_ingest(
     state: Rc<TvixStoreIO>,
     co: GenCo,
     path: &Path,
+    name: Option<String>,
     filter: Option<&Value>,
-) -> Result<Node, ErrorKind> {
+) -> Result<StorePath<String>, ErrorKind> {
     let mut entries: Vec<walkdir::DirEntry> = vec![];
     let mut it = walkdir::WalkDir::new(path)
         .follow_links(false)
         .follow_root_links(false)
         .contents_first(false)
+        .sort_by(|a, b| a.file_name().cmp(b.file_name()))
         .into_iter();
 
-    // Skip root node.
+    // Always add root node.
     entries.push(
         it.next()
             .ok_or_else(|| ErrorKind::IO {
@@ -86,22 +100,20 @@ async fn filtered_ingest(
         entries.push(entry);
     }
 
-    let dir_entries = entries.into_iter().rev().map(Ok);
+    let dir_entries = entries
+        .into_iter()
+        .map(Ok::<walkdir::DirEntry, std::io::Error>);
 
-    state.tokio_handle.block_on(async {
-        let entries = tvix_castore::import::fs::dir_entries_to_ingestion_stream::<'_, _, _, &[u8]>(
-            &state.blob_service,
-            dir_entries,
-            path,
-            None, // TODO re-scan
-        );
-        ingest_entries(&state.directory_service, entries)
-            .await
-            .map_err(|e| ErrorKind::IO {
-                path: Some(path.to_path_buf()),
-                error: Rc::new(std::io::Error::new(std::io::ErrorKind::Other, e)),
-            })
-    })
+    let name = match name {
+        Some(name) => name,
+        None => path_to_name(path)
+            .expect("failed to derive the default name out of the path")
+            .to_string(),
+    };
+
+    Ok(state
+        .simulated_store
+        .import_path_by_entries(&name, dir_entries, None)?)
 }
 
 #[builtins(state = "Rc<TvixStoreIO>")]
@@ -112,62 +124,12 @@ mod import_builtins {
     use crate::tvix_store_io::TvixStoreIO;
     use bstr::ByteSlice;
     use nix_compat::nixhash::{CAHash, NixHash};
-    use nix_compat::store_path::{build_ca_path, StorePath, StorePathRef};
     use sha2::Digest;
     use std::rc::Rc;
-    use tokio::io::AsyncWriteExt;
-    use tvix_castore::blobservice::BlobService;
     use tvix_eval::builtins::coerce_value_to_path;
     use tvix_eval::generators::Gen;
     use tvix_eval::{generators::GenCo, ErrorKind, Value};
     use tvix_eval::{AddContext, FileType, NixContext, NixContextElement, NixString};
-    use tvix_store::path_info::PathInfo;
-
-    /// Helper function dealing with uploading something from a std::io::Read to
-    /// the passed [BlobService], returning the B3Digest and size.
-    /// This function is sync (and uses the tokio handle to block).
-    /// A sync closure getting a copy of all bytes read can be passed in,
-    /// allowing to do other hashing where needed.
-    fn copy_to_blobservice<F>(
-        tokio_handle: tokio::runtime::Handle,
-        blob_service: impl BlobService,
-        mut r: impl std::io::Read,
-        mut inspect_f: F,
-    ) -> std::io::Result<(tvix_castore::B3Digest, u64)>
-    where
-        F: FnMut(&[u8]),
-    {
-        let mut blob_size = 0;
-
-        let mut blob_writer = tokio_handle.block_on(async { blob_service.open_write().await });
-
-        // read piece by piece and write to blob_writer.
-        // This is a bit manual due to EvalIO being sync, while the blob writer being async.
-        {
-            let mut buf = [0u8; 4096];
-
-            loop {
-                // read bytes into buffer, break out if EOF
-                let len = r.read(&mut buf)?;
-                if len == 0 {
-                    break;
-                }
-                blob_size += len as u64;
-
-                let data = &buf[0..len];
-
-                // write to blobwriter
-                tokio_handle.block_on(async { blob_writer.write_all(data).await })?;
-
-                // Call inspect_f
-                inspect_f(data);
-            }
-
-            let blob_digest = tokio_handle.block_on(async { blob_writer.close().await })?;
-
-            Ok((blob_digest, blob_size))
-        }
-    }
 
     // This is a helper used by both builtins.path and builtins.filterSource.
     async fn import_helper(
@@ -185,57 +147,54 @@ mod import_builtins {
                 .to_str()?
                 .as_bstr()
                 .to_string(),
-            None => tvix_store::import::path_to_name(&path)
+
+            None => path_to_name(&path)
                 .expect("Failed to derive the default name out of the path")
                 .to_string(),
         };
-        // As a first step, we ingest the contents, and get back a root node,
-        // and optionally the sha256 a flat file.
-        let (root_node, ca) = match std::fs::metadata(&path)?.file_type().into() {
-            // Check if the path points to a regular file.
-            // If it does, the filter function is never executed, and we copy to the blobservice directly.
-            // If recursive is false, we need to calculate the sha256 digest of the raw contents,
-            // as that affects the output path calculation.
-            FileType::Regular => {
+
+        let store_path = match std::fs::metadata(&path)?.file_type().into() {
+            // Regular file, non-recursive -> ingest with plain SHA256 content hash
+            FileType::Regular if !recursive_ingestion => {
                 let mut file = state.open(&path)?;
-                let mut h = (!recursive_ingestion).then(sha2::Sha256::new);
+                let mut hasher = sha2::Sha256::new();
+                let mut buffer = [0; 8192]; // 8KB buffer is a reasonable size \/(O.o)\/
 
-                let (blob_digest, blob_size) = copy_to_blobservice(
-                    state.tokio_handle.clone(),
-                    &state.blob_service,
-                    &mut file,
-                    |data| {
-                        // update blob_sha256 if needed.
-                        if let Some(h) = h.as_mut() {
-                            h.update(data)
-                        }
-                    },
-                )?;
+                loop {
+                    let bytes_read = file.read(&mut buffer)?;
+                    if bytes_read == 0 {
+                        break;
+                    }
+                    hasher.update(&buffer[..bytes_read]);
+                }
 
-                (
-                    Node::File {
-                        digest: blob_digest,
-                        size: blob_size,
-                        executable: false,
-                    },
-                    h.map(|h| {
-                        // If non-recursive ingestion was requested, we return that one.
-                        let actual_sha256 = h.finalize().into();
+                let actual_sha256 = hasher.finalize().into();
 
-                        // If an expected hash was provided upfront, compare and bail out.
-                        if let Some(expected_sha256) = expected_sha256 {
-                            if actual_sha256 != expected_sha256 {
-                                return Err(ImportError::HashMismatch(
-                                    path.clone(),
-                                    NixHash::Sha256(expected_sha256),
-                                    NixHash::Sha256(actual_sha256),
-                                ));
-                            }
-                        }
-                        Ok(CAHash::Flat(NixHash::Sha256(actual_sha256)))
-                    })
-                    .transpose()?,
-                )
+                // If an expected hash was provided upfront, compare and bail out.
+                if let Some(expected_sha256) = expected_sha256 {
+                    if actual_sha256 != expected_sha256 {
+                        return Err(ImportError::HashMismatch(
+                            path.clone(),
+                            NixHash::Sha256(expected_sha256),
+                            NixHash::Sha256(actual_sha256),
+                        )
+                        .into());
+                    }
+                }
+
+                let ca = CAHash::Flat(NixHash::Sha256(actual_sha256));
+                build_ca_path(&name, &ca, Vec::<&str>::new(), false)
+                    .map_err(|e| tvix_eval::ErrorKind::TvixError(Rc::new(e)))?
+            }
+
+            FileType::Regular => {
+                let dir_entry = walkdir::WalkDir::new(path)
+                    .follow_root_links(false)
+                    .into_iter();
+
+                state
+                    .simulated_store
+                    .import_path_by_entries(&name, dir_entry, expected_sha256)?
             }
 
             FileType::Directory if !recursive_ingestion => {
@@ -243,10 +202,10 @@ mod import_builtins {
             }
 
             // do the filtered ingest
-            FileType::Directory => (
-                filtered_ingest(state.clone(), co, path.as_ref(), filter).await?,
-                None,
-            ),
+            FileType::Directory => {
+                filtered_ingest(state.clone(), co, path.as_ref(), Some(name), filter).await?
+            }
+
             FileType::Symlink => {
                 // FUTUREWORK: Nix follows a symlink if it's at the root,
                 // except if it's not resolve-able (NixOS/nix#7761).i
@@ -269,72 +228,9 @@ mod import_builtins {
             }
         };
 
-        // Calculate the NAR sha256.
-        let (nar_size, nar_sha256) = state
-            .tokio_handle
-            .block_on(async {
-                state
-                    .nar_calculation_service
-                    .as_ref()
-                    .calculate_nar(&root_node)
-                    .await
-            })
-            .map_err(|e| tvix_eval::ErrorKind::TvixError(Rc::new(e)))?;
-
-        // Calculate the CA hash for the recursive cases, this is only already
-        // `Some(_)` for flat ingestion.
-        let ca = match ca {
-            None => {
-                // If an upfront-expected NAR hash was specified, compare.
-                if let Some(expected_nar_sha256) = expected_sha256 {
-                    if expected_nar_sha256 != nar_sha256 {
-                        return Err(ImportError::HashMismatch(
-                            path,
-                            NixHash::Sha256(expected_nar_sha256),
-                            NixHash::Sha256(nar_sha256),
-                        )
-                        .into());
-                    }
-                }
-                CAHash::Nar(NixHash::Sha256(nar_sha256))
-            }
-            Some(ca) => ca,
-        };
-
-        let store_path = build_ca_path(&name, &ca, Vec::<&str>::new(), false)
-            .map_err(|e| tvix_eval::ErrorKind::TvixError(Rc::new(e)))?;
-
-        let path_info = state
-            .tokio_handle
-            .block_on(async {
-                state
-                    .path_info_service
-                    .as_ref()
-                    .put(PathInfo {
-                        store_path,
-                        node: root_node,
-                        // There's no reference scanning on path contents ingested like this.
-                        references: vec![],
-                        nar_size,
-                        nar_sha256,
-                        signatures: vec![],
-                        deriver: None,
-                        ca: Some(ca),
-                    })
-                    .await
-            })
-            .map_err(|e| tvix_eval::ErrorKind::IO {
-                path: Some(path),
-                error: Rc::new(e.into()),
-            })?;
-
-        // We need to attach context to the final output path.
-        let outpath = path_info.store_path.to_absolute_path();
-
-        Ok(
-            NixString::new_context_from(NixContextElement::Plain(outpath.clone()).into(), outpath)
-                .into(),
-        )
+        let outpath = store_path.to_absolute_path();
+        let ctx: NixContext = NixContextElement::Plain(outpath.to_string()).into();
+        Ok(NixString::new_context_from(ctx, outpath.to_string()).into())
     }
 
     #[builtin("path")]
@@ -362,7 +258,7 @@ mod import_builtins {
             .select("recursive")
             .map(|r| r.as_bool())
             .transpose()?
-            .unwrap_or(true); // Yes, yes, Nix, by default, puts `recursive = true;`.
+            .unwrap_or(true); // Yes, yes, Nix, by default, sets `recursive = true;`.
 
         let expected_sha256 = args
             .select("sha256")
@@ -440,12 +336,7 @@ mod import_builtins {
     }
 
     #[builtin("toFile")]
-    async fn builtin_to_file(
-        state: Rc<TvixStoreIO>,
-        co: GenCo,
-        name: Value,
-        content: Value,
-    ) -> Result<Value, ErrorKind> {
+    async fn builtin_to_file(co: GenCo, name: Value, content: Value) -> Result<Value, ErrorKind> {
         if name.is_catchable() {
             return Ok(name);
         }
@@ -467,63 +358,13 @@ mod import_builtins {
             return Err(ErrorKind::UnexpectedContext);
         }
 
-        // upload contents to the blobservice and create a root node
-        let mut h = sha2::Sha256::new();
-        let (blob_digest, blob_size) = copy_to_blobservice(
-            state.tokio_handle.clone(),
-            &state.blob_service,
-            std::io::Cursor::new(&content),
-            |data| h.update(data),
-        )?;
-
-        let root_node = Node::File {
-            digest: blob_digest,
-            size: blob_size,
-            executable: false,
-        };
-
-        // calculate the nar hash
-        let (nar_size, nar_sha256) = state
-            .nar_calculation_service
-            .calculate_nar(&root_node)
-            .await
-            .map_err(|e| ErrorKind::TvixError(Rc::new(e)))?;
-
-        let ca_hash = CAHash::Text(h.finalize().into());
-
-        // persist via pathinfo service.
-        let store_path = state
-            .tokio_handle
-            .block_on(
-                state.path_info_service.put(PathInfo {
-                    store_path: build_ca_path(
-                        name.to_str()?,
-                        &ca_hash,
-                        content.iter_ctx_plain(),
-                        false,
-                    )
-                    .map_err(|_e| {
-                        nix_compat::derivation::DerivationError::InvalidOutputName(
-                            name.to_str_lossy().into_owned(),
-                        )
-                    })
-                    .map_err(crate::builtins::DerivationError::InvalidDerivation)?,
-                    node: root_node,
-                    // assemble references from plain context.
-                    references: content
-                        .iter_ctx_plain()
-                        .map(|elem| StorePath::from_absolute_path(elem.as_bytes()))
-                        .collect::<Result<_, _>>()
-                        .map_err(|e| ErrorKind::TvixError(Rc::new(e)))?,
-                    nar_size,
-                    nar_sha256,
-                    signatures: vec![],
-                    deriver: None,
-                    ca: Some(ca_hash),
-                }),
-            )
-            .map_err(|e| ErrorKind::TvixError(Rc::new(e)))
-            .map(|path_info| path_info.store_path)?;
+        let name_str = std::str::from_utf8(name.as_bytes())?;
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(&content);
+        let ca_hash = CAHash::Text(hasher.finalize().into());
+        let store_path: StorePath<&str> =
+            build_ca_path(name_str, &ca_hash, content.iter_ctx_plain(), false)
+                .map_err(|e| tvix_eval::ErrorKind::TvixError(Rc::new(e)))?;
 
         let abs_path = store_path.to_absolute_path();
         let context: NixContext = NixContextElement::Plain(abs_path.clone()).into();

@@ -85,6 +85,7 @@ mod tests {
             .expect("Failed to construct store services in memory");
 
         let io = Rc::new(TvixStoreIO::new(
+            Default::default(),
             blob_service,
             directory_service,
             path_info_service,
@@ -707,7 +708,11 @@ mod tests {
 
         let eval_result = eval(&code_replaced);
 
-        let value = eval_result.value.expect("must succeed");
+        if !eval_result.errors.is_empty() {
+            panic!("evaluation failed: {:?}", eval_result.errors);
+        }
+
+        let value = eval_result.value.unwrap();
 
         match value {
             tvix_eval::Value::String(s) => {
@@ -715,12 +720,10 @@ mod tests {
             }
             _ => panic!("unexpected value type: {:?}", value),
         }
-
-        assert!(eval_result.errors.is_empty(), "errors should be empty");
     }
 
-    // All tests filter out some unsupported (not representable in castore) nodes, confirming
-    // invalid, but filtered-out nodes don't prevent ingestion of a path.
+    // All tests filter out some unsupported, confirming invalid, but
+    // filtered-out nodes don't prevent ingestion of a path.
     #[rstest]
     #[cfg(target_family = "unix")]
     // There is a set of invalid filetypes.

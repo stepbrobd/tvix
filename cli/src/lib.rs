@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::str::FromStr;
 
 use rustc_hash::FxHashMap;
 use smol_str::SmolStr;
@@ -49,7 +50,26 @@ pub fn init_io_handle(tokio_runtime: &tokio::runtime::Runtime, args: &Args) -> R
         })
         .expect("unable to setup buildservice before interpreter setup");
 
+    // TODO(tazjin): ugly for now, but this is temporary while we drop the old
+    // store, this whole function will go away probably.
+    let mut simstore = tvix_simstore::SimulatedStoreIO::default();
+    if let (Some(nix_path), Some(store_dir)) = (args.nix_path(), simstore.store_dir()) {
+        let search_path =
+            tvix_eval::NixSearchPath::from_str(&nix_path).expect("NIX_PATH was invalid");
+        for entry in search_path.get_entries() {
+            let path = entry.get_path();
+            if !path.starts_with(&store_dir) {
+                continue;
+            }
+
+            simstore
+                .add_passthru(&path.to_string_lossy(), path.to_path_buf())
+                .expect("setting passthru failed");
+        }
+    }
+
     Rc::new(TvixStoreIO::new(
+        simstore,
         blob_service.clone(),
         directory_service.clone(),
         path_info_service,

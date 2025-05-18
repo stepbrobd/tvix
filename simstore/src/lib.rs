@@ -39,6 +39,18 @@ pub struct SimulatedStoreIO {
     passthru_paths: RefCell<HashMap<[u8; 20], PathBuf>>,
 }
 
+// TODO: copied from glue/import.rs; where should this live?
+fn path_to_name(path: &Path) -> std::io::Result<&str> {
+    path.file_name()
+        .and_then(|file_name| file_name.to_str())
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "path must not be .. and the basename valid unicode",
+            )
+        })
+}
+
 impl SimulatedStoreIO {
     /// Adds a passthru path, mapping the given path to the given location on the
     /// filesystem.
@@ -126,7 +138,12 @@ impl SimulatedStoreIO {
         Err(Error::other(SimulatedStoreError::StorePathRead))
     }
 
-    pub fn import_path_by_entries<I, E>(&self, name: &str, entries: I) -> Result<StorePath<String>>
+    pub fn import_path_by_entries<I, E>(
+        &self,
+        name: &str,
+        entries: I,
+        expected_sha256: Option<[u8; 32]>,
+    ) -> Result<StorePath<String>>
     where
         Error: From<E>,
         I: Iterator<Item = std::result::Result<walkdir::DirEntry, E>>,
@@ -136,10 +153,18 @@ impl SimulatedStoreIO {
 
         pack_entries(nar, &mut entries.peekable())?;
 
-        let hash = CAHash::Nar(NixHash::Sha256(hash.finalize().into()));
+        let nar_hash = NixHash::Sha256(hash.finalize().into());
 
-        build_ca_path(name, &hash, Option::<String>::default(), false)
-            .map_err(|_| Error::other("Failed to construct store path"))
+        if let Some(expected) = expected_sha256 {
+            if nar_hash != NixHash::Sha256(expected) {
+                // TODO: this error is really bad; needs both hashes etc.
+                // It doesn't feel like this is the right place.
+                return Err(Error::other("expected hash does not match"));
+            }
+        }
+
+        let hash = CAHash::Nar(nar_hash);
+        build_ca_path(name, &hash, Option::<String>::default(), false).map_err(Error::other)
     }
 }
 
@@ -237,15 +262,10 @@ impl EvalIO for SimulatedStoreIO {
 
         pack_entries(nar, &mut walker.peekable())?;
 
-        let name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .ok_or(Error::other("Could not determine Basename for path"))?;
-
+        let name = path_to_name(&path)?;
         let hash = CAHash::Nar(NixHash::Sha256(hash.finalize().into()));
         let store_path: StorePath<&str> =
-            build_ca_path(name, &hash, Option::<&str>::default(), false)
-                .map_err(|_| Error::other("Failed to construct store path"))?;
+            build_ca_path(name, &hash, Option::<&str>::default(), false).map_err(Error::other)?;
 
         self.passthru_paths
             .borrow_mut()

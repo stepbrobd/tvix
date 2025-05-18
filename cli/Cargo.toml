@@ -12,6 +12,7 @@ tvix-build = { path = "../build" }
 tvix-store = { path = "../store", default-features = false, features = []}
 tvix-eval = { path = "../eval" }
 tvix-glue = { path = "../glue" }
+tvix-simstore = { path = "../simstore" }
 clap = { workspace = true, features = ["derive", "env"] }
 dirs.workspace = true
 rustyline.workspace = true

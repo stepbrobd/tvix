@@ -50,6 +50,7 @@ use crate::vm::run_lambda;
 pub use crate::compiler::{compile, prepare_globals, CompilationOutput, GlobalsMap};
 pub use crate::errors::{AddContext, CatchableErrorKind, Error, ErrorKind, EvalResult};
 pub use crate::io::{DummyIO, EvalIO, FileType};
+pub use crate::nix_search_path::NixSearchPath;
 pub use crate::pretty_ast::pretty_print_expr;
 pub use crate::source::SourceCode;
 pub use crate::value::{NixContext, NixContextElement};

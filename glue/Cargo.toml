@@ -16,6 +16,7 @@ tvix-build = { path = "../build", default-features = false, features = []}
 tvix-eval = { path = "../eval" }
 tvix-castore = { path = "../castore" }
 tvix-store = { path = "../store", default-features = false, features = []}
+tvix-simstore = { path = "../simstore" }
 tracing.workspace = true
 tracing-indicatif.workspace = true
 tokio.workspace = true

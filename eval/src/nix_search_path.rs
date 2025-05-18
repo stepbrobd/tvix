@@ -7,7 +7,7 @@ use crate::errors::{CatchableErrorKind, ErrorKind};
 use crate::EvalIO;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum NixSearchPathEntry {
+pub enum NixSearchPathEntry {
     /// Resolve subdirectories of this path within `<...>` brackets. This
     /// corresponds to bare paths within the `NIX_PATH` environment variable
     ///
@@ -93,6 +93,13 @@ impl NixSearchPathEntry {
             Ok(None)
         }
     }
+
+    pub fn get_path(&self) -> &Path {
+        match self {
+            Self::Prefix { path, .. } => path,
+            Self::Path(path) => path,
+        }
+    }
 }
 
 impl FromStr for NixSearchPathEntry {
@@ -145,6 +152,10 @@ impl NixSearchPath {
             )
             .into_boxed_str(),
         )))
+    }
+
+    pub fn get_entries(&self) -> &[NixSearchPathEntry] {
+        &self.entries
     }
 }
 

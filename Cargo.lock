@@ -4440,6 +4440,7 @@ dependencies = [
  "tvix-build",
  "tvix-eval",
  "tvix-glue",
+ "tvix-simstore",
  "tvix-store",
 ]
 
@@ -4526,6 +4527,7 @@ dependencies = [
  "tvix-build",
  "tvix-castore",
  "tvix-eval",
+ "tvix-simstore",
  "tvix-store",
  "url",
  "walkdir",

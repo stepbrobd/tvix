@@ -32,6 +32,7 @@ fn interpret(code: &str) {
 
     // We assemble a complete store in memory.
     let tvix_store_io = Rc::new(TvixStoreIO::new(
+        Default::default(),
         blob_service,
         directory_service,
         path_info_service,
