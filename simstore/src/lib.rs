@@ -21,6 +21,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs;
 use std::io::{BufReader, Error, Read, Result};
+use std::iter::Peekable;
 use std::os::unix::ffi::OsStringExt;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
@@ -120,6 +121,81 @@ impl SimulatedStoreIO {
     }
 }
 
+fn pack_entries_dir<W, E, I>(
+    mut dir: nar::writer::Directory<'_, W>,
+    depth: usize,
+    walker: &mut Peekable<I>,
+) -> Result<()>
+where
+    W: std::io::Write,
+    Error: From<E>,
+    I: Iterator<Item = std::result::Result<walkdir::DirEntry, E>>,
+{
+    loop {
+        let peeked = match walker.peek() {
+            None => break,
+            Some(e) => e,
+        };
+
+        // `peeked` borrows the next result, if it is an error we need to
+        // "actually" take it to be able to propagate the error.
+        let entry = match peeked {
+            Ok(e) => e,
+            Err(_) => {
+                walker.next().expect("is present")?;
+                unreachable!("above `?` always exits");
+            }
+        };
+
+        if entry.depth() < depth {
+            break;
+        }
+
+        let nar = dir.entry(entry.file_name().to_owned().into_vec().as_slice())?;
+        pack_entries(nar, walker)?;
+    }
+
+    dir.close()?;
+
+    Ok(())
+}
+
+fn pack_entries<W, E, I>(nar: nar::writer::Node<'_, W>, walker: &mut Peekable<I>) -> Result<()>
+where
+    W: std::io::Write,
+    Error: From<E>,
+    I: Iterator<Item = std::result::Result<walkdir::DirEntry, E>>,
+{
+    let entry = if let Some(entry) = walker.next() {
+        entry?
+    } else {
+        return Ok(());
+    };
+
+    let ft = entry.file_type();
+    if ft.is_symlink() {
+        let target = fs::read_link(entry.path())?.into_os_string();
+        nar.symlink(target.into_vec().as_slice())?;
+    } else if ft.is_file() {
+        let meta = entry.metadata()?;
+        let executable = (meta.mode() & 0o100) != 0;
+        let file = fs::File::open(entry.path())?;
+        let mut reader = BufReader::new(file);
+        nar.file(executable, meta.size(), &mut reader)?;
+    } else if ft.is_dir() {
+        let inner_depth = entry.depth() + 1;
+        let dir = nar.directory()?;
+        pack_entries_dir(dir, inner_depth, walker)?;
+    } else {
+        return Err(Error::new(
+            std::io::ErrorKind::InvalidData,
+            "invalid file type for store ingestion",
+        ));
+    }
+
+    Ok(())
+}
+
 impl EvalIO for SimulatedStoreIO {
     fn store_dir(&self) -> Option<String> {
         Some(self.store_dir.clone())
@@ -130,47 +206,24 @@ impl EvalIO for SimulatedStoreIO {
         let mut hash = Sha256::new();
         let nar = nar::writer::open(&mut hash)?;
 
-        fn walk_path<T>(nar: nar::writer::Node<'_, T>, path: &Path) -> Result<()>
-        where
-            T: std::io::Write,
-        {
-            let meta = fs::symlink_metadata(path)?;
+        let walker = walkdir::WalkDir::new(path.clone())
+            .follow_links(false)
+            .follow_root_links(false)
+            .contents_first(false)
+            .sort_by(|a, b| a.file_name().cmp(b.file_name()))
+            .into_iter();
 
-            if meta.is_symlink() {
-                let target = fs::read_link(path)?.into_os_string().into_vec();
-                nar.symlink(target.as_slice())?;
-            } else if meta.is_file() {
-                let executable = (meta.mode() & 0o100) != 0;
-
-                let file = fs::File::open(path)?;
-                let mut reader = BufReader::new(file);
-
-                nar.file(executable, meta.size(), &mut reader)?;
-            } else if meta.is_dir() {
-                let mut dir = nar.directory()?;
-                let mut entries = fs::read_dir(path)?.collect::<Result<Vec<_>>>()?;
-                // TODO(sterni): confirm this is the precise sort ordering we need
-                entries.sort_by_key(|e| e.file_name());
-                for fs_entry in entries {
-                    let node = dir.entry(fs_entry.file_name().into_vec().as_slice())?;
-                    walk_path(node, fs_entry.path().as_path())?;
-                }
-                dir.close()?;
-            }
-
-            Ok(())
-        }
-
-        walk_path(nar, &path)?;
+        pack_entries(nar, &mut walker.peekable())?;
 
         let name = path
             .file_name()
             .and_then(|n| n.to_str())
             .ok_or(Error::other("Could not determine Basename for path"))?;
+
         let hash = CAHash::Nar(NixHash::Sha256(hash.finalize().into()));
-        // TODO(sterni): Vec::new is ugly, copied from //tvix/glue/src/builtins/import.rs
-        let store_path: StorePath<&str> = build_ca_path(name, &hash, Vec::<&str>::new(), false)
-            .map_err(|_| Error::other("Failed to construct store path"))?;
+        let store_path: StorePath<&str> =
+            build_ca_path(name, &hash, Option::<&str>::default(), false)
+                .map_err(|_| Error::other("Failed to construct store path"))?;
 
         self.passthru_paths
             .borrow_mut()

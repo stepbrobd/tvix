@@ -4548,6 +4548,7 @@ dependencies = [
  "nix-compat",
  "sha2",
  "tvix-eval",
+ "walkdir",
 ]
 
 [[package]]

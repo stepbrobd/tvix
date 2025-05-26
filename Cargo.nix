@@ -14861,6 +14861,10 @@ rec {
             name = "tvix-eval";
             packageId = "tvix-eval";
           }
+          {
+            name = "walkdir";
+            packageId = "walkdir";
+          }
         ];
 
       };
