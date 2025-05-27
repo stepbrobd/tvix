@@ -75,16 +75,6 @@ rec {
       # File a bug if you depend on any for non-debug work!
       debug = internal.debugCrate { inherit packageId; };
     };
-    "nix-daemon" = rec {
-      packageId = "nix-daemon";
-      build = internal.buildRustCrateWithFeatures {
-        packageId = "nix-daemon";
-      };
-
-      # Debug support which might change between releases.
-      # File a bug if you depend on any for non-debug work!
-      debug = internal.debugCrate { inherit packageId; };
-    };
     "tvix-build" = rec {
       packageId = "tvix-build";
       build = internal.buildRustCrateWithFeatures {
@@ -7349,58 +7339,6 @@ rec {
         ];
         features = { };
         resolvedDefaultFeatures = [ "compile-tests" ];
-      };
-      "nix-daemon" = rec {
-        crateName = "nix-daemon";
-        version = "0.1.0";
-        edition = "2021";
-        crateBin = [
-          {
-            name = "nix-daemon";
-            path = "src/bin/nix-daemon.rs";
-            requiredFeatures = [ ];
-          }
-        ];
-        src = lib.cleanSourceWith { filter = sourceFilter; src = ./nix-daemon; };
-        libName = "nix_daemon";
-        dependencies = [
-          {
-            name = "clap";
-            packageId = "clap";
-            features = [ "derive" "env" ];
-          }
-          {
-            name = "mimalloc";
-            packageId = "mimalloc";
-          }
-          {
-            name = "nix-compat";
-            packageId = "nix-compat";
-          }
-          {
-            name = "tokio";
-            packageId = "tokio";
-            features = [ "fs" "macros" "net" "rt" "rt-multi-thread" "signal" ];
-          }
-          {
-            name = "tokio-listener";
-            packageId = "tokio-listener";
-          }
-          {
-            name = "tracing";
-            packageId = "tracing";
-          }
-          {
-            name = "tvix-castore";
-            packageId = "tvix-castore";
-          }
-          {
-            name = "tvix-store";
-            packageId = "tvix-store";
-          }
-        ];
-        features = { };
-        resolvedDefaultFeatures = [ "default" ];
       };
       "nohash-hasher" = rec {
         crateName = "nohash-hasher";

@@ -29,7 +29,6 @@ members = [
   "nix-compat",
   "nix-compat-derive",
   "nix-compat-derive-tests",
-  "nix-daemon",
   "serde",
   "simstore",
   "store",
