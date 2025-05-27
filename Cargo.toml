@@ -30,7 +30,6 @@ members = [
   "nix-compat-derive-tests",
   "serde",
   "simstore",
-  "store",
 ]
 
 [workspace.lints.clippy]
