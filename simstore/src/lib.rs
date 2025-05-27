@@ -109,12 +109,18 @@ impl SimulatedStoreIO {
         let (store_path, relative) =
             StorePath::<&str>::from_absolute_path_full(path).map_err(Error::other)?;
 
+        // Pass known imported paths through to their original locations.
         if let Some(base) = self.passthru_paths.borrow().get(store_path.digest()) {
             return Ok(Cow::Owned(if relative.as_os_str().is_empty() {
                 base.into()
             } else {
                 base.join(relative)
             }));
+        }
+
+        // Allow reads from the "real" Nix store locally.
+        if StdIO.path_exists(path)? {
+            return Ok(Cow::Borrowed(path));
         }
 
         Err(Error::other(SimulatedStoreError::StorePathRead))
