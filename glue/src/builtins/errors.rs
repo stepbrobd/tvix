@@ -3,10 +3,8 @@ use nix_compat::{
     nixhash::{self, NixHash},
     store_path::BuildStorePathError,
 };
-use reqwest::Url;
 use std::{path::PathBuf, rc::Rc};
 use thiserror::Error;
-use tvix_castore::import;
 
 /// Errors related to derivation construction
 #[derive(Debug, Error)]
@@ -33,9 +31,11 @@ impl From<DerivationError> for tvix_eval::ErrorKind {
 
 #[derive(Debug, Error)]
 pub enum FetcherError {
-    #[error("hash mismatch in file downloaded from {url}:\n  wanted: {wanted}\n     got: {got}")]
+    #[error(
+        "hash mismatch in file downloaded from TODO(url):\n  wanted: {wanted}\n     got: {got}"
+    )]
     HashMismatch {
-        url: Url,
+        // url: Url,
         wanted: NixHash,
         got: NixHash,
     },
@@ -47,13 +47,7 @@ pub enum FetcherError {
     InvalidUrl(#[from] url::ParseError),
 
     #[error(transparent)]
-    Http(#[from] reqwest::Error),
-
-    #[error(transparent)]
     Io(#[from] std::io::Error),
-
-    #[error(transparent)]
-    Import(#[from] tvix_castore::import::IngestionError<import::archive::Error>),
 
     #[error("Error calculating store path for fetcher output: {0}")]
     StorePath(#[from] BuildStorePathError),

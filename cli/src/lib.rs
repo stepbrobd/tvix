@@ -5,8 +5,7 @@ use std::str::FromStr;
 use rustc_hash::FxHashMap;
 use smol_str::SmolStr;
 use std::fmt::Write;
-use tracing::{instrument, Span};
-use tracing_indicatif::span_ext::IndicatifSpanExt;
+use tracing::instrument;
 use tvix_eval::{
     builtins::impure_builtins,
     observer::{DisassemblingObserver, TracingObserver},
@@ -81,10 +80,6 @@ pub fn evaluate(
     globals: Option<Rc<GlobalsMap>>,
     source_map: Option<SourceCode>,
 ) -> Result<EvalResult, IncompleteInput> {
-    let span = Span::current();
-    span.pb_start();
-    span.pb_set_message("Setting up evaluator…");
-
     let mut eval_builder = tvix_eval::Evaluation::builder(Rc::new(TvixIO::new(
         tvix_store_io.clone() as Rc<dyn EvalIO>,
     )) as Rc<dyn EvalIO>)
@@ -127,8 +122,6 @@ pub fn evaluate(
             }
             eval_builder.set_runtime_observer(Some(&mut runtime_observer));
         }
-
-        span.pb_set_message("Evaluating…");
 
         let eval = eval_builder.build();
         let globals = eval.globals();

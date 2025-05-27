@@ -14421,20 +14421,8 @@ rec {
             packageId = "smol_str";
           }
           {
-            name = "tokio";
-            packageId = "tokio";
-          }
-          {
             name = "tracing";
             packageId = "tracing";
-          }
-          {
-            name = "tracing-indicatif";
-            packageId = "tracing-indicatif";
-          }
-          {
-            name = "tvix-build";
-            packageId = "tvix-build";
           }
           {
             name = "tvix-eval";
@@ -14448,11 +14436,6 @@ rec {
             name = "tvix-simstore";
             packageId = "tvix-simstore";
           }
-          {
-            name = "tvix-store";
-            packageId = "tvix-store";
-            usesDefaultFeatures = false;
-          }
         ];
         devDependencies = [
           {
@@ -14460,10 +14443,8 @@ rec {
             packageId = "expect-test";
           }
         ];
-        features = {
-          "xp-store-composition-cli" = [ "tvix-store/xp-composition-cli" ];
-        };
-        resolvedDefaultFeatures = [ "default" "xp-store-composition-cli" ];
+        features = { };
+        resolvedDefaultFeatures = [ "default" ];
       };
       "tvix-eval" = rec {
         crateName = "tvix-eval";
@@ -14674,11 +14655,6 @@ rec {
         libName = "tvix_glue";
         dependencies = [
           {
-            name = "async-compression";
-            packageId = "async-compression";
-            features = [ "tokio" "gzip" "bzip2" "xz" ];
-          }
-          {
             name = "bstr";
             packageId = "bstr";
           }
@@ -14687,16 +14663,8 @@ rec {
             packageId = "bytes";
           }
           {
-            name = "clap";
-            packageId = "clap";
-          }
-          {
             name = "data-encoding";
             packageId = "data-encoding";
-          }
-          {
-            name = "futures";
-            packageId = "futures";
           }
           {
             name = "md-5";
@@ -14705,16 +14673,11 @@ rec {
           {
             name = "nix-compat";
             packageId = "nix-compat";
+            usesDefaultFeatures = false;
           }
           {
             name = "pin-project";
             packageId = "pin-project";
-          }
-          {
-            name = "reqwest";
-            packageId = "reqwest";
-            usesDefaultFeatures = false;
-            features = [ "rustls-tls-native-roots" ];
           }
           {
             name = "serde_json";
@@ -14733,47 +14696,12 @@ rec {
             packageId = "thiserror 2.0.9";
           }
           {
-            name = "tokio";
-            packageId = "tokio";
-          }
-          {
-            name = "tokio-tar";
-            packageId = "tokio-tar";
-          }
-          {
-            name = "tokio-util";
-            packageId = "tokio-util";
-            features = [ "io" "io-util" "compat" ];
-          }
-          {
-            name = "tracing";
-            packageId = "tracing";
-          }
-          {
-            name = "tracing-indicatif";
-            packageId = "tracing-indicatif";
-          }
-          {
-            name = "tvix-build";
-            packageId = "tvix-build";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "tvix-castore";
-            packageId = "tvix-castore";
-          }
-          {
             name = "tvix-eval";
             packageId = "tvix-eval";
           }
           {
             name = "tvix-simstore";
             packageId = "tvix-simstore";
-          }
-          {
-            name = "tvix-store";
-            packageId = "tvix-store";
-            usesDefaultFeatures = false;
           }
           {
             name = "url";

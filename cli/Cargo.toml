@@ -8,8 +8,6 @@ name = "tvix"
 path = "src/main.rs"
 
 [dependencies]
-tvix-build = { path = "../build" }
-tvix-store = { path = "../store", default-features = false, features = []}
 tvix-eval = { path = "../eval" }
 tvix-glue = { path = "../glue" }
 tvix-simstore = { path = "../simstore" }
@@ -19,9 +17,7 @@ rustyline.workspace = true
 rnix.workspace = true
 rowan.workspace = true
 smol_str.workspace = true
-tokio.workspace = true
 tracing.workspace = true
-tracing-indicatif.workspace = true
 rustc-hash.workspace = true
 mimalloc.workspace = true
 
@@ -30,4 +26,3 @@ expect-test.workspace = true
 
 [features]
 default = []
-xp-store-composition-cli = ["tvix-store/xp-composition-cli"]

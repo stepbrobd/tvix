@@ -4,7 +4,6 @@ use std::{
     io,
     path::{Path, PathBuf},
 };
-use tracing::{instrument, Level};
 use tvix_eval::{EvalIO, FileType};
 use tvix_simstore::SimulatedStoreIO;
 
@@ -44,22 +43,18 @@ impl TvixStoreIO {
 }
 
 impl EvalIO for TvixStoreIO {
-    #[instrument(skip(self), ret(level = Level::TRACE), err)]
     fn path_exists(&self, path: &Path) -> io::Result<bool> {
         self.simulated_store.path_exists(path)
     }
 
-    #[instrument(skip(self), err)]
     fn open(&self, path: &Path) -> io::Result<Box<dyn io::Read>> {
         self.simulated_store.open(path)
     }
 
-    #[instrument(skip(self), ret(level = Level::TRACE), err)]
     fn file_type(&self, path: &Path) -> io::Result<FileType> {
         self.simulated_store.file_type(path)
     }
 
-    #[instrument(skip(self), ret(level = Level::TRACE), err)]
     fn read_dir(&self, path: &Path) -> io::Result<Vec<(bytes::Bytes, FileType)>> {
         self.simulated_store.read_dir(path)
     }

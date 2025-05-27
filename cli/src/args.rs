@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use tvix_store::utils::ServiceUrlsMemory;
 
 /// Provides a CLI interface to trigger evaluation using tvix-eval.
 ///
@@ -62,12 +61,6 @@ pub struct Args {
     /// return value.
     #[clap(long)]
     pub strict: bool,
-
-    #[clap(flatten)]
-    pub service_addrs: ServiceUrlsMemory,
-
-    #[arg(long, env, default_value = "dummy://")]
-    pub build_service_addr: String,
 
     /// An optional path in which Derivations encountered during evaluation
     /// are dumped into, after evaluation. If it doesn't exist, the directory is created.
