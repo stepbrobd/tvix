@@ -14,7 +14,7 @@ use tvix_store::nar::NarCalculationService;
 use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
 use tvix_store::pathinfoservice::PathInfoService;
 
-use crate::fetchers::Fetcher;
+// use crate::fetchers::Fetcher;
 use crate::known_paths::KnownPaths;
 
 /// Implements [EvalIO], asking given [PathInfoService], [DirectoryService]
@@ -38,15 +38,16 @@ pub struct TvixStoreIO {
 
     #[allow(dead_code)]
     build_service: Arc<dyn BuildService>,
+    #[allow(dead_code)]
     pub(crate) tokio_handle: tokio::runtime::Handle,
 
-    #[allow(clippy::type_complexity)]
-    pub(crate) fetcher: Fetcher<
-        Arc<dyn BlobService>,
-        Arc<dyn DirectoryService>,
-        Arc<dyn PathInfoService>,
-        Arc<dyn NarCalculationService>,
-    >,
+    // #[allow(clippy::type_complexity)]
+    // pub(crate) fetcher: Fetcher<
+    //     Arc<dyn BlobService>,
+    //     Arc<dyn DirectoryService>,
+    //     Arc<dyn PathInfoService>,
+    //     Arc<dyn NarCalculationService>,
+    // >,
 
     // Paths known how to produce, by building or fetching.
     pub known_paths: RefCell<KnownPaths>,
@@ -55,10 +56,10 @@ pub struct TvixStoreIO {
 impl TvixStoreIO {
     pub fn new(
         simulated_store: SimulatedStoreIO,
-        blob_service: Arc<dyn BlobService>,
-        directory_service: Arc<dyn DirectoryService>,
-        path_info_service: Arc<dyn PathInfoService>,
-        nar_calculation_service: Arc<dyn NarCalculationService>,
+        _blob_service: Arc<dyn BlobService>,
+        _directory_service: Arc<dyn DirectoryService>,
+        _path_info_service: Arc<dyn PathInfoService>,
+        _nar_calculation_service: Arc<dyn NarCalculationService>,
         build_service: Arc<dyn BuildService>,
         tokio_handle: tokio::runtime::Handle,
     ) -> Self {
@@ -66,12 +67,12 @@ impl TvixStoreIO {
             simulated_store,
             build_service,
             tokio_handle,
-            fetcher: Fetcher::new(
-                blob_service,
-                directory_service,
-                path_info_service,
-                nar_calculation_service,
-            ),
+            // fetcher: Fetcher::new(
+            //     blob_service,
+            //     directory_service,
+            //     path_info_service,
+            //     nar_calculation_service,
+            // ),
             known_paths: Default::default(),
         }
     }
@@ -119,7 +120,7 @@ mod tests {
     use tvix_store::utils::{construct_services, ServiceUrlsMemory};
 
     use super::TvixStoreIO;
-    use crate::builtins::{add_derivation_builtins, add_fetcher_builtins, add_import_builtins};
+    use crate::builtins::{add_derivation_builtins, add_import_builtins};
 
     /// evaluates a given nix expression and returns the result.
     /// Takes care of setting up the evaluator so it knows about the
@@ -147,7 +148,7 @@ mod tests {
         let mut eval_builder =
             tvix_eval::Evaluation::builder(io.clone() as Rc<dyn EvalIO>).enable_import();
         eval_builder = add_derivation_builtins(eval_builder, Rc::clone(&io));
-        eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&io));
+        // eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&io));
         eval_builder = add_import_builtins(eval_builder, io);
         let eval = eval_builder.build();
 

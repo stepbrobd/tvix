@@ -6,7 +6,7 @@ use std::{env, rc::Rc, sync::Arc, time::Duration};
 use tvix_build::buildservice::DummyBuildService;
 use tvix_eval::{builtins::impure_builtins, EvalIO};
 use tvix_glue::{
-    builtins::{add_derivation_builtins, add_fetcher_builtins, add_import_builtins},
+    builtins::{add_derivation_builtins, add_import_builtins},
     configure_nix_path,
     tvix_io::TvixIO,
     tvix_store_io::TvixStoreIO,
@@ -48,7 +48,7 @@ fn interpret(code: &str) {
     .add_builtins(impure_builtins());
 
     eval_builder = add_derivation_builtins(eval_builder, Rc::clone(&tvix_store_io));
-    eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
+    // eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
     eval_builder = add_import_builtins(eval_builder, tvix_store_io);
     eval_builder = configure_nix_path(
         eval_builder,

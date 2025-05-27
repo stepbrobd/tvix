@@ -6,7 +6,7 @@ use crate::tvix_store_io::TvixStoreIO;
 
 mod derivation;
 mod errors;
-mod fetchers;
+// mod fetchers;
 mod import;
 mod utils;
 
@@ -30,6 +30,7 @@ pub fn add_derivation_builtins<'co, 'ro, 'env>(
         .add_src_builtin("derivation", include_str!("derivation.nix"))
 }
 
+/*
 /// Adds fetcher builtins to the passed [tvix_eval::EvaluationBuilder]:
 ///
 /// * `fetchurl`
@@ -41,6 +42,7 @@ pub fn add_fetcher_builtins<'co, 'ro, 'env>(
 ) -> tvix_eval::EvaluationBuilder<'co, 'ro, 'env> {
     eval_builder.add_builtins(fetchers::fetcher_builtins::builtins(Rc::clone(&io)))
 }
+*/
 
 /// Adds import-related builtins to the passed [tvix_eval::EvaluationBuilder]:
 ///
@@ -63,7 +65,7 @@ mod tests {
 
     use crate::tvix_store_io::TvixStoreIO;
 
-    use super::{add_derivation_builtins, add_fetcher_builtins, add_import_builtins};
+    use super::{add_derivation_builtins, add_import_builtins};
     use clap::Parser;
     use nix_compat::store_path::hash_placeholder;
     use rstest::rstest;
@@ -96,7 +98,7 @@ mod tests {
 
         let mut eval_builder = tvix_eval::Evaluation::builder(io.clone() as Rc<dyn EvalIO>);
         eval_builder = add_derivation_builtins(eval_builder, Rc::clone(&io));
-        eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&io));
+        // eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&io));
         eval_builder = add_import_builtins(eval_builder, io);
         let eval = eval_builder.build();
 

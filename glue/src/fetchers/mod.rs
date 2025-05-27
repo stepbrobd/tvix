@@ -1,3 +1,10 @@
+/* WARNING: This file is excluded from builds, as it has not yet been refactored
+ * to remove uses of the old store.
+ *
+ * Changes in this file are not compiled, and its functionality is not enabled
+ * anywhere.
+ */
+
 use futures::TryStreamExt;
 use md5::{digest::DynDigest, Md5};
 use nix_compat::{

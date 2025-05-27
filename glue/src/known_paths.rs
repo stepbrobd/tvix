@@ -8,13 +8,10 @@
 //! This data is required to find the derivation needed to actually trigger the
 //! build, if necessary.
 
-use nix_compat::{
-    derivation::Derivation,
-    store_path::{BuildStorePathError, StorePath, StorePathRef},
-};
+use nix_compat::{derivation::Derivation, store_path::StorePath};
 use std::collections::HashMap;
 
-use crate::fetchers::Fetch;
+// use crate::fetchers::Fetch;
 
 /// Struct keeping track of all known Derivations in the current evaluation.
 /// This keeps both the Derivation struct, as well as the "Hash derivation
@@ -31,9 +28,10 @@ pub struct KnownPaths {
     /// Note that in the case of FODs, multiple drvs can produce the same output
     /// path. We use one of them.
     outputs_to_drvpath: HashMap<StorePath<String>, StorePath<String>>,
-
+    /*
     /// A map from output path to fetches (and their names).
     outputs_to_fetches: HashMap<StorePath<String>, (String, Fetch)>,
+    */
 }
 
 impl KnownPaths {
@@ -107,6 +105,7 @@ impl KnownPaths {
         }
     }
 
+    /*
     /// Insert a new [Fetch] into this struct, which *must* have an expected
     /// hash (otherwise we wouldn't be able to calculate the store path).
     /// Fetches without a known hash need to be fetched inside builtins.
@@ -135,6 +134,7 @@ impl KnownPaths {
             .get(output_path)
             .map(|(name, fetch)| (name.to_owned(), fetch.to_owned()))
     }
+    */
 
     /// Returns an iterator over all known derivations and their store path.
     pub fn get_derivations(&self) -> impl Iterator<Item = (&StorePath<String>, &Derivation)> {
@@ -146,12 +146,12 @@ impl KnownPaths {
 mod tests {
     use std::sync::LazyLock;
 
-    use hex_literal::hex;
-    use nix_compat::{derivation::Derivation, nixbase32, nixhash, store_path::StorePath};
-    use url::Url;
-
     use super::KnownPaths;
-    use crate::fetchers::Fetch;
+    use hex_literal::hex;
+    use nix_compat::{derivation::Derivation, store_path::StorePath};
+
+    // use url::Url;
+    // use crate::fetchers::Fetch;
 
     static BAR_DRV: LazyLock<Derivation> = LazyLock::new(|| {
         Derivation::from_aterm_bytes(include_bytes!(
@@ -183,6 +183,7 @@ mod tests {
         StorePath::from_bytes(b"fhaj6gmwns62s6ypkcldbaj2ybvkhx3p-foo").expect("must parse")
     });
 
+    /*
     static FETCH_URL: LazyLock<Fetch> = LazyLock::new(|| {
         Fetch::URL {
         url: Url::parse("https://raw.githubusercontent.com/aaptel/notmuch-extract-patch/f732a53e12a7c91a06755ebfab2007adc9b3063b/notmuch-extract-patch").unwrap(),
@@ -204,6 +205,7 @@ mod tests {
     static FETCH_TARBALL_OUT_PATH: LazyLock<StorePath<String>> = LazyLock::new(|| {
         StorePath::from_bytes(b"7adgvk5zdfq4pwrhsm3n9lzypb12gw0g-source").unwrap()
     });
+    */
 
     /// Ensure that we don't allow adding a derivation that depends on another,
     /// not-yet-added derivation.
@@ -274,6 +276,7 @@ mod tests {
         );
     }
 
+    /*
     #[test]
     fn fetch_happy_path() {
         let mut known_paths = KnownPaths::default();
@@ -300,6 +303,7 @@ mod tests {
                 .to_owned()
         );
     }
+    */
 
     #[test]
     fn get_derivations_working() {

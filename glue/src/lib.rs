@@ -1,13 +1,14 @@
 pub mod builtins;
-pub mod fetchers;
+// pub mod fetchers;
 pub mod known_paths;
 pub mod tvix_build;
 pub mod tvix_io;
 pub mod tvix_store_io;
 
-mod fetchurl;
+// mod fetchurl;
 
 // Used as user agent in various HTTP Clients
+#[allow(dead_code)]
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 #[cfg(test)]

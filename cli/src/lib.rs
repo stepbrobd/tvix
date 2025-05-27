@@ -14,7 +14,7 @@ use tvix_eval::{
     ErrorKind, EvalIO, EvalMode, GlobalsMap, SourceCode, Value,
 };
 use tvix_glue::{
-    builtins::{add_derivation_builtins, add_fetcher_builtins, add_import_builtins},
+    builtins::{add_derivation_builtins, add_import_builtins},
     configure_nix_path,
     tvix_io::TvixIO,
     tvix_store_io::TvixStoreIO,
@@ -133,7 +133,7 @@ pub fn evaluate(
         None => {
             eval_builder = eval_builder.add_builtins(impure_builtins());
             eval_builder = add_derivation_builtins(eval_builder, Rc::clone(&tvix_store_io));
-            eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
+            // eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
             eval_builder = add_import_builtins(eval_builder, Rc::clone(&tvix_store_io));
         }
     };

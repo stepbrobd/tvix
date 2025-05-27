@@ -10,7 +10,7 @@ use tvix_store::utils::{construct_services, ServiceUrlsMemory};
 use rstest::rstest;
 
 use crate::{
-    builtins::{add_derivation_builtins, add_fetcher_builtins, add_import_builtins},
+    builtins::{add_derivation_builtins, add_import_builtins},
     configure_nix_path,
     tvix_io::TvixIO,
     tvix_store_io::TvixStoreIO,
@@ -58,7 +58,7 @@ fn eval_test(code_path: PathBuf, expect_success: bool) {
     .mode(EvalMode::Strict);
 
     eval_builder = add_derivation_builtins(eval_builder, Rc::clone(&tvix_store_io));
-    eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
+    // eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
     eval_builder = add_import_builtins(eval_builder, tvix_store_io);
     eval_builder = configure_nix_path(eval_builder, &None);
 
