@@ -1,9 +1,6 @@
-use clap::Parser;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use mimalloc::MiMalloc;
-use std::sync::LazyLock;
-use std::{env, rc::Rc, sync::Arc, time::Duration};
-use tvix_build::buildservice::DummyBuildService;
+use std::{env, rc::Rc, time::Duration};
 use tvix_eval::{builtins::impure_builtins, EvalIO};
 use tvix_glue::{
     builtins::{add_derivation_builtins, add_import_builtins},
@@ -11,35 +8,13 @@ use tvix_glue::{
     tvix_io::TvixIO,
     tvix_store_io::TvixStoreIO,
 };
-use tvix_store::utils::{construct_services, ServiceUrlsMemory};
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-static TOKIO_RUNTIME: LazyLock<tokio::runtime::Runtime> =
-    LazyLock::new(|| tokio::runtime::Runtime::new().unwrap());
-
 fn interpret(code: &str) {
-    // TODO: this is a bit annoying.
-    // It'd be nice if we could set this up once and then run evaluate() with a
-    // piece of code. b/262
-    let (blob_service, directory_service, path_info_service, nar_calculation_service) =
-        TOKIO_RUNTIME
-            .block_on(async {
-                construct_services(ServiceUrlsMemory::parse_from(std::iter::empty::<&str>())).await
-            })
-            .unwrap();
-
     // We assemble a complete store in memory.
-    let tvix_store_io = Rc::new(TvixStoreIO::new(
-        Default::default(),
-        blob_service,
-        directory_service,
-        path_info_service,
-        nar_calculation_service.into(),
-        Arc::<DummyBuildService>::default(),
-        TOKIO_RUNTIME.handle().clone(),
-    ));
+    let tvix_store_io = Rc::new(TvixStoreIO::new(Default::default()));
 
     let mut eval_builder = tvix_eval::Evaluation::builder(Rc::new(TvixIO::new(
         tvix_store_io.clone() as Rc<dyn EvalIO>,

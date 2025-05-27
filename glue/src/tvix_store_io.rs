@@ -3,16 +3,10 @@ use std::{
     cell::RefCell,
     io,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 use tracing::{instrument, Level};
-use tvix_build::buildservice::BuildService;
 use tvix_eval::{EvalIO, FileType};
 use tvix_simstore::SimulatedStoreIO;
-use tvix_store::nar::NarCalculationService;
-
-use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService};
-use tvix_store::pathinfoservice::PathInfoService;
 
 // use crate::fetchers::Fetcher;
 use crate::known_paths::KnownPaths;
@@ -36,43 +30,14 @@ pub struct TvixStoreIO {
     // Field for in-progress switch to simulated store:
     pub(crate) simulated_store: SimulatedStoreIO,
 
-    #[allow(dead_code)]
-    build_service: Arc<dyn BuildService>,
-    #[allow(dead_code)]
-    pub(crate) tokio_handle: tokio::runtime::Handle,
-
-    // #[allow(clippy::type_complexity)]
-    // pub(crate) fetcher: Fetcher<
-    //     Arc<dyn BlobService>,
-    //     Arc<dyn DirectoryService>,
-    //     Arc<dyn PathInfoService>,
-    //     Arc<dyn NarCalculationService>,
-    // >,
-
     // Paths known how to produce, by building or fetching.
     pub known_paths: RefCell<KnownPaths>,
 }
 
 impl TvixStoreIO {
-    pub fn new(
-        simulated_store: SimulatedStoreIO,
-        _blob_service: Arc<dyn BlobService>,
-        _directory_service: Arc<dyn DirectoryService>,
-        _path_info_service: Arc<dyn PathInfoService>,
-        _nar_calculation_service: Arc<dyn NarCalculationService>,
-        build_service: Arc<dyn BuildService>,
-        tokio_handle: tokio::runtime::Handle,
-    ) -> Self {
+    pub fn new(simulated_store: SimulatedStoreIO) -> Self {
         Self {
             simulated_store,
-            build_service,
-            tokio_handle,
-            // fetcher: Fetcher::new(
-            //     blob_service,
-            //     directory_service,
-            //     path_info_service,
-            //     nar_calculation_service,
-            // ),
             known_paths: Default::default(),
         }
     }
@@ -110,14 +75,11 @@ impl EvalIO for TvixStoreIO {
 
 #[cfg(test)]
 mod tests {
-    use std::{path::Path, rc::Rc, sync::Arc};
+    use std::{path::Path, rc::Rc};
 
     use bstr::ByteSlice;
-    use clap::Parser;
     use tempfile::TempDir;
-    use tvix_build::buildservice::DummyBuildService;
     use tvix_eval::{EvalIO, EvaluationResult};
-    use tvix_store::utils::{construct_services, ServiceUrlsMemory};
 
     use super::TvixStoreIO;
     use crate::builtins::{add_derivation_builtins, add_import_builtins};
@@ -126,24 +88,7 @@ mod tests {
     /// Takes care of setting up the evaluator so it knows about the
     /// `derivation` builtin.
     fn eval(str: &str) -> EvaluationResult {
-        let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
-        let (blob_service, directory_service, path_info_service, nar_calculation_service) =
-            tokio_runtime
-                .block_on(async {
-                    construct_services(ServiceUrlsMemory::parse_from(std::iter::empty::<&str>()))
-                        .await
-                })
-                .unwrap();
-
-        let io = Rc::new(TvixStoreIO::new(
-            Default::default(),
-            blob_service,
-            directory_service,
-            path_info_service,
-            nar_calculation_service.into(),
-            Arc::<DummyBuildService>::default(),
-            tokio_runtime.handle().clone(),
-        ));
+        let io = Rc::new(TvixStoreIO::new(Default::default()));
 
         let mut eval_builder =
             tvix_eval::Evaluation::builder(io.clone() as Rc<dyn EvalIO>).enable_import();

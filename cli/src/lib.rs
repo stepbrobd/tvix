@@ -7,7 +7,6 @@ use smol_str::SmolStr;
 use std::fmt::Write;
 use tracing::{instrument, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
-use tvix_build::buildservice;
 use tvix_eval::{
     builtins::impure_builtins,
     observer::{DisassemblingObserver, TracingObserver},
@@ -27,29 +26,7 @@ pub mod repl;
 pub use args::Args;
 pub use repl::Repl;
 
-pub fn init_io_handle(tokio_runtime: &tokio::runtime::Runtime, args: &Args) -> Rc<TvixStoreIO> {
-    let (blob_service, directory_service, path_info_service, nar_calculation_service) =
-        tokio_runtime
-            .block_on(tvix_store::utils::construct_services(
-                args.service_addrs.clone(),
-            ))
-            .expect("unable to setup {blob|directory|pathinfo}service before interpreter setup");
-
-    let build_service = tokio_runtime
-        .block_on({
-            let blob_service = blob_service.clone();
-            let directory_service = directory_service.clone();
-            async move {
-                buildservice::from_addr(
-                    &args.build_service_addr,
-                    blob_service.clone(),
-                    directory_service.clone(),
-                )
-                .await
-            }
-        })
-        .expect("unable to setup buildservice before interpreter setup");
-
+pub fn init_io_handle(args: &Args) -> Rc<TvixStoreIO> {
     // TODO(tazjin): ugly for now, but this is temporary while we drop the old
     // store, this whole function will go away probably.
     let mut simstore = tvix_simstore::SimulatedStoreIO::default();
@@ -68,15 +45,7 @@ pub fn init_io_handle(tokio_runtime: &tokio::runtime::Runtime, args: &Args) -> R
         }
     }
 
-    Rc::new(TvixStoreIO::new(
-        simstore,
-        blob_service.clone(),
-        directory_service.clone(),
-        path_info_service,
-        nar_calculation_service.into(),
-        build_service.into(),
-        tokio_runtime.handle().clone(),
-    ))
+    Rc::new(TvixStoreIO::new(simstore))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

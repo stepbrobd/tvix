@@ -56,9 +56,7 @@ fn lint(code: &str, path: Option<PathBuf>, args: &Args) -> bool {
 
 fn main() {
     let args = Args::parse();
-    let tokio_runtime = tokio::runtime::Runtime::new().expect("failed to setup tokio runtime");
-
-    let io_handle = init_io_handle(&tokio_runtime, &args);
+    let io_handle = init_io_handle(&args);
 
     if let Some(file) = &args.script {
         run_file(io_handle, file.clone(), &args)
