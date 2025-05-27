@@ -119,6 +119,22 @@ impl SimulatedStoreIO {
 
         Err(Error::other(SimulatedStoreError::StorePathRead))
     }
+
+    pub fn import_path_by_entries<I, E>(&self, name: &str, entries: I) -> Result<StorePath<String>>
+    where
+        Error: From<E>,
+        I: Iterator<Item = std::result::Result<walkdir::DirEntry, E>>,
+    {
+        let mut hash = Sha256::new();
+        let nar = nar::writer::open(&mut hash)?;
+
+        pack_entries(nar, &mut entries.peekable())?;
+
+        let hash = CAHash::Nar(NixHash::Sha256(hash.finalize().into()));
+
+        build_ca_path(name, &hash, Option::<String>::default(), false)
+            .map_err(|_| Error::other("Failed to construct store path"))
+    }
 }
 
 fn pack_entries_dir<W, E, I>(
