@@ -622,21 +622,19 @@ impl Value {
                         return Ok(Value::Bool(false));
                     }
 
-                    // note that it is important to be careful here with the
-                    // order we push the keys and values in order to properly
-                    // compare attrsets containing `throw` elements.
-                    let iter1 = a1.into_iter_sorted().rev();
-                    let iter2 = a2.into_iter_sorted().rev();
-                    for ((k1, v1), (k2, v2)) in iter1.zip(iter2) {
-                        vals.push((
-                            (v1, v2),
-                            std::cmp::max(ptr_eq, PointerEquality::AllowNested),
-                        ));
-                        vals.push((
-                            (k1.into(), k2.into()),
-                            std::cmp::max(ptr_eq, PointerEquality::AllowNested),
-                        ));
+                    for (key, v1) in a1.into_iter() {
+                        match a2.select(&key) {
+                            None => return Ok(Value::Bool(false)),
+
+                            Some(v2) => {
+                                vals.push((
+                                    (v1, v2.clone()),
+                                    std::cmp::max(ptr_eq, PointerEquality::AllowNested),
+                                ));
+                            }
+                        }
                     }
+
                     continue;
                 }
 
