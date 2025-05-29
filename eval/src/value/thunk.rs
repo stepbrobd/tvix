@@ -206,6 +206,7 @@ impl Thunk {
     pub async fn force(myself: Thunk, co: GenCo, span: Span) -> Result<Value, ErrorKind> {
         Self::force_(myself, &co, span).await
     }
+
     pub async fn force_(mut myself: Thunk, co: &GenCo, span: Span) -> Result<Value, ErrorKind> {
         // This vector of "thunks which point to the thunk-being-forced", to
         // be updated along with it, is necessary in order to write this
@@ -343,7 +344,7 @@ impl Thunk {
     /// the Rc has more than one strong reference.  It is an error
     /// to call this on a thunk that has not been forced, or is not
     /// otherwise known to be fully evaluated.
-    fn unwrap_or_clone(self) -> Value {
+    pub fn unwrap_or_clone(self) -> Value {
         match Rc::try_unwrap(self.0) {
             Ok(refcell) => refcell.into_inner().expect(),
             Err(rc) => Ref::map(rc.borrow(), |thunkrepr| thunkrepr.expect_ref()).clone(),

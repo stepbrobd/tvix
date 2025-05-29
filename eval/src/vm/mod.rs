@@ -504,14 +504,18 @@ impl<'o> VM<'o> {
                             _ => unreachable!(),
                         };
 
-                        let gen_span = frame.current_span();
+                        if !thunk.is_forced() {
+                            let gen_span = frame.current_span();
 
-                        self.push_call_frame(span, frame);
-                        self.enqueue_generator("force", gen_span, |co| {
-                            Thunk::force(thunk, co, gen_span)
-                        });
+                            self.push_call_frame(span, frame);
+                            self.enqueue_generator("force", gen_span, |co| {
+                                Thunk::force(thunk, co, gen_span)
+                            });
 
-                        return Ok(false);
+                            return Ok(false);
+                        }
+
+                        self.stack.push(thunk.unwrap_or_clone());
                     }
                 }
 
