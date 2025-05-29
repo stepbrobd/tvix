@@ -2935,6 +2935,23 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "std" ];
       };
+      "integer-encoding" = rec {
+        crateName = "integer-encoding";
+        version = "4.0.2";
+        edition = "2018";
+        sha256 = "0nmx9d8f1wj1akmvk0k3j1pfd5nbb8pf6iiy0q8iqbwa4aa22xhd";
+        libName = "integer_encoding";
+        authors = [
+          "Lewin Bormann <lbo@spheniscida.de>"
+        ];
+        features = {
+          "async-trait" = [ "dep:async-trait" ];
+          "futures-util" = [ "dep:futures-util" ];
+          "futures_async" = [ "futures-util" "async-trait" ];
+          "tokio" = [ "dep:tokio" ];
+          "tokio_async" = [ "tokio" "async-trait" ];
+        };
+      };
       "is-terminal" = rec {
         crateName = "is-terminal";
         version = "0.4.13";
@@ -7002,6 +7019,10 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "integer-encoding";
+            packageId = "integer-encoding";
+          }
+          {
             name = "itertools";
             packageId = "itertools 0.12.1";
           }
@@ -7092,10 +7113,6 @@ rec {
             name = "tvix-eval-builtin-macros";
             packageId = "tvix-eval-builtin-macros";
             rename = "builtin-macros";
-          }
-          {
-            name = "vu128";
-            packageId = "vu128";
           }
         ];
         devDependencies = [
@@ -7460,17 +7477,6 @@ rec {
         sha256 = "0nhhi4i5x89gm911azqbn7avs9mdacw2i3vcz3cnmz3mv4rqz4hb";
         authors = [
           "Sergio Benitez <sb@sergio.bz>"
-        ];
-
-      };
-      "vu128" = rec {
-        crateName = "vu128";
-        version = "1.1.0";
-        edition = "2018";
-        sha256 = "1pczgy26c0lsri1ddrx5wkgn0rcq4da04pqya5rl6vrwfnys73di";
-        libPath = "vu128/vu128.rs";
-        authors = [
-          "John Millikin <john@john-millikin.com>"
         ];
 
       };

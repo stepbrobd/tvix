@@ -1,10 +1,8 @@
 use crate::opcode::{CodeIdx, ConstantIdx, Op, OpArg};
 use crate::value::Value;
 use crate::{CoercionKind, SourceCode};
+use integer_encoding::VarInt;
 use std::io::Write;
-
-/// Maximum size of a u64 encoded in the vu128 varint encoding.
-const U64_VARINT_SIZE: usize = 9;
 
 /// Represents a source location from which one or more operations
 /// were compiled.
@@ -50,14 +48,9 @@ impl Chunk {
 
     pub fn push_uvarint(&mut self, data: u64) {
         let start_len = self.code.len();
-        self.code.resize(start_len + U64_VARINT_SIZE, 0);
-        let bytes_written = vu128::encode_u64(
-            (&mut self.code[start_len..start_len + U64_VARINT_SIZE])
-                .try_into()
-                .expect("size statically guaranteed"),
-            data,
-        );
-        self.code.truncate(start_len + bytes_written);
+        self.code
+            .resize(start_len + VarInt::required_space(data), 0);
+        VarInt::encode_var(data, &mut self.code[start_len..]);
     }
 
     pub fn read_uvarint(&self, idx: usize) -> (u64, usize) {
@@ -66,17 +59,7 @@ impl Chunk {
             "invalid bytecode (missing varint operand)",
         );
 
-        if self.code.len() - idx >= U64_VARINT_SIZE {
-            vu128::decode_u64(
-                &self.code[idx..idx + U64_VARINT_SIZE]
-                    .try_into()
-                    .expect("size statically checked"),
-            )
-        } else {
-            let mut tmp = [0u8; U64_VARINT_SIZE];
-            tmp[..self.code.len() - idx].copy_from_slice(&self.code[idx..]);
-            vu128::decode_u64(&tmp)
-        }
+        VarInt::decode_var(&self.code[idx..]).expect("tvix bug: invalid varint encoding")
     }
 
     pub fn push_u16(&mut self, data: u16) {
