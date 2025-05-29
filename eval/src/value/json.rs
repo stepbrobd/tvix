@@ -55,7 +55,7 @@ impl Value {
                 // Attribute sets with a callable `__toString` attribute
                 // serialise to the string-coerced version of the result of
                 // calling that.
-                if attrs.select("__toString").is_some() {
+                if attrs.select_str("__toString").is_some() {
                     let span = generators::request_span(co).await;
                     match Value::Attrs(attrs)
                         .coerce_to_string_(
@@ -83,7 +83,7 @@ impl Value {
                 // Attribute sets with an `outPath` attribute
                 // serialise to a JSON serialisation of that inner
                 // value (regardless of what it is!).
-                if let Some(out_path) = attrs.select("outPath") {
+                if let Some(out_path) = attrs.select_str("outPath") {
                     let (json_out_path, ctx) =
                         Box::pin(out_path.clone().into_contextful_json(co)).await?;
                     context.extend(ctx.into_iter());

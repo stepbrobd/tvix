@@ -241,7 +241,7 @@ pub(crate) mod derivation_builtins {
         }
 
         // Check whether null attributes should be ignored or passed through.
-        let ignore_nulls = match input.select(IGNORE_NULLS) {
+        let ignore_nulls = match input.select_str(IGNORE_NULLS) {
             Some(b) => generators::request_force(&co, b.clone()).await.as_bool()?,
             None => false,
         };
@@ -250,7 +250,7 @@ pub(crate) mod derivation_builtins {
         // If it's set and true, provide a BTreeMap that gets populated while looking at the arguments.
         // We need it to be a BTreeMap, so iteration order of keys is reproducible.
         let mut structured_attrs: Option<BTreeMap<String, serde_json::Value>> =
-            match input.select(STRUCTURED_ATTRS) {
+            match input.select_str(STRUCTURED_ATTRS) {
                 Some(b) => generators::request_force(&co, b.clone())
                     .await
                     .as_bool()?

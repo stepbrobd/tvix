@@ -800,8 +800,8 @@ pub(crate) async fn request_read_file_type(co: &GenCo, path: PathBuf) -> FileTyp
 pub(crate) async fn call_functor(co: GenCo, value: Value) -> Result<Value, ErrorKind> {
     let attrs = value.to_attrs()?;
 
-    match attrs.select("__functor") {
-        None => Err(ErrorKind::NotCallable("set without `__functor_` attribute")),
+    match attrs.select_str("__functor") {
+        None => Err(ErrorKind::NotCallable("set without `__functor` attribute")),
         Some(functor) => {
             // The functor receives the set itself as its first argument and
             // needs to be called with it.

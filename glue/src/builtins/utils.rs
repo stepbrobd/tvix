@@ -25,7 +25,7 @@ pub(super) async fn select_string(
     attrs: &NixAttrs,
     key: &str,
 ) -> Result<Result<Option<String>, CatchableErrorKind>, ErrorKind> {
-    if let Some(attr) = attrs.select(key) {
+    if let Some(attr) = attrs.select_str(key) {
         match strong_importing_coerce_to_string(co, attr.clone()).await {
             Err(cek) => return Ok(Err(cek)),
             Ok(str) => return Ok(Ok(Some(str.to_str()?.to_owned()))),

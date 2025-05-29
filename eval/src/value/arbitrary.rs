@@ -1,10 +1,11 @@
 //! Support for configurable generation of arbitrary nix values
 
-use proptest::collection::{btree_map, vec};
+use proptest::collection::{hash_map, vec};
 use proptest::{prelude::*, strategy::BoxedStrategy};
+use rustc_hash::FxHashMap;
 use std::ffi::OsString;
 
-use super::{attrs::AttrsRep, NixAttrs, NixList, NixString, Value};
+use super::{NixAttrs, NixList, NixString, Value};
 
 #[derive(Clone)]
 pub enum Parameters {
@@ -31,20 +32,9 @@ impl Arbitrary for NixAttrs {
     type Strategy = BoxedStrategy<Self>;
 
     fn arbitrary_with(args: Self::Parameters) -> Self::Strategy {
-        prop_oneof![
-            // Empty attrs representation
-            Just(AttrsRep::Empty.into()),
-            // KV representation (name/value pairs)
-            (
-                any_with::<Value>(args.clone()),
-                any_with::<Value>(args.clone())
-            )
-                .prop_map(|(name, value)| AttrsRep::KV { name, value }.into()),
-            // Map representation
-            btree_map(NixString::arbitrary(), Value::arbitrary_with(args), 0..100)
-                .prop_map(|map| AttrsRep::Map(map.into_iter().collect()).into())
-        ]
-        .boxed()
+        hash_map(NixString::arbitrary(), Value::arbitrary_with(args), 0..100)
+            .prop_map(|map| FxHashMap::from_iter(map).into())
+            .boxed()
     }
 }
 

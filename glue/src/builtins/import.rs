@@ -251,17 +251,17 @@ mod import_builtins {
             Err(cek) => return Ok(cek.into()),
         };
 
-        let filter = args.select("filter");
+        let filter = args.select_str("filter");
 
         // Construct a sha256 hasher, which is needed for flat ingestion.
         let recursive_ingestion = args
-            .select("recursive")
+            .select_str("recursive")
             .map(|r| r.as_bool())
             .transpose()?
             .unwrap_or(true); // Yes, yes, Nix, by default, sets `recursive = true;`.
 
         let expected_sha256 = args
-            .select("sha256")
+            .select_str("sha256")
             .map(|h| {
                 h.to_str().and_then(|expected| {
                     match nix_compat::nixhash::from_str(expected.to_str()?, Some("sha256")) {
@@ -277,7 +277,7 @@ mod import_builtins {
             state,
             co,
             path,
-            args.select("name"),
+            args.select_str("name"),
             filter,
             recursive_ingestion,
             expected_sha256,

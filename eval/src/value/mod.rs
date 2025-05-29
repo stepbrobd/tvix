@@ -378,7 +378,7 @@ impl Value {
                 // set itself or an `outPath` attribute which should be a string.
                 // `__toString` is preferred.
                 (Value::Attrs(attrs), kind) => {
-                    if let Some(to_string) = attrs.select("__toString") {
+                    if let Some(to_string) = attrs.select_str("__toString") {
                         let callable = to_string.clone().force(co, span).await?;
 
                         // Leave the attribute set on the stack as an argument
@@ -393,7 +393,7 @@ impl Value {
                         // /another/ set with a __toString attr.
                         vals.push(result);
                         continue;
-                    } else if let Some(out_path) = attrs.select("outPath") {
+                    } else if let Some(out_path) = attrs.select_str("outPath") {
                         vals.push(out_path.clone());
                         continue;
                     } else {
@@ -567,7 +567,7 @@ impl Value {
                     // Special-case for derivation comparisons: If both attribute sets
                     // have `type = derivation`, compare them by `outPath`.
                     #[allow(clippy::single_match)] // might need more match arms later
-                    match (a1.select("type"), a2.select("type")) {
+                    match (a1.select_str("type"), a2.select_str("type")) {
                         (Some(v1), Some(v2)) => {
                             let s1 = v1.clone().force(co, span).await?;
                             if s1.is_catchable() {

@@ -493,6 +493,12 @@ impl Borrow<BStr> for NixString {
     }
 }
 
+impl Borrow<[u8]> for NixString {
+    fn borrow(&self) -> &[u8] {
+        self.as_bytes()
+    }
+}
+
 impl Hash for NixString {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.as_bstr().hash(state)

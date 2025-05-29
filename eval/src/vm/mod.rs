@@ -802,12 +802,7 @@ impl<'o> VM<'o> {
                         .unwrap_or(0);
 
                     self.enqueue_generator("resolve_with", op_span, |co| {
-                        resolve_with(
-                            co,
-                            ident.as_bstr().to_owned(),
-                            with_stack_len,
-                            closed_with_stack_len,
-                        )
+                        resolve_with(co, ident, with_stack_len, closed_with_stack_len)
                     });
 
                     return Ok(false);
@@ -1229,7 +1224,7 @@ impl VM<'_> {
 /// for matching values in the with-stacks carried at runtime.
 async fn resolve_with(
     co: GenCo,
-    ident: BString,
+    ident: NixString,
     vm_with_len: usize,
     upvalue_with_len: usize,
 ) -> Result<Value, ErrorKind> {
