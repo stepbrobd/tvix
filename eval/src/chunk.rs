@@ -49,9 +49,15 @@ impl Chunk {
     }
 
     pub fn push_uvarint(&mut self, data: u64) {
-        let mut encoded = [0u8; U64_VARINT_SIZE];
-        let bytes_written = vu128::encode_u64(&mut encoded, data);
-        self.code.extend_from_slice(&encoded[..bytes_written]);
+        let start_len = self.code.len();
+        self.code.resize(start_len + U64_VARINT_SIZE, 0);
+        let bytes_written = vu128::encode_u64(
+            (&mut self.code[start_len..start_len + U64_VARINT_SIZE])
+                .try_into()
+                .expect("size statically guaranteed"),
+            data,
+        );
+        self.code.truncate(start_len + bytes_written);
     }
 
     pub fn read_uvarint(&self, idx: usize) -> (u64, usize) {
