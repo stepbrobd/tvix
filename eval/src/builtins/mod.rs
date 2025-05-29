@@ -7,10 +7,12 @@ use bstr::{ByteSlice, ByteVec};
 use builtin_macros::builtins;
 use genawaiter::rc::Gen;
 use regex::Regex;
+use rustc_hash::FxHashMap;
 use std::cmp::{self, Ordering};
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
 use std::path::PathBuf;
+use std::sync::{Mutex, OnceLock};
 
 use crate::arithmetic_op;
 use crate::value::PointerEquality;
@@ -76,6 +78,22 @@ pub async fn coerce_value_to_path(
             }
         }
         Err(cek) => Ok(Err(cek)),
+    }
+}
+
+static REGEX_CACHE: OnceLock<Mutex<FxHashMap<String, Regex>>> = OnceLock::new();
+
+fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
+    let cache = REGEX_CACHE.get_or_init(|| Mutex::new(Default::default()));
+    let mut map = cache.lock().unwrap();
+
+    match map.get(pattern) {
+        Some(regex) => Ok(regex.clone()),
+        None => {
+            let regex = Regex::new(pattern)?;
+            map.insert(pattern.to_string(), regex.clone());
+            Ok(regex)
+        }
     }
 }
 
@@ -973,7 +991,9 @@ mod pure_builtins {
             return Ok(re);
         }
         let re = re.to_str()?;
-        let re: Regex = Regex::new(&format!("^{}$", re.to_str()?)).unwrap();
+        let re: Regex =
+            cached_regex(&format!("^{}$", re.to_str()?)).expect("TODO(tazjin): propagate error");
+
         match re.captures(s.to_str()?) {
             Some(caps) => Ok(Value::List(
                 caps.iter()
@@ -1193,7 +1213,7 @@ mod pure_builtins {
         let s = str.to_contextful_str()?;
         let text = s.to_str()?;
         let re = regex.to_str()?;
-        let re = Regex::new(re.to_str()?).unwrap();
+        let re = cached_regex(re.to_str()?).unwrap();
         let mut capture_locations = re.capture_locations();
         let num_captures = capture_locations.len();
         let mut ret = Vec::new();
