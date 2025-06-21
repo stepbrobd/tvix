@@ -41,7 +41,7 @@ pub trait Error: Sized + StdError {
 
 impl Error for io::Error {
     fn custom<T: fmt::Display>(msg: T) -> Self {
-        io::Error::new(io::ErrorKind::Other, msg.to_string())
+        io::Error::other(msg.to_string())
     }
 
     fn io_error(err: std::io::Error) -> Self {

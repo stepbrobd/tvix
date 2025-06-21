@@ -548,7 +548,7 @@ mod tests {
         let payload = &hex!("FF0102030405060708");
         let mut mock = Builder::new()
             .read(&produce_packet_bytes(payload).await[..offset])
-            .read_error(std::io::Error::new(std::io::ErrorKind::Other, "foo"))
+            .read_error(std::io::Error::other("foo"))
             .build();
 
         // Either length reading or data reading can fail, depending on which test case we're in.
@@ -589,7 +589,7 @@ mod tests {
         let payload = &hex!("FF0102030405060708");
         let mock = Builder::new()
             .read(&produce_packet_bytes(payload).await[..offset])
-            .read_error(std::io::Error::new(std::io::ErrorKind::Other, "foo"))
+            .read_error(std::io::Error::other("foo"))
             .build();
         let mut mock = BufReader::new(mock);
 
@@ -625,7 +625,7 @@ mod tests {
         let payload = &hex!("FF0102030405060708");
         let mut mock = Builder::new()
             .read(&produce_packet_bytes(payload).await)
-            .read_error(std::io::Error::new(std::io::ErrorKind::Other, "foo"))
+            .read_error(std::io::Error::other("foo"))
             .build();
 
         let mut r = BytesReader::new(&mut mock, ..MAX_LEN).await.unwrap();
@@ -642,7 +642,7 @@ mod tests {
         let payload = &hex!("FF0102030405060708");
         let mock = Builder::new()
             .read(&produce_packet_bytes(payload).await)
-            .read_error(std::io::Error::new(std::io::ErrorKind::Other, "foo"))
+            .read_error(std::io::Error::other("foo"))
             .build();
         let mut mock = BufReader::new(mock);
 
