@@ -113,7 +113,7 @@ mod tests {
         let value = result.value.expect("must be some");
         match value {
             tvix_eval::Value::String(s) => Some(s.to_str_lossy().into_owned()),
-            _ => panic!("unexpected value type: {:?}", value),
+            _ => panic!("unexpected value type: {value:?}"),
         }
     }
 
@@ -180,7 +180,7 @@ mod tests {
             tvix_eval::Value::String(s) => {
                 assert_eq!(*s, "/deep/thought");
             }
-            _ => panic!("unexpected value type: {:?}", value),
+            _ => panic!("unexpected value type: {value:?}"),
         }
     }
 }

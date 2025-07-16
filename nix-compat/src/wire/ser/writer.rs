@@ -203,7 +203,7 @@ where
         }
         let offset = self.buf.len();
         self.buf.put_u64_le(0);
-        if let Err(err) = write!(self.buf, "{}", msg) {
+        if let Err(err) = write!(self.buf, "{msg}") {
             self.buf.truncate(offset);
             return Err(Self::Error::unsupported_data(err));
         }

@@ -182,7 +182,7 @@ impl<W: Write> TracingObserver<W> {
             }
 
             // For other value types, defer to the standard value printer.
-            _ => write!(&mut self.writer, "{} ", val),
+            _ => write!(&mut self.writer, "{val} "),
         };
     }
 
@@ -222,7 +222,7 @@ impl<W: Write> RuntimeObserver for TracingObserver<W> {
         };
 
         if let Some(name) = &lambda.name {
-            let _ = write!(&mut self.writer, "'{}' ", name);
+            let _ = write!(&mut self.writer, "'{name}' ");
         }
 
         let _ = writeln!(
@@ -235,13 +235,13 @@ impl<W: Write> RuntimeObserver for TracingObserver<W> {
     /// Called when the runtime exits a call frame.
     fn observe_exit_call_frame(&mut self, frame_at: usize, stack: &[Value]) {
         self.maybe_write_time();
-        let _ = write!(&mut self.writer, "=== exiting frame {} ===\t ", frame_at);
+        let _ = write!(&mut self.writer, "=== exiting frame {frame_at} ===\t ");
         self.write_stack(stack);
     }
 
     fn observe_suspend_call_frame(&mut self, frame_at: usize, stack: &[Value]) {
         self.maybe_write_time();
-        let _ = write!(&mut self.writer, "=== suspending frame {} ===\t", frame_at);
+        let _ = write!(&mut self.writer, "=== suspending frame {frame_at} ===\t");
 
         self.write_stack(stack);
     }
@@ -250,8 +250,7 @@ impl<W: Write> RuntimeObserver for TracingObserver<W> {
         self.maybe_write_time();
         let _ = write!(
             &mut self.writer,
-            "=== entering generator frame '{}' [{}] ===\t",
-            name, frame_at,
+            "=== entering generator frame '{name}' [{frame_at}] ===\t",
         );
 
         self.write_stack(stack);
@@ -261,8 +260,7 @@ impl<W: Write> RuntimeObserver for TracingObserver<W> {
         self.maybe_write_time();
         let _ = write!(
             &mut self.writer,
-            "=== exiting generator '{}' [{}] ===\t",
-            name, frame_at
+            "=== exiting generator '{name}' [{frame_at}] ===\t"
         );
 
         self.write_stack(stack);
@@ -272,8 +270,7 @@ impl<W: Write> RuntimeObserver for TracingObserver<W> {
         self.maybe_write_time();
         let _ = write!(
             &mut self.writer,
-            "=== suspending generator '{}' [{}] ===\t",
-            name, frame_at
+            "=== suspending generator '{name}' [{frame_at}] ===\t"
         );
 
         self.write_stack(stack);
@@ -283,19 +280,18 @@ impl<W: Write> RuntimeObserver for TracingObserver<W> {
         self.maybe_write_time();
         let _ = writeln!(
             &mut self.writer,
-            "=== generator '{}' requested {} ===",
-            name, msg
+            "=== generator '{name}' requested {msg} ==="
         );
     }
 
     fn observe_enter_builtin(&mut self, name: &'static str) {
         self.maybe_write_time();
-        let _ = writeln!(&mut self.writer, "=== entering builtin {} ===", name);
+        let _ = writeln!(&mut self.writer, "=== entering builtin {name} ===");
     }
 
     fn observe_exit_builtin(&mut self, name: &'static str, stack: &[Value]) {
         self.maybe_write_time();
-        let _ = write!(&mut self.writer, "=== exiting builtin {} ===\t", name);
+        let _ = write!(&mut self.writer, "=== exiting builtin {name} ===\t");
         self.write_stack(stack);
     }
 

@@ -196,8 +196,7 @@ impl<'source, 'observer> Compiler<'source, 'observer> {
                 let current_dir = std::env::current_dir().map_err(|e| {
                     Error::new(
                         ErrorKind::RelativePathResolution(format!(
-                            "could not determine current directory: {}",
-                            e
+                            "could not determine current directory: {e}"
                         )),
                         file.span,
                         source.clone(),
@@ -1527,15 +1526,15 @@ fn compile_src_builtin(
     let parsed = rnix::ast::Root::parse(code);
 
     if !parsed.errors().is_empty() {
-        let mut out = format!("BUG: code for source-builtin '{}' had parser errors", name);
+        let mut out = format!("BUG: code for source-builtin '{name}' had parser errors");
         for error in parsed.errors() {
-            writeln!(out, "{}", error).unwrap();
+            writeln!(out, "{error}").unwrap();
         }
 
         panic!("{}", out);
     }
 
-    let file = source.add_file(format!("<src-builtins/{}.nix>", name), code.to_string());
+    let file = source.add_file(format!("<src-builtins/{name}.nix>"), code.to_string());
     let weak = weak.clone();
 
     Value::Thunk(Thunk::new_suspended_native(Box::new(move || {
@@ -1555,7 +1554,7 @@ fn compile_src_builtin(
 
         if !result.errors.is_empty() {
             return Err(ErrorKind::ImportCompilerError {
-                path: format!("src-builtins/{}.nix", name).into(),
+                path: format!("src-builtins/{name}.nix").into(),
                 errors: result.errors,
             });
         }

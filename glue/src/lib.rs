@@ -24,7 +24,7 @@ pub fn configure_nix_path<'co, 'ro, 'env>(
     eval_builder.nix_path(
         nix_search_path
             .as_ref()
-            .map(|p| format!("nix=/__corepkgs__:{}", p))
+            .map(|p| format!("nix=/__corepkgs__:{p}"))
             .or_else(|| Some("nix=/__corepkgs__".to_string())),
     )
 }

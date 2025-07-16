@@ -168,7 +168,7 @@ where
     if worker_magic_1 != WORKER_MAGIC_1 {
         Err(std::io::Error::new(
             ErrorKind::InvalidData,
-            format!("Incorrect worker magic number received: {}", worker_magic_1),
+            format!("Incorrect worker magic number received: {worker_magic_1}"),
         ))
     } else {
         conn.write_u64_le(WORKER_MAGIC_2).await?;
@@ -182,7 +182,7 @@ where
         if client_version < ProtocolVersion::from_parts(1, 10) {
             return Err(Error::new(
                 ErrorKind::Unsupported,
-                format!("The nix client version {} is too old", client_version),
+                format!("The nix client version {client_version} is too old"),
             ));
         }
         let picked_version = min(PROTOCOL_VERSION, client_version);
@@ -215,7 +215,7 @@ pub async fn read_op<R: AsyncReadExt + Unpin>(r: &mut R) -> std::io::Result<Oper
     Operation::try_from(op_number).map_err(|_| {
         Error::new(
             ErrorKind::InvalidData,
-            format!("Invalid OP number {}", op_number),
+            format!("Invalid OP number {op_number}"),
         )
     })
 }

@@ -133,7 +133,7 @@ impl Derivation {
         name: &str,
     ) -> Result<StorePath<String>, DerivationError> {
         // append .drv to the name
-        let name = &format!("{}.drv", name);
+        let name = &format!("{name}.drv");
 
         // collect the list of paths from input_sources and input_derivations
         // into a (sorted, guaranteed by BTreeSet) list of references
@@ -303,6 +303,6 @@ fn ca_kind_prefix(ca_hash: &CAHash) -> &'static str {
     match ca_hash {
         CAHash::Flat(_) => "",
         CAHash::Nar(_) => "r:",
-        _ => panic!("invalid ca hash in derivation context: {:?}", ca_hash),
+        _ => panic!("invalid ca hash in derivation context: {ca_hash:?}"),
     }
 }

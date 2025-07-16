@@ -1232,10 +1232,7 @@ async fn resolve_with(
     async fn fetch_forced_with(co: &GenCo, idx: usize) -> Value {
         match co.yield_(VMRequest::WithValue(idx)).await {
             VMResponse::Value(value) => value,
-            msg => panic!(
-                "Tvix bug: VM responded with incorrect generator message: {}",
-                msg
-            ),
+            msg => panic!("Tvix bug: VM responded with incorrect generator message: {msg}"),
         }
     }
 
@@ -1243,10 +1240,7 @@ async fn resolve_with(
     async fn fetch_captured_with(co: &GenCo, idx: usize) -> Value {
         match co.yield_(VMRequest::CapturedWithValue(idx)).await {
             VMResponse::Value(value) => value,
-            msg => panic!(
-                "Tvix bug: VM responded with incorrect generator message: {}",
-                msg
-            ),
+            msg => panic!("Tvix bug: VM responded with incorrect generator message: {msg}"),
         }
     }
 

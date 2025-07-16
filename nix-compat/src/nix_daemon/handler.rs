@@ -344,7 +344,7 @@ mod tests {
             }
             Err(e) => {
                 w.write_value(&STDERR_ERROR).await.unwrap();
-                w.write_value(&NixError::new(format!("{:?}", e)))
+                w.write_value(&NixError::new(format!("{e:?}")))
                     .await
                     .unwrap();
             }

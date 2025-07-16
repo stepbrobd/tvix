@@ -373,10 +373,10 @@ mod tests {
 
     // TODO
     fn make_nixhash(algo: &HashAlgo, digest_encoded: String) -> String {
-        format!("{}:{}", algo, digest_encoded)
+        format!("{algo}:{digest_encoded}")
     }
     fn make_sri_string(algo: &HashAlgo, digest_encoded: String) -> String {
-        format!("{}-{}", algo, digest_encoded)
+        format!("{algo}-{digest_encoded}")
     }
 
     /// Test parsing a hash string in various formats, and also when/how the out-of-band algo is needed.

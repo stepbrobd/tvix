@@ -146,7 +146,7 @@ impl<'a> Repl<'a> {
                 Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
 
                 Err(err) => {
-                    eprintln!("error: {}", err);
+                    eprintln!("error: {err}");
                     break;
                 }
             }

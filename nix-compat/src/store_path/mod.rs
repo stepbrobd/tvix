@@ -202,7 +202,7 @@ where
     /// That is just the string representation, prefixed with the store prefix
     /// ([STORE_DIR_WITH_SLASH]),
     pub fn to_absolute_path(&self) -> String {
-        format!("{}{}", STORE_DIR_WITH_SLASH, self)
+        format!("{STORE_DIR_WITH_SLASH}{self}")
     }
 }
 

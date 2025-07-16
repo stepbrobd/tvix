@@ -298,15 +298,15 @@ mod tests {
     fn xml_escape() {
         match XmlEmitter::<Writer<Vec<u8>>>::escape_attr_value("ab<>c&de") {
             Cow::Owned(s) => assert_eq!(s, "ab&lt;&gt;c&amp;de".to_string(), "escape stuff"),
-            Cow::Borrowed(s) => panic!("s should be owned {}", s),
+            Cow::Borrowed(s) => panic!("s should be owned {s}"),
         }
         match XmlEmitter::<Writer<Vec<u8>>>::escape_attr_value("") {
             Cow::Borrowed(s) => assert_eq!(s, "", "empty escape is borrowed"),
-            Cow::Owned(s) => panic!("s should be borrowed {}", s),
+            Cow::Owned(s) => panic!("s should be borrowed {s}"),
         }
         match XmlEmitter::<Writer<Vec<u8>>>::escape_attr_value("hi!ŷbla") {
             Cow::Borrowed(s) => assert_eq!(s, "hi!ŷbla", "no escape is borrowed"),
-            Cow::Owned(s) => panic!("s should be borrowed {}", s),
+            Cow::Owned(s) => panic!("s should be borrowed {s}"),
         }
         match XmlEmitter::<Writer<Vec<u8>>>::escape_attr_value("hi!<ŷ>bla") {
             Cow::Owned(s) => assert_eq!(
@@ -314,7 +314,7 @@ mod tests {
                 "hi!&lt;ŷ&gt;bla".to_string(),
                 "multi-byte chars are correctly used"
             ),
-            Cow::Borrowed(s) => panic!("s should be owned {}", s),
+            Cow::Borrowed(s) => panic!("s should be owned {s}"),
         }
     }
 }

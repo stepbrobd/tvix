@@ -44,7 +44,7 @@ impl std::fmt::Display for FileType {
             FileType::Unknown => "unknown",
         };
 
-        write!(f, "{}", type_as_str)
+        write!(f, "{type_as_str}")
     }
 }
 

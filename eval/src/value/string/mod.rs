@@ -661,13 +661,13 @@ impl NixString {
                 if is_valid_nix_identifier(&escaped) && !is_keyword(&escaped) {
                     escaped
                 } else {
-                    Cow::Owned(format!("\"{}\"", escaped))
+                    Cow::Owned(format!("\"{escaped}\""))
                 }
             }
 
             // An owned string has escapes, and needs the outer quotes
             // for display.
-            Cow::Owned(s) => Cow::Owned(format!("\"{}\"", s)),
+            Cow::Owned(s) => Cow::Owned(format!("\"{s}\"")),
         }
     }
 

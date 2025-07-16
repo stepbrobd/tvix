@@ -87,7 +87,7 @@ enum ThunkRepr {
 impl ThunkRepr {
     fn debug_repr(&self) -> String {
         match self {
-            ThunkRepr::Evaluated(v) => format!("thunk(val|{})", v),
+            ThunkRepr::Evaluated(v) => format!("thunk(val|{v})"),
             ThunkRepr::Blackhole { .. } => "thunk(blackhole)".to_string(),
             ThunkRepr::Native(_) => "thunk(native)".to_string(),
             ThunkRepr::Suspended { lambda, .. } => format!("thunk({:p})", *lambda),

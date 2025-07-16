@@ -24,7 +24,7 @@ pub trait Error: Sized + StdError {
 
     /// Some kind of std::io::Error occured.
     fn io_error(err: std::io::Error) -> Self {
-        Self::custom(format_args!("There was an I/O error {}", err))
+        Self::custom(format_args!("There was an I/O error {err}"))
     }
 
     /// The data read from `NixRead` is invalid.

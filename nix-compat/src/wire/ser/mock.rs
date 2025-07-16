@@ -215,7 +215,7 @@ impl Builder {
             Operation::WriteDisplay(_, Err(Error::WrongWrite(op, OperationType::WriteDisplay))) => {
                 self.write_operation_type(*op)
             }
-            s => panic!("Invalid operation {:?}", s),
+            s => panic!("Invalid operation {s:?}"),
         }
     }
 

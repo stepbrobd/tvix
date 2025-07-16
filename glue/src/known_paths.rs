@@ -76,7 +76,7 @@ impl KnownPaths {
         // compute the hash derivation modulo
         let hash_derivation_modulo = drv.hash_derivation_modulo(|drv_path| {
             self.get_hash_derivation_modulo(&drv_path.to_owned())
-                .unwrap_or_else(|| panic!("{} not found", drv_path))
+                .unwrap_or_else(|| panic!("{drv_path} not found"))
                 .to_owned()
         });
 

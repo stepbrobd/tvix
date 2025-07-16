@@ -29,6 +29,6 @@ fn main() {
 
     match result {
         Ok(cfg) => println!("Config says: {}:{}", cfg.host, cfg.port),
-        Err(e) => eprintln!("{:?} / {}", e, e),
+        Err(e) => eprintln!("{e:?} / {e}"),
     }
 }

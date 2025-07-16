@@ -542,7 +542,7 @@ mod pure_builtins {
         let len = length.as_int()?;
         let mut out = Vec::with_capacity(
             len.try_into()
-                .map_err(|_| ErrorKind::Abort(format!("can not create list of size {}", len)))?,
+                .map_err(|_| ErrorKind::Abort(format!("can not create list of size {len}")))?,
         );
 
         // the best span we can get…
@@ -655,17 +655,17 @@ mod pure_builtins {
                 for ctx_element in group {
                     match ctx_element {
                         NixContextElement::Plain(spath) => {
-                            debug_assert!(spath == key, "Unexpected group containing mixed keys, expected: {:?}, encountered {:?}", key, spath);
+                            debug_assert!(spath == key, "Unexpected group containing mixed keys, expected: {key:?}, encountered {spath:?}");
                             is_path = true;
                         }
 
                         NixContextElement::Single { name, derivation } => {
-                            debug_assert!(derivation == key, "Unexpected group containing mixed keys, expected: {:?}, encountered {:?}", key, derivation);
+                            debug_assert!(derivation == key, "Unexpected group containing mixed keys, expected: {key:?}, encountered {derivation:?}");
                             outputs.push(name.clone().into());
                         }
 
                         NixContextElement::Derivation(drv_path) => {
-                            debug_assert!(drv_path == key, "Unexpected group containing mixed keys, expected: {:?}, encountered {:?}", key, drv_path);
+                            debug_assert!(drv_path == key, "Unexpected group containing mixed keys, expected: {key:?}, encountered {drv_path:?}");
                             all_outputs = true;
                         }
                     }

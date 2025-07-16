@@ -118,7 +118,7 @@ impl NixDeserialize for CAHash {
         let value: Option<String> = reader.try_read_value().await?;
         match value {
             Some(value) => Ok(Some(CAHash::from_nix_hex_str(&value).ok_or_else(|| {
-                R::Error::invalid_data(format!("Invalid cahash {}", value))
+                R::Error::invalid_data(format!("Invalid cahash {value}"))
             })?)),
             None => Ok(None),
         }
@@ -137,7 +137,7 @@ impl NixDeserialize for Option<CAHash> {
                     Ok(None)
                 } else {
                     Ok(Some(Some(CAHash::from_nix_hex_str(&value).ok_or_else(
-                        || R::Error::invalid_data(format!("Invalid cahash {}", value)),
+                        || R::Error::invalid_data(format!("Invalid cahash {value}")),
                     )?)))
                 }
             }

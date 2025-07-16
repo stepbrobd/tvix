@@ -203,7 +203,7 @@ fn make_references_string<S: AsRef<str>, I: IntoIterator<Item = S>>(
 /// The actual placeholder is basically just a SHA256 hash encoded in
 /// cppnix format.
 pub fn hash_placeholder(name: &str) -> String {
-    let digest = Sha256::new_with_prefix(format!("nix-output:{}", name)).finalize();
+    let digest = Sha256::new_with_prefix(format!("nix-output:{name}")).finalize();
 
     format!("/{}", nixbase32::encode(&digest))
 }

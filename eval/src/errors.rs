@@ -252,7 +252,7 @@ to a missing value in the attribute set(s) included via `with`."#
             let mut disp = format!("Tvix bug: {}", .msg);
 
             if let Some(metadata) = .metadata {
-                disp.push_str(&format!("; metadata: {:?}", metadata));
+                disp.push_str(&format!("; metadata: {metadata:?}"));
             }
 
             disp
@@ -583,10 +583,7 @@ fn spans_for_parse_errors(file: &File, errors: &[rnix::parser::ParseError]) -> V
 
                 rnix::parser::ParseError::DuplicatedArgs(range, name) => (
                     range.span_for(file),
-                    format!(
-                        "the function argument pattern '{}' was bound more than once",
-                        name
-                    ),
+                    format!("the function argument pattern '{name}' was bound more than once"),
                 ),
 
                 rnix::parser::ParseError::RecursionLimitExceeded => (
@@ -830,7 +827,7 @@ impl Error {
 
         for ctx in &self.contexts {
             spans.push(SpanLabel {
-                label: Some(format!("while {}", ctx)),
+                label: Some(format!("while {ctx}")),
                 span: self.span,
                 style: SpanStyle::Secondary,
             });

@@ -290,7 +290,7 @@ async fn must_read_file(name: &'static str, entry: nar::reader::Entry<'_, '_>) {
             assert!(!executable);
             assert_eq!(reader.read(&mut [0]).await.unwrap(), 0);
         }
-        _ => panic!("unexpected type for {}", name),
+        _ => panic!("unexpected type for {name}"),
     }
 }
 
@@ -305,6 +305,6 @@ fn must_be_symlink(
         nar::reader::Node::Symlink { target } => {
             assert_eq!(exp_target.as_bytes(), &target);
         }
-        _ => panic!("unexpected type for {}", name),
+        _ => panic!("unexpected type for {name}"),
     }
 }

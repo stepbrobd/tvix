@@ -43,8 +43,7 @@ fn populate_inputs(drv: &mut Derivation, full_context: NixContext, known_paths: 
                 #[cfg(debug_assertions)]
                 assert!(
                     _rest.iter().next().is_none(),
-                    "Extra path not empty for {}",
-                    derivation_str
+                    "Extra path not empty for {derivation_str}"
                 );
 
                 match drv.input_derivations.entry(derivation.clone()) {
@@ -65,8 +64,7 @@ fn populate_inputs(drv: &mut Derivation, full_context: NixContext, known_paths: 
                 #[cfg(debug_assertions)]
                 assert!(
                     _rest.iter().next().is_none(),
-                    "Extra path not empty for {}",
-                    drv_path
+                    "Extra path not empty for {drv_path}"
                 );
 
                 // We need to know all the outputs *names* of that derivation.
@@ -155,7 +153,7 @@ fn handle_fixed_output(
         // Peek at hash_str once more.
         // If it was a SRI hash, but is not using the correct length, this means
         // the padding was wrong. Emit a warning in that case.
-        let sri_prefix = format!("{}-", algo);
+        let sri_prefix = format!("{algo}-");
         if let Some(rest) = hash_str.strip_prefix(&sri_prefix) {
             if data_encoding::BASE64.encode_len(algo.digest_length()) != rest.len() {
                 return Ok(Some(WarningKind::SRIHashWrongPadding));
@@ -470,7 +468,7 @@ pub(crate) mod derivation_builtins {
             &drv.hash_derivation_modulo(|drv_path| {
                 *known_paths
                     .get_hash_derivation_modulo(&drv_path.to_owned())
-                    .unwrap_or_else(|| panic!("{} not found", drv_path))
+                    .unwrap_or_else(|| panic!("{drv_path} not found"))
             }),
         )
         .map_err(DerivationError::InvalidDerivation)?;

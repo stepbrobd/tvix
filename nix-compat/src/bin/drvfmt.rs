@@ -42,6 +42,6 @@ fn main() {
                     .expect("unable to serialize")
             );
         }
-        Err(e) => eprintln!("unable to parse derivation: {:#?}", e),
+        Err(e) => eprintln!("unable to parse derivation: {e:#?}"),
     }
 }

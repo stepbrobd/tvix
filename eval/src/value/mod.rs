@@ -410,7 +410,7 @@ impl Value {
                 (Value::Float(f), CoercionKind { strong: true, .. }) => {
                     // contrary to normal Display, coercing a float to a string will
                     // result in unconditional 6 decimal places
-                    Ok(format!("{:.6}", f).into())
+                    Ok(format!("{f:.6}").into())
                 }
 
                 // Lists are coerced by coercing their elements and interspersing spaces
@@ -840,18 +840,18 @@ impl Value {
     pub fn explain(&self) -> String {
         match self {
             Value::Null => "the 'null' value".into(),
-            Value::Bool(b) => format!("the boolean value '{}'", b),
-            Value::Integer(i) => format!("the integer '{}'", i),
-            Value::Float(f) => format!("the float '{}'", f),
-            Value::String(s) if s.has_context() => format!("the contextful string '{}'", s),
-            Value::String(s) => format!("the contextless string '{}'", s),
+            Value::Bool(b) => format!("the boolean value '{b}'"),
+            Value::Integer(i) => format!("the integer '{i}'"),
+            Value::Float(f) => format!("the float '{f}'"),
+            Value::String(s) if s.has_context() => format!("the contextful string '{s}'"),
+            Value::String(s) => format!("the contextless string '{s}'"),
             Value::Path(p) => format!("the path '{}'", p.to_string_lossy()),
             Value::Attrs(attrs) => format!("a {}-item attribute set", attrs.len()),
             Value::List(list) => format!("a {}-item list", list.len()),
 
             Value::Closure(f) => {
                 if let Some(name) = &f.lambda.name {
-                    format!("the user-defined Nix function '{}'", name)
+                    format!("the user-defined Nix function '{name}'")
                 } else {
                     "a user-defined Nix function".to_string()
                 }
@@ -975,7 +975,7 @@ impl TotalDisplay for Value {
             Value::Null => f.write_str("null"),
             Value::Bool(true) => f.write_str("true"),
             Value::Bool(false) => f.write_str("false"),
-            Value::Integer(num) => write!(f, "{}", num),
+            Value::Integer(num) => write!(f, "{num}"),
             Value::String(s) => s.fmt(f),
             Value::Path(p) => p.display().fmt(f),
             Value::Attrs(attrs) => attrs.total_fmt(f, set),

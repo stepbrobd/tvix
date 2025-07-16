@@ -51,7 +51,7 @@ impl Field {
                     }
                 } else {
                     let path = meta.path.to_token_stream().to_string();
-                    return Err(meta.error(format_args!("unknown nix field attribute '{}'", path)));
+                    return Err(meta.error(format_args!("unknown nix field attribute '{path}'")));
                 }
                 Ok(())
             }) {
@@ -86,9 +86,7 @@ impl Variant {
                     }
                 } else {
                     let path = meta.path.to_token_stream().to_string();
-                    return Err(
-                        meta.error(format_args!("unknown nix variant attribute '{}'", path))
-                    );
+                    return Err(meta.error(format_args!("unknown nix variant attribute '{path}'")));
                 }
                 Ok(())
             }) {
@@ -149,9 +147,7 @@ impl Container {
                     crate_path = parse_lit(ctx, &meta, CRATE)?;
                 } else {
                     let path = meta.path.to_token_stream().to_string();
-                    return Err(
-                        meta.error(format_args!("unknown nix variant attribute '{}'", path))
-                    );
+                    return Err(meta.error(format_args!("unknown nix variant attribute '{path}'")));
                 }
                 Ok(())
             }) {
@@ -190,7 +186,7 @@ pub fn get_lit_str(
     } else {
         ctx.error_spanned(
             expr,
-            format_args!("expected nix attribute {} to be string", attr),
+            format_args!("expected nix attribute {attr} to be string"),
         );
         Ok(None)
     }
