@@ -1218,12 +1218,13 @@ mod pure_builtins {
         let num_captures = capture_locations.len();
         let mut ret = Vec::new();
         let mut pos = 0;
+        let mut prev_match_end = 0;
 
         while let Some(thematch) = re.captures_read_at(&mut capture_locations, text, pos) {
             // push the unmatched characters preceding the match
             ret.push(Value::from(NixString::new_inherit_context_from(
                 &s,
-                &text[pos..thematch.start()],
+                &text[prev_match_end..thematch.start()],
             )));
 
             // Push a list with one element for each capture
@@ -1245,7 +1246,11 @@ mod pure_builtins {
             if pos == text.len() {
                 break;
             }
-            pos = thematch.end();
+
+            // if the regex matches the empty string, we need to advance, but also
+            // correctly track the span between matches
+            prev_match_end = thematch.end();
+            pos = std::cmp::max(pos + 1, prev_match_end);
         }
 
         // push the unmatched characters following the last match

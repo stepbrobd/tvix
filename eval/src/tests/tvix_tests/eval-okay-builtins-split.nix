@@ -7,4 +7,6 @@
   (builtins.split "(.*)" "abc")
   (builtins.split "([abc]*)" "abc")
   (builtins.split ".*" "")
+  (builtins.split "" "my string")
+  (builtins.split "(aaa)" "aaaaaaaaa")
 ]
