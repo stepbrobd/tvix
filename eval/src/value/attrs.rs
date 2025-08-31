@@ -201,13 +201,13 @@ impl NixAttrs {
     }
 
     /// Construct an iterator over all the keys of the attribute set
-    pub fn keys(&self) -> Keys {
+    pub fn keys(&self) -> Keys<'_> {
         Keys(KeysInner::Map(self.0.keys()))
     }
 
     /// Same as [Self::keys], but marks call sites which rely on the
     /// iteration being lexicographic.
-    pub fn keys_sorted(&self) -> Keys {
+    pub fn keys_sorted(&self) -> Keys<'_> {
         Keys(KeysInner::Sorted(self.0.keys().sorted()))
     }
 

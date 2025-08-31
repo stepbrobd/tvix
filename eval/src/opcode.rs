@@ -41,17 +41,6 @@ pub struct StackIdx(pub usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct UpvalueIdx(pub usize);
 
-/// Offset by which an instruction pointer should change in a jump.
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct JumpOffset(pub usize);
-
-/// Provided count for an instruction (could represent e.g. a number
-/// of elements).
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Count(pub usize);
-
 /// Op represents all instructions in the Tvix abstract machine.
 ///
 /// In documentation comments, stack positions are referred to by

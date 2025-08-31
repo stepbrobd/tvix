@@ -31,7 +31,7 @@ pub enum HashMode {
 }
 
 impl CAHash {
-    pub fn hash(&self) -> Cow<NixHash> {
+    pub fn hash(&self) -> Cow<'_, NixHash> {
         match *self {
             CAHash::Flat(ref digest) => Cow::Borrowed(digest),
             CAHash::Nar(ref digest) => Cow::Borrowed(digest),
