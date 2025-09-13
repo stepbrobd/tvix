@@ -75,7 +75,7 @@ potential test case for _any_ Nix implementation. For the most part, this is the
   `builtins.readDir` and friends.
 - **Working and Home Directory**: Tests involving relative and home relative paths
   need knowledge of the current and home directory to correctly interpret the output.
-  C++ Nix does a [search and replace on the test output for this purpose][cpp-nix-pwd-sed]
+  C++ Nix does a [search and replace on the test output for this purpose][cppnix-pwd-sed]
 - **Nix Store**: Some tests add files to the store, either via path interpolation,
   `builtins.toFile` or `builtins.derivation`.
 
@@ -112,7 +112,7 @@ possible to write C++ Nix version independent test cases.
 
 It is unclear whether a satisfying solution (for a common test suite) can
 be achieved here as it has become a somewhat contentious [issue whether
-or not nix-instantiate should have a stable output](cpp-nix-attr-elision-printing-pr).
+or not nix-instantiate should have a stable output](cppnix-attr-elision-printing-pr).
 
 A solution may be to use the XML output, specifically the `--xml --no-location`
 flags to `nix-instantiate(1)` for some of these instances. As it (hopefully)
@@ -136,5 +136,5 @@ Consequently, just checking for failure when running the test suite should be
 an option. Long term, it may be interesting to have standardized error codes
 and portable error code reporting.
 
-[cpp-nix-pwd-sed]: https://github.com/NixOS/nix/blob/2cb9c7c68102193e7d34fabe6102474fc7f98010/tests/functional/lang.sh#L109
-[cpp-nix-attr-elision-printing-pr]: https://github.com/NixOS/nix/pull/9606
+[cppnix-pwd-sed]: https://github.com/NixOS/nix/blob/2cb9c7c68102193e7d34fabe6102474fc7f98010/tests/functional/lang.sh#L109
+[cppnix-attr-elision-printing-pr]: https://github.com/NixOS/nix/pull/9606
