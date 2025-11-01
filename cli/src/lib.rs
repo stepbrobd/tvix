@@ -17,6 +17,7 @@ use tvix_glue::{
     tvix_io::TvixIO,
     tvix_store_io::TvixStoreIO,
 };
+use tvix_simstore::simulated_store_builtins;
 
 pub mod args;
 pub mod assignment;
@@ -96,6 +97,7 @@ pub fn evaluate(
         }
         None => {
             eval_builder = eval_builder.add_builtins(impure_builtins());
+            eval_builder = eval_builder.add_builtins(simulated_store_builtins());
             eval_builder = add_derivation_builtins(eval_builder, Rc::clone(&tvix_store_io));
             // eval_builder = add_fetcher_builtins(eval_builder, Rc::clone(&tvix_store_io));
             eval_builder = add_import_builtins(eval_builder, Rc::clone(&tvix_store_io));

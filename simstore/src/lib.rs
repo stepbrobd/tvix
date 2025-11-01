@@ -32,7 +32,7 @@ use nix_compat::{
     store_path::{build_ca_path, StorePath},
 };
 use sha2::{Digest, Sha256};
-use tvix_eval::{EvalIO, FileType, StdIO};
+use tvix_eval::{builtin_macros::builtins, ErrorKind, EvalIO, FileType, StdIO, Value};
 
 pub struct SimulatedStoreIO {
     store_dir: String,
@@ -290,6 +290,39 @@ impl EvalIO for SimulatedStoreIO {
     fn read_dir(&self, path: &Path) -> Result<Vec<(bytes::Bytes, FileType)>> {
         StdIO.read_dir(self.to_readable_path(path)?.as_ref())
     }
+}
+
+// TODO(sterni): implement simulation, parse args
+// TODO(sterni): move derivationStrict simulation here
+#[builtins]
+mod builtins {
+    use super::*;
+    use tvix_eval::generators::{Gen, GenCo};
+
+    #[builtin("fetchGit")]
+    async fn builtin_fetch_git(co: GenCo, args: Value) -> std::result::Result<Value, ErrorKind> {
+        Err(ErrorKind::NotImplemented("fetchGit"))
+    }
+
+    #[builtin("fetchMercurial")]
+    async fn builtin_fetch_mercurial(
+        co: GenCo,
+        args: Value,
+    ) -> std::result::Result<Value, ErrorKind> {
+        Err(ErrorKind::NotImplemented("fetchMercurial"))
+    }
+
+    #[builtin("fetchTarball")]
+    async fn builtin_fetch_tarball(
+        co: GenCo,
+        args: Value,
+    ) -> std::result::Result<Value, ErrorKind> {
+        Err(ErrorKind::NotImplemented("fetchTarball"))
+    }
+}
+
+pub fn simulated_store_builtins() -> Vec<(&'static str, Value)> {
+    builtins::builtins()
 }
 
 #[cfg(test)]
