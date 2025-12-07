@@ -131,7 +131,10 @@ impl SimulatedStoreIO {
         }
 
         // Allow reads from the "real" Nix store locally.
-        if StdIO.path_exists(path)? {
+        // We just check for the existence of the store path, so reads
+        // from missing files inside the store path fail as expected
+        // and pathExists can be used
+        if StdIO.path_exists(Path::new(&store_path.to_absolute_path()))? {
             return Ok(Cow::Borrowed(path));
         }
 
@@ -326,6 +329,7 @@ pub fn simulated_store_builtins() -> Vec<(&'static str, Value)> {
 }
 
 #[cfg(test)]
+#[allow(clippy::bool_assert_comparison)]
 mod tests {
     use super::*;
 
@@ -426,5 +430,17 @@ mod tests {
         store_io
             .path_exists(&example_path)
             .expect("path access should not fail");
+
+        // We can only check for a missing path here since the test setup
+        // won't populate the parent store path.
+        let mut bogus_path = PathBuf::from(example);
+        bogus_path.push("bogus.scm");
+
+        assert_eq!(
+            store_io
+                .path_exists(&bogus_path)
+                .expect("path access should not fail"),
+            false
+        )
     }
 }
