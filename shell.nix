@@ -8,9 +8,25 @@
   pkgs ? (import ./nixpkgs {
     depotOverlays = false;
     depot.third_party.sources = import ./sources { };
+    # otherwise nix_2_3 is a throwing alias
+    externalArgs.nixpkgsConfig.allowAliases = false;
   })
 , ...
 }:
+
+let
+  # latest C++ Nix fails nix_oracle, see b/313
+  nix = pkgs.nix_2_3 or pkgs.lix;
+
+  # Lix deprecated url-literals which we still want to test
+  lix-instantiate-wrapper = pkgs.runCommand "lix-instantiate-wrapper"
+    {
+      nativeBuildInputs = [ pkgs.buildPackages.makeWrapper ];
+    } ''
+    makeWrapper "${nix}/bin/nix-instantiate" "$out" \
+      --add-flags "--extra-deprecated-features url-literals"
+  '';
+in
 
 pkgs.mkShell {
   name = "tvix-rust-dev-env";
@@ -20,13 +36,11 @@ pkgs.mkShell {
     pkgs.cargo-expand
     pkgs.clippy
     pkgs.hyperfine
-    pkgs.nix_2_3 # b/313
+    nix
     pkgs.pkg-config
     pkgs.rustc
     pkgs.rustfmt
     pkgs.protobuf
-  ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-    pkgs.runc
   ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
     # We need these two dependencies in the ambient environment to be able to
     # `cargo build` on MacOS.
@@ -42,5 +56,7 @@ pkgs.mkShell {
   shellHook = ''
     export TVIX_BUILD_SANDBOX_SHELL=${if pkgs.stdenv.isLinux then pkgs.busybox-sandbox-shell + "/bin/busybox" else "/bin/sh"}
     export TVIX_BENCH_NIX_PATH=nixpkgs=${pkgs.path}
+  '' + pkgs.lib.optionalString (nix.pname == "lix") ''
+    export NIX_INSTANTIATE_BINARY_PATH="${lix-instantiate-wrapper}"
   '';
 }
