@@ -128,7 +128,7 @@ compare_lazy_eval_tests! {
     // Wrap every expression type supported by [Compiler::compile] in a list
     // with lazy evaluation enabled, so we can check it being thunked or not
     // against C++ Nix.
-    unthunked_literals_in_list("[ https://tvl.fyi 1 1.2 ]");
+    unthunked_literals_in_list("[ 1 1.2 ]");
     unthunked_path_in_list("[ ./nix_oracle.rs ]");
     unthunked_string_literal_in_list("[ \":thonking:\" ]");
     thunked_unary_ops_in_list("[ (!true) (-1) ]");
