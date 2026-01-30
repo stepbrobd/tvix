@@ -281,7 +281,7 @@ pub fn builtins(args: TokenStream, item: TokenStream) -> TokenStream {
                     let ty = &arg.ty;
                     let ident = &arg.name;
 
-                    f.block = Box::new(match arg {
+                    *f.block = match arg {
                         BuiltinArgument {
                             strict: true,
                             catch: true,
@@ -319,7 +319,7 @@ pub fn builtins(args: TokenStream, item: TokenStream) -> TokenStream {
                                 #block
                             }
                         },
-                    });
+                    };
                 }
 
                 let fn_name = f.sig.ident.clone();
