@@ -1,7 +1,7 @@
 use std::{
     io::Result,
     pin::Pin,
-    task::{ready, Poll},
+    task::{Poll, ready},
 };
 
 use bytes::{BufMut, BytesMut};
@@ -264,7 +264,7 @@ mod tests {
     use std::time::Duration;
 
     use hex_literal::hex;
-    use tokio::io::{split, AsyncReadExt, BufReader};
+    use tokio::io::{AsyncReadExt, BufReader, split};
     use tokio_test::io::Builder;
 
     use crate::{nix_daemon::framing::StderrReadFramedReader, worker_protocol::STDERR_READ};

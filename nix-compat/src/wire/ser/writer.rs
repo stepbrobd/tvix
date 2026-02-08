@@ -2,13 +2,13 @@ use std::fmt::{self, Write as _};
 use std::future::poll_fn;
 use std::io::{self, Cursor};
 use std::pin::Pin;
-use std::task::{ready, Context, Poll};
+use std::task::{Context, Poll, ready};
 
 use bytes::{Buf, BufMut, BytesMut};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
-use crate::wire::{padding_len, ProtocolVersion, EMPTY_BYTES};
+use crate::wire::{EMPTY_BYTES, ProtocolVersion, padding_len};
 
 use super::{Error, NixWrite};
 

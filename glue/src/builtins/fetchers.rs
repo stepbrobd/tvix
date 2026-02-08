@@ -9,7 +9,7 @@
 
 use super::utils::select_string;
 use crate::{
-    fetchers::{url_basename, Fetch},
+    fetchers::{Fetch, url_basename},
     tvix_store_io::TvixStoreIO,
 };
 use nix_compat::nixhash;

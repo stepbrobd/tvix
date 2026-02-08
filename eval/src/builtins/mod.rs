@@ -101,12 +101,12 @@ fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
 mod pure_builtins {
     use std::ffi::OsString;
 
-    use bstr::{BString, ByteSlice, B};
+    use bstr::{B, BString, ByteSlice};
     use itertools::Itertools;
     use os_str_bytes::OsStringBytes;
     use rustc_hash::{FxHashMap, FxHashSet};
 
-    use crate::{value::PointerEquality, AddContext, NixContext, NixContextElement};
+    use crate::{AddContext, NixContext, NixContextElement, value::PointerEquality};
 
     use super::*;
 
@@ -355,11 +355,7 @@ mod pure_builtins {
             .rfind_char('/')
             .map(|last_slash| {
                 let x = &str[..last_slash];
-                if x.is_empty() {
-                    B("/")
-                } else {
-                    x
-                }
+                if x.is_empty() { B("/") } else { x }
             })
             .unwrap_or(b".");
         if is_path {

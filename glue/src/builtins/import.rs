@@ -4,11 +4,11 @@ use std::path::Path;
 use std::rc::Rc;
 
 use crate::tvix_store_io::TvixStoreIO;
-use nix_compat::store_path::{build_ca_path, StorePath, StorePathRef};
+use nix_compat::store_path::{StorePath, StorePathRef, build_ca_path};
 use tvix_eval::{
+    ErrorKind, EvalIO, Value,
     builtin_macros::builtins,
     generators::{self, GenCo},
-    ErrorKind, EvalIO, Value,
 };
 
 /// Transform a path into its base name and returns an [`std::io::Error`] if it is `..` or if the
@@ -128,8 +128,8 @@ mod import_builtins {
     use std::rc::Rc;
     use tvix_eval::builtins::coerce_value_to_path;
     use tvix_eval::generators::Gen;
-    use tvix_eval::{generators::GenCo, ErrorKind, Value};
     use tvix_eval::{AddContext, FileType, NixContext, NixContextElement, NixString};
+    use tvix_eval::{ErrorKind, Value, generators::GenCo};
 
     // This is a helper used by both builtins.path and builtins.filterSource.
     async fn import_helper(
@@ -198,7 +198,7 @@ mod import_builtins {
             }
 
             FileType::Directory if !recursive_ingestion => {
-                return Err(ImportError::FlatImportOfNonFile(path))?
+                return Err(ImportError::FlatImportOfNonFile(path))?;
             }
 
             // do the filtered ingest
@@ -224,7 +224,7 @@ mod import_builtins {
                         std::io::ErrorKind::Unsupported,
                         "unsupported file type",
                     )),
-                })
+                });
             }
         };
 
@@ -314,7 +314,7 @@ mod import_builtins {
                 return Err(ErrorKind::TypeError {
                     expected: "string or path",
                     actual: path.type_of(),
-                })
+                });
             }
         };
 

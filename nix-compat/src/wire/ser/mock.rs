@@ -367,7 +367,7 @@ mod proptest {
     use std::io;
 
     use proptest::{
-        prelude::{any, Arbitrary, BoxedStrategy, Just, Strategy},
+        prelude::{Arbitrary, BoxedStrategy, Just, Strategy, any},
         prop_oneof,
     };
 
@@ -487,15 +487,15 @@ mod proptest {
 #[cfg(test)]
 mod test {
     use hex_literal::hex;
-    use proptest::prelude::any;
     use proptest::prelude::TestCaseError;
+    use proptest::prelude::any;
     use proptest::proptest;
 
-    use crate::wire::ser::mock::proptest::arb_extra_write;
-    use crate::wire::ser::mock::Operation;
-    use crate::wire::ser::mock::OperationType;
     use crate::wire::ser::Error as _;
     use crate::wire::ser::NixWrite;
+    use crate::wire::ser::mock::Operation;
+    use crate::wire::ser::mock::OperationType;
+    use crate::wire::ser::mock::proptest::arb_extra_write;
 
     use super::{Builder, Error};
 

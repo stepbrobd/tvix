@@ -1,8 +1,8 @@
 use std::fmt;
 
 use nix_compat::wire::ser::{
-    mock::{Builder, Error},
     NixWrite as _,
+    mock::{Builder, Error},
 };
 use nix_compat_derive::NixSerialize;
 

@@ -1,8 +1,8 @@
 use super::parse_error::ErrorKind;
+use crate::derivation::Derivation;
 use crate::derivation::output::Output;
 use crate::derivation::parse_error::NomError;
 use crate::derivation::parser::Error;
-use crate::derivation::Derivation;
 use crate::store_path::StorePath;
 use bstr::{BStr, BString};
 use hex_literal::hex;

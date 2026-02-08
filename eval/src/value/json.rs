@@ -4,13 +4,13 @@
 /// as there is internal Nix logic that must happen within the
 /// serialisation methods.
 use super::{CoercionKind, Value};
+use crate::NixContext;
 use crate::errors::ErrorKind;
 use crate::generators::{self, GenCo};
-use crate::NixContext;
 
 use bstr::ByteSlice;
-use serde_json::value::to_value;
 use serde_json::Value as Json; // name clash with *our* `Value`
+use serde_json::value::to_value;
 use serde_json::{Map, Number};
 
 impl Value {
@@ -110,7 +110,7 @@ impl Value {
             | val @ Value::DeferredUpvalue(_)
             | val @ Value::UnresolvedPath(_)
             | val @ Value::FinaliseRequest(_) => {
-                return Err(ErrorKind::NotSerialisableToJson(val.type_of()))
+                return Err(ErrorKind::NotSerialisableToJson(val.type_of()));
             }
         };
         Ok((value, context))

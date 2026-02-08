@@ -4,7 +4,7 @@ use std::{
     marker::PhantomData,
     ops::Deref,
     pin::Pin,
-    task::{self, ready, Poll},
+    task::{self, Poll, ready},
 };
 
 use tokio::io::{self, AsyncRead, ReadBuf};
@@ -189,9 +189,11 @@ mod tests {
 
     #[tokio::test]
     async fn no_padding() {
-        assert!(read_trailer::<_, Pad>(io::empty(), 0)
-            .await
-            .unwrap()
-            .is_empty());
+        assert!(
+            read_trailer::<_, Pad>(io::empty(), 0)
+                .await
+                .unwrap()
+                .is_empty()
+        );
     }
 }

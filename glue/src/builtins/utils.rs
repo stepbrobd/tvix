@@ -1,7 +1,7 @@
 use bstr::ByteSlice;
 use tvix_eval::{
-    generators::{self, GenCo},
     CatchableErrorKind, CoercionKind, ErrorKind, NixAttrs, NixString, Value,
+    generators::{self, GenCo},
 };
 
 pub(super) async fn strong_importing_coerce_to_string(

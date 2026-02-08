@@ -3,8 +3,8 @@ use std::convert::Infallible;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use crate::errors::{CatchableErrorKind, ErrorKind};
 use crate::EvalIO;
+use crate::errors::{CatchableErrorKind, ErrorKind};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NixSearchPathEntry {

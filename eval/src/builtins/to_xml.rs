@@ -126,7 +126,7 @@ fn value_variant_to_xml<W: Write>(w: &mut XmlEmitter<W>, value: &Value) -> Resul
             return Err(ErrorKind::TvixBug {
                 msg: "internal value variant encountered in builtins.toXML",
                 metadata: Some(Rc::new(value.clone())),
-            })
+            });
         }
 
         Value::Catchable(_) => {

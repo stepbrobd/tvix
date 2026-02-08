@@ -10,12 +10,12 @@ use genawaiter::rc::Gen;
 use std::rc::Weak;
 
 use crate::{
+    ErrorKind, SourceCode, Value,
     builtins::coerce_value_to_path,
     generators::pin_generator,
     observer::NoOpObserver,
     value::{Builtin, Thunk},
     vm::generators::{self, GenCo},
-    ErrorKind, SourceCode, Value,
 };
 
 async fn import_impl(

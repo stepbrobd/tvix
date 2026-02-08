@@ -2,7 +2,7 @@ use bstr::ByteSlice;
 use data_encoding::HEXLOWER;
 use md5::Md5;
 use sha1::Sha1;
-use sha2::{digest::Output, Digest, Sha256, Sha512};
+use sha2::{Digest, Sha256, Sha512, digest::Output};
 
 use crate::ErrorKind;
 

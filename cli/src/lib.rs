@@ -7,9 +7,9 @@ use smol_str::SmolStr;
 use std::fmt::Write;
 use tracing::instrument;
 use tvix_eval::{
+    ErrorKind, EvalIO, EvalMode, GlobalsMap, SourceCode, Value,
     builtins::impure_builtins,
     observer::{DisassemblingObserver, TracingObserver},
-    ErrorKind, EvalIO, EvalMode, GlobalsMap, SourceCode, Value,
 };
 use tvix_glue::{
     builtins::{add_derivation_builtins, add_import_builtins},

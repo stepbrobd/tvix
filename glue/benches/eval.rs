@@ -1,7 +1,7 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use mimalloc::MiMalloc;
 use std::{env, rc::Rc, time::Duration};
-use tvix_eval::{builtins::impure_builtins, EvalIO};
+use tvix_eval::{EvalIO, builtins::impure_builtins};
 use tvix_glue::{
     builtins::{add_derivation_builtins, add_import_builtins},
     configure_nix_path,

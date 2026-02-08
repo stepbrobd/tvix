@@ -47,14 +47,14 @@ use crate::value::Lambda;
 use crate::vm::run_lambda;
 
 // Re-export the public interface used by other crates.
-pub use crate::compiler::{compile, prepare_globals, CompilationOutput, GlobalsMap};
+pub use crate::compiler::{CompilationOutput, GlobalsMap, compile, prepare_globals};
 pub use crate::errors::{AddContext, CatchableErrorKind, Error, ErrorKind, EvalResult};
 pub use crate::io::{DummyIO, EvalIO, FileType};
 pub use crate::nix_search_path::NixSearchPath;
 pub use crate::pretty_ast::pretty_print_expr;
 pub use crate::source::SourceCode;
 pub use crate::value::{NixContext, NixContextElement};
-pub use crate::vm::{generators, EvalMode};
+pub use crate::vm::{EvalMode, generators};
 pub use crate::warnings::{EvalWarning, WarningKind};
 pub use builtin_macros;
 use smol_str::SmolStr;

@@ -1,12 +1,12 @@
 use quote::ToTokens;
 use syn::meta::ParseNestedMeta;
 use syn::parse::Parse;
-use syn::{parse_quote, Attribute, Expr, ExprLit, ExprPath, Lit, Token};
+use syn::{Attribute, Expr, ExprLit, ExprPath, Lit, Token, parse_quote};
 
-use super::symbol::{
-    Symbol, CRATE, DEFAULT, DISPLAY, FROM, FROM_STR, INTO, NIX, TRY_FROM, TRY_INTO, VERSION,
-};
 use super::Context;
+use super::symbol::{
+    CRATE, DEFAULT, DISPLAY, FROM, FROM_STR, INTO, NIX, Symbol, TRY_FROM, TRY_INTO, VERSION,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Default {
@@ -205,7 +205,7 @@ pub fn parse_lit<T: Parse>(
 
 #[cfg(test)]
 mod test {
-    use syn::{parse_quote, Attribute};
+    use syn::{Attribute, parse_quote};
 
     use crate::internal::Context;
 

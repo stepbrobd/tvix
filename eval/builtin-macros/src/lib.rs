@@ -2,12 +2,12 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::parse::Parse;
 use syn::spanned::Spanned;
 use syn::{
-    parse2, parse_macro_input, parse_quote, parse_quote_spanned, Attribute, FnArg, Ident, Item,
-    ItemMod, LitStr, Meta, Pat, PatIdent, PatType, Token, Type,
+    Attribute, FnArg, Ident, Item, ItemMod, LitStr, Meta, Pat, PatIdent, PatType, Token, Type,
+    parse_macro_input, parse_quote, parse_quote_spanned, parse2,
 };
 
 /// Description of a single argument passed to a builtin
@@ -188,7 +188,9 @@ pub fn builtins(args: TokenStream, item: TokenStream) -> TokenStream {
                     if let Pat::Ident(PatIdent { ident, .. }) = pat.as_ref() {
                         if *ident == "state" {
                             if state_type.is_none() {
-                                panic!("builtin captures a `state` argument, but no state type was defined");
+                                panic!(
+                                    "builtin captures a `state` argument, but no state type was defined"
+                                );
                             }
 
                             captures_state = true;

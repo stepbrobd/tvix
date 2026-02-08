@@ -2,24 +2,24 @@ use std::{future::Future, ops::DerefMut, sync::Arc};
 
 use bytes::Bytes;
 use tokio::{
-    io::{split, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf},
+    io::{AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf, split},
     sync::Mutex,
 };
 use tracing::{debug, warn};
 
 use super::{
+    NixDaemonIO,
     framing::{NixFramedReader, StderrReadFramedReader},
     types::{AddToStoreNarRequest, QueryValidPaths},
-    worker_protocol::{server_handshake_client, ClientSettings, Operation, Trust, STDERR_LAST},
-    NixDaemonIO,
+    worker_protocol::{ClientSettings, Operation, STDERR_LAST, Trust, server_handshake_client},
 };
 
 use crate::{
     store_path::StorePath,
     wire::{
+        ProtocolVersion,
         de::{NixRead, NixReader},
         ser::{NixSerialize, NixWrite, NixWriter, NixWriterBuilder},
-        ProtocolVersion,
     },
 };
 

@@ -1,6 +1,6 @@
 use crate::nixbase32;
 use crate::nixhash::{CAHash, NixHash};
-use crate::store_path::{Error, StorePath, STORE_DIR};
+use crate::store_path::{Error, STORE_DIR, StorePath};
 use data_encoding::HEXLOWER;
 use sha2::{Digest, Sha256};
 use thiserror;

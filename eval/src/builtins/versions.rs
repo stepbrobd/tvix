@@ -1,8 +1,8 @@
 use std::cmp::Ordering;
-use std::iter::{once, Chain, Once};
+use std::iter::{Chain, Once, once};
 use std::ops::RangeInclusive;
 
-use bstr::{BStr, ByteSlice, B};
+use bstr::{B, BStr, ByteSlice};
 
 /// Version strings can be broken up into Parts.
 /// One Part represents either a string of digits or characters.
@@ -97,10 +97,10 @@ impl<'a> Iterator for VersionPartsIter<'a> {
             match cached_part {
                 InternalPart::Break => return None,
                 InternalPart::Number { range } => {
-                    return Some(VersionPart::Number(&self.version[range]))
+                    return Some(VersionPart::Number(&self.version[range]));
                 }
                 InternalPart::Word { range } => {
-                    return Some(VersionPart::Word(&self.version[range]))
+                    return Some(VersionPart::Word(&self.version[range]));
                 }
             }
         }

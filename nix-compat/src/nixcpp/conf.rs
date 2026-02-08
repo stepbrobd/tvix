@@ -172,19 +172,27 @@ mod tests {
                 require_sigs: Some(true),
                 sandbox: Some(SandboxSetting::True),
                 sandbox_fallback: Some(false),
-                substituters: Some(vec!["https://nix-community.cachix.org", "https://cache.nixos.org/"]),
+                substituters: Some(vec![
+                    "https://nix-community.cachix.org",
+                    "https://cache.nixos.org/"
+                ]),
                 system_features: Some(vec!["nixos-test", "benchmark", "big-parallel", "kvm"]),
                 trusted_public_keys: Some(vec![
-                    VerifyingKey::parse("cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=")
-                        .expect("failed to parse pubkey"),
-                    VerifyingKey::parse("nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=")
-                        .expect("failed to parse pubkey")
+                    VerifyingKey::parse(
+                        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+                    )
+                    .expect("failed to parse pubkey"),
+                    VerifyingKey::parse(
+                        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+                    )
+                    .expect("failed to parse pubkey")
                 ]),
                 trusted_substituters: Some(vec![]),
                 trusted_users: Some(vec!["flokli"]),
                 extra_platforms: Some(vec!["aarch64-linux", "i686-linux"]),
                 extra_sandbox_paths: Some(vec![
-                    "/run/binfmt", "/nix/store/swwyxyqpazzvbwx8bv40z7ih144q841f-qemu-aarch64-binfmt-P-x86_64-unknown-linux-musl"
+                    "/run/binfmt",
+                    "/nix/store/swwyxyqpazzvbwx8bv40z7ih144q841f-qemu-aarch64-binfmt-P-x86_64-unknown-linux-musl"
                 ]),
                 experimental_features: Some(vec!["nix-command"]),
                 builders_use_substitutes: Some(true)

@@ -6,10 +6,10 @@ use bstr::BString;
 use nix_compat::derivation::{Derivation, Output};
 use nix_compat::nixhash;
 use nix_compat::store_path::{StorePath, StorePathRef};
-use std::collections::{btree_map, BTreeSet};
+use std::collections::{BTreeSet, btree_map};
 use std::rc::Rc;
 use tvix_eval::builtin_macros::builtins;
-use tvix_eval::generators::{self, emit_warning_kind, GenCo};
+use tvix_eval::generators::{self, GenCo, emit_warning_kind};
 use tvix_eval::{
     AddContext, ErrorKind, NixAttrs, NixContext, NixContextElement, Value, WarningKind,
 };
@@ -144,7 +144,7 @@ fn handle_fixed_output(
                     None | Some("flat") => Some(nixhash::CAHash::Flat(nixhash)),
                     Some("recursive") => Some(nixhash::CAHash::Nar(nixhash)),
                     Some(other) => {
-                        return Err(DerivationError::InvalidOutputHashMode(other.to_string()))?
+                        return Err(DerivationError::InvalidOutputHashMode(other.to_string()))?;
                     }
                 },
             },

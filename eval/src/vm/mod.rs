@@ -19,7 +19,7 @@ use serde_json::json;
 use std::{cmp::Ordering, ops::DerefMut, path::PathBuf, rc::Rc};
 
 use crate::{
-    arithmetic_op,
+    NixString, SourceCode, arithmetic_op,
     chunk::Chunk,
     cmp_op,
     compiler::GlobalsMap,
@@ -36,10 +36,9 @@ use crate::{
     },
     vm::generators::GenCo,
     warnings::{EvalWarning, WarningKind},
-    NixString, SourceCode,
 };
 
-use generators::{call_functor, Generator, GeneratorState};
+use generators::{Generator, GeneratorState, call_functor};
 
 use self::generators::{VMRequest, VMResponse};
 
@@ -642,8 +641,11 @@ impl<'o> VM<'o> {
                             if !finalise {
                                 frame.ip += offset;
                             }
-                        },
-                        val => panic!("Tvix bug: OpJumIfNoFinaliseRequest: expected FinaliseRequest, but got {}", val.type_of()),
+                        }
+                        val => panic!(
+                            "Tvix bug: OpJumIfNoFinaliseRequest: expected FinaliseRequest, but got {}",
+                            val.type_of()
+                        ),
                     }
                 }
 

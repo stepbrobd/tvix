@@ -23,10 +23,10 @@ mod path;
 mod string;
 mod thunk;
 
+use crate::AddContext;
 use crate::errors::{CatchableErrorKind, ErrorKind};
 use crate::opcode::StackIdx;
 use crate::vm::generators::{self, GenCo};
-use crate::AddContext;
 pub use attrs::NixAttrs;
 pub use builtin::{Builtin, BuiltinResult};
 pub(crate) use function::Formals;
@@ -808,7 +808,7 @@ impl Value {
                     return Err(ErrorKind::Incomparable {
                         lhs: lhs.type_of(),
                         rhs: rhs.type_of(),
-                    })
+                    });
                 }
             };
             if result != Ordering::Equal {

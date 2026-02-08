@@ -9,7 +9,7 @@
 
 use std::ops::Index;
 
-use crate::{opcode::UpvalueIdx, Value};
+use crate::{Value, opcode::UpvalueIdx};
 
 /// Structure for carrying upvalues of an UpvalueCarrier.  The
 /// implementation of this struct encapsulates the logic for

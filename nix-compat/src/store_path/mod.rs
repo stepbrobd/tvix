@@ -1,5 +1,5 @@
 use crate::nixbase32;
-use data_encoding::{DecodeError, BASE64};
+use data_encoding::{BASE64, DecodeError};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt,
@@ -341,7 +341,7 @@ mod tests {
     use std::cmp::Ordering;
     use std::path::PathBuf;
 
-    use crate::store_path::{StorePath, StorePathRef, DIGEST_SIZE};
+    use crate::store_path::{DIGEST_SIZE, StorePath, StorePathRef};
     use hex_literal::hex;
     use pretty_assertions::assert_eq;
     use rstest::rstest;

@@ -4,11 +4,11 @@ use std::{
     num::NonZeroU64,
     ops::RangeBounds,
     pin::Pin,
-    task::{self, ready, Poll},
+    task::{self, Poll, ready},
 };
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncReadExt, ReadBuf};
 
-use trailer::{read_trailer, ReadTrailer, Trailer};
+use trailer::{ReadTrailer, Trailer, read_trailer};
 
 #[doc(hidden)]
 pub use self::trailer::Pad;

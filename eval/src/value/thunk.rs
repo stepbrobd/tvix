@@ -26,12 +26,12 @@ use std::{
 };
 
 use crate::{
+    Value,
     errors::ErrorKind,
     opcode::Op,
     upvalues::Upvalues,
     value::Closure,
     vm::generators::{self, GenCo},
-    Value,
 };
 
 use super::{Lambda, TotalDisplay};
@@ -241,7 +241,7 @@ impl Thunk {
                         first_force: forced_at,
                         suspended_at,
                         content_span,
-                    })
+                    });
                 }
 
                 // If there is a native function stored in the thunk, evaluate it

@@ -4,9 +4,9 @@ use std::rc::Rc;
 
 use serde::Deserialize;
 
-use super::thunk::ThunkSet;
 use super::TotalDisplay;
 use super::Value;
+use super::thunk::ThunkSet;
 
 #[repr(transparent)]
 #[derive(Clone, Debug, Deserialize)]

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
-use nix_compat::wire::de::mock::{Builder, Error};
 use nix_compat::wire::de::NixRead;
+use nix_compat::wire::de::mock::{Builder, Error};
 use nix_compat_derive::NixDeserialize;
 
 #[derive(Debug, PartialEq, Eq, NixDeserialize)]

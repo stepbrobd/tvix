@@ -7,11 +7,10 @@ use std::{
 };
 
 use crate::{
-    self as tvix_eval,
+    self as tvix_eval, NixString, Value,
     errors::ErrorKind,
     value::NixAttrs,
     vm::generators::{self, GenCo},
-    NixString, Value,
 };
 
 #[builtins]

@@ -4,7 +4,7 @@
 //! printed in either minimised or well-formatted style.
 
 use rnix::ast::{self, AstToken, HasEntry};
-use serde::{ser::SerializeMap, Serialize, Serializer};
+use serde::{Serialize, Serializer, ser::SerializeMap};
 
 pub fn pretty_print_expr(expr: &ast::Expr) -> String {
     serde_json::ser::to_string_pretty(&SerializeAST(expr))

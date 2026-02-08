@@ -26,6 +26,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::rc::{Rc, Weak};
 
+use crate::CoercionKind;
+use crate::SourceCode;
 use crate::chunk::Chunk;
 use crate::errors::{CatchableErrorKind, Error, ErrorKind, EvalResult};
 use crate::observer::CompilerObserver;
@@ -33,8 +35,6 @@ use crate::opcode::{CodeIdx, Op, Position, UpvalueIdx};
 use crate::spans::ToSpan;
 use crate::value::{Closure, Formals, Lambda, NixAttrs, Thunk, Value};
 use crate::warnings::{EvalWarning, WarningKind};
-use crate::CoercionKind;
-use crate::SourceCode;
 
 use self::scope::{LocalIdx, LocalPosition, Scope, Upvalue, UpvalueKind};
 
@@ -1141,16 +1141,20 @@ impl Compiler<'_, '_> {
             if self.scope()[tracked_formal.local_idx()].needs_finaliser {
                 let stack_idx = self.scope().stack_index(tracked_formal.local_idx());
                 match tracked_formal {
-                    TrackedFormal::NoDefault { .. } =>
-                        panic!("Tvix bug: local for pattern formal needs finaliser, but has no default expr"),
-                    TrackedFormal::WithDefault { finalise_request_idx, .. } => {
-                        let finalise_request_stack_idx = self.scope().stack_index(*finalise_request_idx);
+                    TrackedFormal::NoDefault { .. } => panic!(
+                        "Tvix bug: local for pattern formal needs finaliser, but has no default expr"
+                    ),
+                    TrackedFormal::WithDefault {
+                        finalise_request_idx,
+                        ..
+                    } => {
+                        let finalise_request_stack_idx =
+                            self.scope().stack_index(*finalise_request_idx);
 
                         // TODO(sterni): better spans
                         self.push_op(Op::GetLocal, pattern);
                         self.push_uvarint(finalise_request_stack_idx.0 as u64);
-                        let jump_over_finalise =
-                            self.push_op(Op::JumpIfNoFinaliseRequest, pattern);
+                        let jump_over_finalise = self.push_op(Op::JumpIfNoFinaliseRequest, pattern);
                         self.push_u16(0);
                         self.push_op(Op::Finalise, pattern);
                         self.push_uvarint(stack_idx.0 as u64);

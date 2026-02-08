@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 use std::{io, str};
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use mimalloc::MiMalloc;
 use nix_compat::narinfo::NarInfo;
 

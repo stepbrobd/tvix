@@ -13,10 +13,10 @@ pub use genawaiter::rc::Gen;
 use std::fmt::Display;
 use std::future::Future;
 
-use crate::value::PointerEquality;
-use crate::warnings::{EvalWarning, WarningKind};
 use crate::FileType;
 use crate::NixString;
+use crate::value::PointerEquality;
+use crate::warnings::{EvalWarning, WarningKind};
 
 use super::*;
 
@@ -243,7 +243,7 @@ impl VM<'_> {
     }
 
     /// Helper function to enqueue a new generator.
-    pub(super) fn enqueue_generator<F, G>(&mut self, name: &'static str, span: Span, gen: G)
+    pub(super) fn enqueue_generator<F, G>(&mut self, name: &'static str, span: Span, generator: G)
     where
         F: Future<Output = Result<Value, ErrorKind>> + 'static,
         G: FnOnce(GenCo) -> F,
@@ -252,7 +252,7 @@ impl VM<'_> {
             name,
             span,
             state: GeneratorState::Running,
-            generator: Gen::new(|co| pin_generator(gen(co))),
+            generator: Gen::new(|co| pin_generator(generator(co))),
         });
     }
 

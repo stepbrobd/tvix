@@ -47,7 +47,7 @@ pub(crate) fn fetchurl_derivation_to_fetch(drv: &Derivation) -> Result<(String, 
                     url,
                     exp_hash: Some(hash),
                 },
-            ))
+            ));
         }
         CAHash::Nar(hash) => {
             if drv.environment.get("executable").map(|v| v.as_slice()) == Some(b"1") {

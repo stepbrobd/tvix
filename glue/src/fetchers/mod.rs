@@ -6,18 +6,18 @@
  */
 
 use futures::TryStreamExt;
-use md5::{digest::DynDigest, Md5};
+use md5::{Md5, digest::DynDigest};
 use nix_compat::{
     nixhash::{CAHash, HashAlgo, NixHash},
-    store_path::{build_ca_path, BuildStorePathError, StorePathRef},
+    store_path::{BuildStorePathError, StorePathRef, build_ca_path},
 };
 use sha1::Sha1;
-use sha2::{digest::Output, Digest, Sha256, Sha512};
+use sha2::{Digest, Sha256, Sha512, digest::Output};
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio_util::io::{InspectReader, InspectWriter};
-use tracing::{instrument, warn, Span};
+use tracing::{Span, instrument, warn};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
-use tvix_castore::{blobservice::BlobService, directoryservice::DirectoryService, Node};
+use tvix_castore::{Node, blobservice::BlobService, directoryservice::DirectoryService};
 use tvix_store::{
     nar::{NarCalculationService, NarIngestionError},
     pathinfoservice::{PathInfo, PathInfoService},

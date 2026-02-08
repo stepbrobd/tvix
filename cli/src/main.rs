@@ -4,9 +4,9 @@ use std::rc::Rc;
 use std::{fs, path::PathBuf};
 use tvix_cli::args::Args;
 use tvix_cli::repl::Repl;
-use tvix_cli::{init_io_handle, interpret, AllowIncomplete};
-use tvix_eval::observer::DisassemblingObserver;
+use tvix_cli::{AllowIncomplete, init_io_handle, interpret};
 use tvix_eval::EvalMode;
+use tvix_eval::observer::DisassemblingObserver;
 use tvix_glue::tvix_store_io::TvixStoreIO;
 
 #[global_allocator]

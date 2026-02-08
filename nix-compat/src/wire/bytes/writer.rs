@@ -1,9 +1,9 @@
 use pin_project_lite::pin_project;
-use std::task::{ready, Poll};
+use std::task::{Poll, ready};
 
 use tokio::io::AsyncWrite;
 
-use super::{padding_len, EMPTY_BYTES, LEN_SIZE};
+use super::{EMPTY_BYTES, LEN_SIZE, padding_len};
 
 pin_project! {
     /// Writes a "bytes wire packet" to the underlying writer.
@@ -102,10 +102,9 @@ where
                 BytesPacketPosition::Size(pos) => {
                     let size_field = &this.payload_len.to_le_bytes();
 
-                    let bytes_written = ensure_nonzero_bytes_written(ready!(this
-                        .inner
-                        .as_mut()
-                        .poll_write(cx, &size_field[pos..]))?)?;
+                    let bytes_written = ensure_nonzero_bytes_written(ready!(
+                        this.inner.as_mut().poll_write(cx, &size_field[pos..])
+                    )?)?;
 
                     let new_pos = pos + bytes_written;
                     if new_pos == LEN_SIZE {
@@ -138,7 +137,7 @@ where
                     return Poll::Ready(Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidData,
                         "tried to write excess bytes",
-                    )))
+                    )));
                 }
             }
         }
@@ -156,10 +155,9 @@ where
                 BytesPacketPosition::Size(pos) => {
                     // More bytes to write in the size field
                     let size_field = &this.payload_len.to_le_bytes()[..];
-                    let bytes_written = ensure_nonzero_bytes_written(ready!(this
-                        .inner
-                        .as_mut()
-                        .poll_write(cx, &size_field[pos..]))?)?;
+                    let bytes_written = ensure_nonzero_bytes_written(ready!(
+                        this.inner.as_mut().poll_write(cx, &size_field[pos..])
+                    )?)?;
                     let new_pos = pos + bytes_written;
                     if new_pos == LEN_SIZE {
                         // Size field written, now ready to receive payload
@@ -184,10 +182,11 @@ where
                     let total_padding_len = padding_len(*this.payload_len) as usize;
 
                     if pos != total_padding_len {
-                        let bytes_written = ensure_nonzero_bytes_written(ready!(this
-                            .inner
-                            .as_mut()
-                            .poll_write(cx, &EMPTY_BYTES[pos..total_padding_len]))?)?;
+                        let bytes_written = ensure_nonzero_bytes_written(ready!(
+                            this.inner
+                                .as_mut()
+                                .poll_write(cx, &EMPTY_BYTES[pos..total_padding_len])
+                        )?)?;
                         *this.state = BytesPacketPosition::Padding(pos + bytes_written);
                     } else {
                         // everything written, break

@@ -7,15 +7,15 @@ use std::rc::Rc;
 
 use itertools::Itertools as _;
 use rustc_hash::FxHashMap;
-use serde::de::{Deserializer, Error, Visitor};
 use serde::Deserialize;
+use serde::de::{Deserializer, Error, Visitor};
 
-use super::string::NixString;
-use super::thunk::ThunkSet;
 use super::TotalDisplay;
 use super::Value;
-use crate::errors::ErrorKind;
+use super::string::NixString;
+use super::thunk::ThunkSet;
 use crate::CatchableErrorKind;
+use crate::errors::ErrorKind;
 
 #[cfg(test)]
 mod tests;

@@ -1,5 +1,5 @@
 use crate::store_path::{
-    self, build_ca_path, build_output_path, build_text_path, StorePath, StorePathRef,
+    self, StorePath, StorePathRef, build_ca_path, build_output_path, build_text_path,
 };
 use bstr::BString;
 use serde::{Deserialize, Serialize};

@@ -9,7 +9,7 @@ use rnix::ast;
 use rustc_hash::FxHashSet;
 use rustc_hash::FxHasher;
 use std::alloc::dealloc;
-use std::alloc::{alloc, handle_alloc_error, Layout};
+use std::alloc::{Layout, alloc, handle_alloc_error};
 use std::borrow::{Borrow, Cow};
 use std::cell::RefCell;
 use std::ffi::c_void;
@@ -19,8 +19,8 @@ use std::ops::Deref;
 use std::ptr::{self, NonNull};
 use std::slice;
 
-use serde::de::{Deserializer, Visitor};
 use serde::Deserialize;
+use serde::de::{Deserializer, Visitor};
 
 mod context;
 
@@ -549,7 +549,7 @@ impl Deref for NixString {
 #[cfg(feature = "arbitrary")]
 mod arbitrary {
     use super::*;
-    use proptest::prelude::{any_with, Arbitrary};
+    use proptest::prelude::{Arbitrary, any_with};
     use proptest::strategy::{BoxedStrategy, Strategy};
 
     impl Arbitrary for NixString {

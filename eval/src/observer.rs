@@ -11,12 +11,12 @@ use std::rc::Rc;
 use std::time::Instant;
 use tabwriter::TabWriter;
 
+use crate::SourceCode;
+use crate::Value;
 use crate::chunk::Chunk;
 use crate::generators::VMRequest;
 use crate::opcode::{CodeIdx, Op};
 use crate::value::Lambda;
-use crate::SourceCode;
-use crate::Value;
 
 /// Implemented by types that wish to observe internal happenings of
 /// the Tvix compiler.

@@ -29,10 +29,10 @@ use std::path::{Path, PathBuf};
 use nix_compat::{
     nar,
     nixhash::{CAHash, NixHash},
-    store_path::{build_ca_path, StorePath},
+    store_path::{StorePath, build_ca_path},
 };
 use sha2::{Digest, Sha256};
-use tvix_eval::{builtin_macros::builtins, ErrorKind, EvalIO, FileType, StdIO, Value};
+use tvix_eval::{ErrorKind, EvalIO, FileType, StdIO, Value, builtin_macros::builtins};
 
 pub struct SimulatedStoreIO {
     store_dir: String,
@@ -401,9 +401,11 @@ mod tests {
         let imported = store_io
             .import_path(Path::new("./test-data/q.txt"))
             .expect("importing test data should succeed");
-        assert!(store_io
-            .path_exists(&imported)
-            .expect("imported path should be forwarded"));
+        assert!(
+            store_io
+                .path_exists(&imported)
+                .expect("imported path should be forwarded")
+        );
     }
 
     #[test]
@@ -412,9 +414,11 @@ mod tests {
         let imported = store_io
             .import_path(Path::new("./test-data"))
             .expect("importing test data should succeed");
-        assert!(store_io
-            .path_exists(&imported.join("q.txt"))
-            .expect("imported path should be forwarded"));
+        assert!(
+            store_io
+                .path_exists(&imported.join("q.txt"))
+                .expect("imported path should be forwarded")
+        );
     }
 
     #[test]

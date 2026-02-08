@@ -6,7 +6,7 @@
 use crate::aterm::escape_bytes;
 use crate::derivation::{ca_kind_prefix, output::Output};
 use crate::nixbase32;
-use crate::store_path::{StorePath, STORE_DIR_WITH_SLASH};
+use crate::store_path::{STORE_DIR_WITH_SLASH, StorePath};
 use bstr::BString;
 use data_encoding::HEXLOWER;
 

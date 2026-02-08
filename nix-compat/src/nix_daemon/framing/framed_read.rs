@@ -1,7 +1,7 @@
 use std::{
     io::Result,
     pin::Pin,
-    task::{ready, Poll},
+    task::{Poll, ready},
 };
 
 use pin_project_lite::pin_project;

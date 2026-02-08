@@ -81,7 +81,7 @@ mod tests {
 
     use crate::{nix_daemon::types::QueryValidPaths, store_path::StorePath};
 
-    use super::{types::UnkeyedValidPathInfo, NixDaemonIO};
+    use super::{NixDaemonIO, types::UnkeyedValidPathInfo};
 
     // Very simple mock
     // Unable to use mockall as it does not support unboxed async traits.

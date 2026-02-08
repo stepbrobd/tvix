@@ -68,7 +68,7 @@ impl ListingEntry {
             match component {
                 Component::CurDir => continue,
                 Component::RootDir | Component::Prefix(_) | Component::ParentDir => {
-                    return Err(ListingError::UnsupportedPathComponent)
+                    return Err(ListingError::UnsupportedPathComponent);
                 }
                 Component::Normal(file_or_dir_name) => {
                     if let Self::Directory { entries } = cur {
