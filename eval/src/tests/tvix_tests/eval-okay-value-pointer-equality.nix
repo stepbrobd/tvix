@@ -10,6 +10,8 @@ let
   t' = t;
   a' = a;
 
+  # For behavior without encapsulation, see eval-okay-lix-value-pointer-equality.nix
+  # and eval-okay-cppnix-value-pointer-equality-encapsulation.nix
   peq1 = a: b: [ a ] == [ b ];
   peq2 = a: b: { x = a; } == { x = b; };
 in
@@ -21,9 +23,6 @@ in
   (peq1 f f')
   (peq2 f f')
 
-  # encapsulation is necessary for pointer equality
-  (f == f)
-  (f == f')
   # works with !=
   ([ f ] != [ f' ])
 

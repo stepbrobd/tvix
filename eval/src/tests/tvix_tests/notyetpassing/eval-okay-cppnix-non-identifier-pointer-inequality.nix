@@ -7,6 +7,8 @@
 # Since pointer equality is established via the location of
 # the latter, not the former, the values are no longer equal
 # by pointer.
+#
+# Note that all these equalities hold with Lix >= 2.94 (as of 2026-05-17).
 let
   foo = { bar = x: x; };
 
@@ -21,6 +23,7 @@ in
   ({ inherit (builtins) import; } == { inherit (builtins) import; })
 
   ([ (id id) ] == [ (id id) ])
+  # Only equality to hold with C++ Nix
   ([ id ] == [ id ])
 
   (with foo; [ bar ] == [ bar ])
