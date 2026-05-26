@@ -374,7 +374,7 @@ pub(crate) mod derivation_builtins {
                         }
 
                         let (val_json, context) = val.into_contextful_json(&co).await?;
-                        input_context.extend(context.into_iter());
+                        input_context.extend(context);
 
                         // No need to check for dups, we only iterate over every attribute name once
                         structured_attrs.insert(arg_name.to_owned(), val_json);

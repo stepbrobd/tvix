@@ -341,7 +341,7 @@ impl Value {
                 // coercions that are always done
                 (Value::String(mut s), _) => {
                     if let Some(ctx) = s.take_context() {
-                        context.extend(ctx.into_iter());
+                        context.extend(*ctx);
                     }
                     Ok((*s).into())
                 }
@@ -641,13 +641,9 @@ impl Value {
                 (Value::Attrs(_), _) | (_, Value::Attrs(_)) => return Ok(Value::Bool(false)),
 
                 (Value::Closure(c1), Value::Closure(c2))
-                    if ptr_eq >= PointerEquality::AllowNested =>
+                    if ptr_eq >= PointerEquality::AllowNested && Rc::ptr_eq(&c1, &c2) =>
                 {
-                    if Rc::ptr_eq(&c1, &c2) {
-                        continue;
-                    } else {
-                        return Ok(Value::Bool(false));
-                    }
+                    continue;
                 }
 
                 // Everything else is either incomparable (e.g. internal types) or

@@ -17,20 +17,17 @@ mod mock_builtins {
     #[builtin("derivation")]
     async fn builtin_derivation(co: GenCo, input: Value) -> Result<Value, ErrorKind> {
         let input = input.to_attrs()?;
-        let attrs = input.update(NixAttrs::from_iter(
-            [
-                (
-                    "outPath",
-                    "/nix/store/00000000000000000000000000000000-mock",
-                ),
-                (
-                    "drvPath",
-                    "/nix/store/00000000000000000000000000000000-mock.drv",
-                ),
-                ("type", "derivation"),
-            ]
-            .into_iter(),
-        ));
+        let attrs = input.update(NixAttrs::from_iter([
+            (
+                "outPath",
+                "/nix/store/00000000000000000000000000000000-mock",
+            ),
+            (
+                "drvPath",
+                "/nix/store/00000000000000000000000000000000-mock.drv",
+            ),
+            ("type", "derivation"),
+        ]));
 
         Ok(Value::Attrs(Box::new(attrs)))
     }

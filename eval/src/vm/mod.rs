@@ -1045,7 +1045,7 @@ impl VM<'_> {
             let mut nix_string = val.to_contextful_str().with_span(frame, self)?;
             out.push_str(nix_string.as_bstr());
             if let Some(nix_string_ctx) = nix_string.take_context() {
-                context.extend(nix_string_ctx.into_iter())
+                context.extend(*nix_string_ctx)
             }
         }
 

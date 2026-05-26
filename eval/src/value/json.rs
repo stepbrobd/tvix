@@ -44,7 +44,7 @@ impl Value {
 
                 for val in l.into_iter() {
                     let (json_item, ctx) = Box::pin(val.into_contextful_json(co)).await?;
-                    context.extend(ctx.into_iter());
+                    context.extend(ctx);
                     out.push(json_item);
                 }
 
@@ -86,14 +86,14 @@ impl Value {
                 if let Some(out_path) = attrs.select_str("outPath") {
                     let (json_out_path, ctx) =
                         Box::pin(out_path.clone().into_contextful_json(co)).await?;
-                    context.extend(ctx.into_iter());
+                    context.extend(ctx);
                     return Ok((json_out_path, context));
                 }
 
                 let mut out = Map::with_capacity(attrs.len());
                 for (name, value) in attrs.into_iter_sorted() {
                     let (json_value, ctx) = Box::pin(value.into_contextful_json(co)).await?;
-                    context.extend(ctx.into_iter());
+                    context.extend(ctx);
                     out.insert(name.to_str()?.to_owned(), json_value);
                 }
 
